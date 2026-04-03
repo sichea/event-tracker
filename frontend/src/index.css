@@ -804,3 +804,11 @@ body::before {
   font-size: 0.95rem;
   font-weight: 500;
 }
+
+:root {
+  --accent-rise: #EAB308;
+  --gradient-rise: linear-gradient(135deg, #EAB308, #FDE047);
+}
+.filter-tab--active[data-provider="RISE"] { border-color: var(--accent-rise); color: var(--accent-rise); background: rgba(234, 179, 8, 0.08); }
+.event-card__accent--RISE { background: var(--gradient-rise); }
+.event-card__provider--RISE { background: rgba(234, 179, 8, 0.12); color: var(--accent-rise); }

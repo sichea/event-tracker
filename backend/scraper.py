@@ -40,6 +40,12 @@ PROVIDERS = {
         "url": "https://m.blog.naver.com/soletf",
         "color": "#7B2FFF",
     },
+    "RISE": {
+        "name": "RISE",
+        "full_name": "KB RISE ETF",
+        "url": "https://www.riseetf.co.kr/cust/event",
+        "color": "#EAB308",
+    },
 }
 
 
@@ -419,6 +425,68 @@ async def scrape_sol(page) -> list[dict]:
     return events
 
 
+async def scrape_rise(page) -> list[dict]:
+    """RISE ETF 이벤트 페이지 스크래핑"""
+    events = []
+    try:
+        rise_url = PROVIDERS["RISE"]["url"]
+        import requests
+        from bs4 import BeautifulSoup
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        
+        resp = requests.get(rise_url, verify=False, timeout=10)
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        
+        items = soup.find_all('a', href=lambda h: h and '/cust/event/' in h)
+        for item in items:
+            href = item.get('href', '')
+            if 'page=' in href:
+                href = href.split('?')[0]
+                
+            full_link = f"https://www.riseetf.co.kr{href}"
+            
+            txt_area = item.find('div', class_='txt-area')
+            if not txt_area:
+                continue
+                
+            title_tag = txt_area.find('p', class_='tit')
+            title = title_tag.get_text(separator=' ', strip=True) if title_tag else "제목 없음"
+            
+            date_span = txt_area.find('span', class_='num')
+            date_text = date_span.get_text(strip=True) if date_span else ""
+            
+            start_date = None
+            end_date = None
+            if '~' in date_text:
+                parts = date_text.split('~')
+                start_date = parts[0].strip().replace('.', '-')
+                end_date = parts[1].strip().replace('.', '-')
+            elif date_text:
+                end_date = date_text.strip().replace('.', '-')
+                
+            d_day = _calc_dday(end_date)
+            status = "진행중"
+            if d_day is not None and d_day < 0:
+                status = "종료"
+                
+            events.append({
+                "id": generate_event_id("RISE", title),
+                "provider": "RISE",
+                "title": title,
+                "start_date": start_date,
+                "end_date": end_date,
+                "d_day": d_day,
+                "status": status,
+                "link": full_link,
+                "scraped_at": datetime.now().isoformat(),
+            })
+    except Exception as e:
+        print(f"[RISE] 스크래핑 실패: {e}")
+
+    return events
+
+
 async def scrape_all() -> list[dict]:
     """모든 운용사의 이벤트를 수집합니다."""
     from playwright.async_api import async_playwright
@@ -438,6 +506,7 @@ async def scrape_all() -> list[dict]:
             ("KODEX", scrape_kodex),
             ("ACE", scrape_ace),
             ("SOL", scrape_sol),
+            ("RISE", scrape_rise),
         ]
 
         for name, scraper in scrapers:

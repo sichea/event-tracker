@@ -13,6 +13,7 @@ const PROVIDERS = [
   { key: "KODEX", label: "KODEX", color: "#3B82F6" },
   { key: "ACE", label: "ACE", color: "#10B981" },
   { key: "SOL", label: "SOL", color: "#8B5CF6" },
+  { key: "RISE", label: "RISE", color: "#EAB308" },
 ];
 
 const korAuthLocalization = {
