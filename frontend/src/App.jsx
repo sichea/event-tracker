@@ -392,8 +392,8 @@ export default function App() {
           </button>
         ))}
         <span className="filter-separator" />
-        <button className={`filter-tab filter-tab--status ${selectedStatus === "진행중" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus(selectedStatus === "진행중" ? null : "진행중")}>🟢 진행중</button>
         <button className={`filter-tab filter-tab--status ${selectedStatus === "기타" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus(selectedStatus === "기타" ? null : "기타")}>📢 안내/발표</button>
+        <button className={`filter-tab filter-tab--status ${selectedStatus === "진행중" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus(selectedStatus === "진행중" ? null : "진행중")}>🟢 진행중</button>
         <button className={`filter-tab filter-tab--status ${selectedStatus === "종료" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus(selectedStatus === "종료" ? null : "종료")}>🔴 종료</button>
       </div>
 
