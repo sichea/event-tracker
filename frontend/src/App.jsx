@@ -325,17 +325,17 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
+      <header className="header">
+        <div className="header__title-area">
           <h1 className="header__title">📊 ETF Event Tracker</h1>
-          <p className="header__subtitle">TIGER · KODEX · ACE · SOL — 이벤트를 한눈에</p>
+          <p className="header__subtitle">TIGER · KODEX · ACE · SOL · RISE — 이벤트를 한눈에</p>
           {events.length > 0 && events[0]?.scraped_at && (
-            <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+            <p className="header__last-updated">
               🔄 최근 수집: {new Date(events[0].scraped_at).toLocaleString("ko-KR")}
             </p>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="header__actions">
           <button 
             onClick={() => setShowSettings(!showSettings)}
             style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #38bdf8', color: '#e0f2fe', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}

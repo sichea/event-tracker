@@ -112,9 +112,17 @@ body::before {
    Header
    ============================================ */
 .header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   padding: 40px 0 32px;
   position: relative;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header__title-area {
+  flex: 1;
 }
 
 .header__title {
@@ -134,12 +142,16 @@ body::before {
   font-weight: 400;
 }
 
+.header__last-updated {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.5rem;
+}
+
 .header__actions {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 24px;
+  gap: 8px;
 }
 
 /* ============================================
@@ -705,6 +717,18 @@ body::before {
     padding: 16px 12px 40px;
   }
 
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    padding: 24px 0 24px;
+    gap: 12px;
+  }
+
+  .header__actions {
+    justify-content: flex-start;
+  }
+
   .header__title {
     font-size: 1.5rem;
   }
@@ -757,7 +781,8 @@ body::before {
 
 .event-card__accounts {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 1rem;
   padding-top: 1rem;
@@ -765,11 +790,11 @@ body::before {
 }
 
 .event-card__checkbox-container {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: rgba(15, 23, 42, 0.5);
   border-radius: 8px;
   border: 1px solid transparent;
