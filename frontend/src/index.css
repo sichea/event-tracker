@@ -371,8 +371,7 @@ body::before {
 
 .event-card {
   display: grid;
-  grid-template-columns: 4px 1fr auto;
-  align-items: center;
+  grid-template-columns: 4px 1fr;
   background: var(--bg-glass);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
@@ -411,8 +410,8 @@ body::before {
 
 .event-card__accent {
   width: 4px;
-  height: 100%;
   min-height: 80px;
+  grid-row: 1 / -1;
 }
 
 .event-card__accent--TIGER { background: var(--gradient-tiger); }
@@ -763,6 +762,24 @@ body::before {
   .event-card__title {
     font-size: 0.875rem;
   }
+
+  .event-card__accounts {
+    padding: 10px 14px 14px;
+  }
+
+  .event-card__checkbox-container {
+    padding: 5px 8px;
+    gap: 6px;
+  }
+
+  .event-card__alias-name {
+    font-size: 0.8rem;
+  }
+
+  .event-card__checkbox-container input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -780,25 +797,27 @@ body::before {
 }
 
 .event-card__accounts {
+  grid-column: 2;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 1rem;
-  padding-top: 1rem;
+  padding: 0 20px 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 12px;
 }
 
 .event-card__checkbox-container {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  padding: 6px 10px;
+  padding: 5px 10px;
   background: rgba(15, 23, 42, 0.5);
-  border-radius: 8px;
+  border-radius: 20px;
   border: 1px solid transparent;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .event-card__checkbox-container:hover {
@@ -807,15 +826,16 @@ body::before {
 }
 
 .event-card__checkbox-container:has(input:checked) {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.4);
 }
 
 .event-card__checkbox-container input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   accent-color: #22c55e;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .event-card__checkbox-container input[type="checkbox"]:disabled {
@@ -826,8 +846,9 @@ body::before {
 
 .event-card__alias-name {
   color: #e2e8f0;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 :root {
