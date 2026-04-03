@@ -185,7 +185,7 @@ export default function App() {
       // 순차/병렬 로드
       const [fetchedAliases, eventsData] = await Promise.all([
         fetchAliases(session.user.id),
-        fetchEvents(session.user.id, selectedProvider, selectedStatus)
+        fetchEvents(session.user.id)
       ]);
       setAliases(fetchedAliases || []);
       setEvents(eventsData.events || []);
@@ -276,8 +276,32 @@ export default function App() {
     );
   }
 
+  // 헬퍼: 이벤트가 "기타(발표/세미나)"인지 판별
+  const isMiscEvent = (e) => {
+    if (!e.start_date && !e.end_date) return true;
+    if (e.title.includes("당첨") || e.title.includes("세미나") || e.title.includes("휴장")) return true;
+    return false;
+  };
+
   // [UI렌더링 영역 - 로그인 후]
-  const activeEvents = events.filter((e) => e.status === "진행중");
+  const activeEvents = events.filter((e) => e.status === "진행중" && !isMiscEvent(e));
+  const miscEvents = events.filter((e) => e.status === "진행중" && isMiscEvent(e));
+
+  // 프론트엔드 필터링 적용
+  let displayEvents = events.filter(e => {
+    if (selectedProvider && e.provider !== selectedProvider) return false;
+    
+    const isMisc = isMiscEvent(e);
+    if (selectedStatus === "진행중") {
+      if (e.status !== "진행중" || isMisc) return false;
+    } else if (selectedStatus === "기타") {
+      if (!isMisc) return false;
+    } else if (selectedStatus === "종료") {
+      if (e.status !== "종료") return false;
+    }
+    
+    return true;
+  });
   
   // 통계 계산: 모든 체크된 이벤트의 수 (이벤트 수 × 계좌 수는 아님)
   let totalChecks = 0;
@@ -369,12 +393,13 @@ export default function App() {
         ))}
         <span className="filter-separator" />
         <button className={`filter-tab filter-tab--status ${selectedStatus === "진행중" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus(selectedStatus === "진행중" ? null : "진행중")}>🟢 진행중</button>
+        <button className={`filter-tab filter-tab--status ${selectedStatus === "기타" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus(selectedStatus === "기타" ? null : "기타")}>📢 안내/발표</button>
         <button className={`filter-tab filter-tab--status ${selectedStatus === "종료" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus(selectedStatus === "종료" ? null : "종료")}>🔴 종료</button>
       </div>
 
-      {events.length > 0 ? (
+      {displayEvents.length > 0 ? (
         <div className="events-grid">
-          {events.map((event, idx) => (
+          {displayEvents.map((event, idx) => (
             <EventCard key={event.id || idx} event={event} aliases={aliases} onToggle={handleToggle} />
           ))}
         </div>

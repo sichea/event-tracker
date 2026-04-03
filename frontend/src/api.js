@@ -1,14 +1,8 @@
 import { supabase } from './supabaseClient';
 
-// --- (기존 events 로직은 유지하되, alias_id가 포함된 상태로 조회될 것임) ---
-
-export async function fetchEvents(userId, provider = null, status = null) {
-  let query = supabase.from('events').select('*');
-  
-  if (provider) query = query.eq('provider', provider);
-  if (status) query = query.eq('status', status);
-  
-  query = query.order('end_date', { ascending: false, nullsFirst: false });
+// 모든 이벤트를 가져옵니다 (필터링은 프론트엔드에서 처리)
+export async function fetchEvents(userId) {
+  let query = supabase.from('events').select('*').order('end_date', { ascending: false, nullsFirst: false });
   
   const { data: events, error } = await query;
   if (error) throw error;
