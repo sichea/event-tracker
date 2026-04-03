@@ -202,7 +202,7 @@ async def scrape_kodex(page) -> list[dict]:
     events = []
     try:
         kodex_url = PROVIDERS["KODEX"]["url"]
-        await page.goto(kodex_url, wait_until="networkidle", timeout=30000)
+        await page.goto(kodex_url, wait_until="domcontentloaded", timeout=60000)
         await page.wait_for_timeout(3000)
 
         html = await page.content()
@@ -549,7 +549,11 @@ async def run_scrape_and_save():
     supabase: Client = create_client(url, key)
     
     records = []
+    seen_ids = set()
     for e in events:
+        if e["id"] in seen_ids:
+            continue
+        seen_ids.add(e["id"])
         records.append({
             "id": e["id"],
             "provider": e["provider"],
