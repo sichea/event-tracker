@@ -450,7 +450,7 @@ async def scrape_rise(page) -> list[dict]:
             if not txt_area:
                 continue
                 
-            title_tag = txt_area.find('p', class_='tit')
+            title_tag = txt_area.find('p', class_='body01')
             title = title_tag.get_text(separator=' ', strip=True) if title_tag else "제목 없음"
             
             date_span = txt_area.find('span', class_='num')
