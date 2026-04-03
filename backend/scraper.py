@@ -426,61 +426,117 @@ async def scrape_sol(page) -> list[dict]:
 
 
 async def scrape_rise(page) -> list[dict]:
-    """RISE ETF 이벤트 페이지 스크래핑"""
+    """RISE ETF 이벤트 페이지 스크래핑 (Playwright 기반)"""
     events = []
     try:
         rise_url = PROVIDERS["RISE"]["url"]
-        import requests
-        from bs4 import BeautifulSoup
-        import urllib3
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        
-        resp = requests.get(rise_url, verify=False, timeout=10)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        
-        items = soup.find_all('a', href=lambda h: h and '/cust/event/' in h)
-        for item in items:
-            href = item.get('href', '')
-            if 'page=' in href:
-                href = href.split('?')[0]
+        await page.goto(rise_url, wait_until="domcontentloaded", timeout=30000)
+        await page.wait_for_timeout(5000)
+
+        # '더보기' 버튼을 반복 클릭하여 모든 이벤트 로드
+        for _ in range(10):
+            try:
+                more_btn = page.locator("a.more-btn, button.more-btn, .btn-more, a:has-text('더보기')")
+                if await more_btn.count() > 0 and await more_btn.first.is_visible():
+                    await more_btn.first.click()
+                    await page.wait_for_timeout(2000)
+                else:
+                    break
+            except Exception:
+                break
+
+        # JavaScript로 모든 이벤트 카드 데이터 추출
+        cards = await page.evaluate("""
+        () => {
+            const results = [];
+            const links = document.querySelectorAll('a[href*="/cust/event/"], a[href*="riseetf-event"]');
+            
+            links.forEach(a => {
+                const href = a.getAttribute('href') || '';
                 
-            full_link = f"https://www.riseetf.co.kr{href}"
-            
-            txt_area = item.find('div', class_='txt-area')
-            if not txt_area:
-                continue
+                // 네비게이션 링크 제외 (이벤트 카드만)
+                if (href === '/cust/event' || href === '/cust/event/') return;
                 
-            title_tag = txt_area.find('p', class_='body01')
-            title = title_tag.get_text(separator=' ', strip=True) if title_tag else "제목 없음"
+                // 상태 뱃지 (진행중/종료)
+                const statusEl = a.querySelector('span.chips, .chips');
+                const status = statusEl ? statusEl.innerText.trim() : '';
+                
+                // 제목 추출: body01 클래스 우선, 없으면 innerText에서 추출
+                let title = '';
+                const body01 = a.querySelector('p.body01');
+                if (body01) {
+                    title = body01.innerText.trim();
+                }
+                
+                // body01이 없거나 비어있으면, 카드 전체 텍스트에서 추출 시도
+                if (!title) {
+                    const allText = a.innerText.replace(/\\n/g, '|').trim();
+                    // "이벤트 기간" 라벨과 날짜를 제외한 진짜 제목 추출
+                    const parts = allText.split('|').map(s => s.trim()).filter(s => 
+                        s && 
+                        s !== '진행중' && s !== '종료' && 
+                        s !== '이벤트 기간' && 
+                        !s.match(/^\\d{4}-\\d{2}-\\d{2}/) &&
+                        !s.match(/^\\d{4}\\.\\d{2}\\.\\d{2}/) &&
+                        s.length > 3
+                    );
+                    title = parts[0] || '';
+                }
+                
+                if (!title || title === '이벤트 기간') return;
+                
+                // 날짜 추출
+                const numSpan = a.querySelector('span.num');
+                const dateText = numSpan ? numSpan.innerText.trim() : '';
+                
+                // 링크 정규화
+                let fullLink = href;
+                if (href.startsWith('/')) {
+                    fullLink = 'https://www.riseetf.co.kr' + href.split('?')[0];
+                } else if (!href.startsWith('http')) {
+                    fullLink = 'https://www.riseetf.co.kr/cust/event';
+                }
+                
+                results.push({ title, status, dateText, link: fullLink });
+            });
             
-            date_span = txt_area.find('span', class_='num')
-            date_text = date_span.get_text(strip=True) if date_span else ""
-            
+            return results;
+        }
+        """)
+
+        for card in cards:
             start_date = None
             end_date = None
+            date_text = card.get("dateText", "")
+            
             if '~' in date_text:
                 parts = date_text.split('~')
-                start_date = parts[0].strip().replace('.', '-')
-                end_date = parts[1].strip().replace('.', '-')
+                start_date = _parse_date(parts[0].strip())
+                end_date = _parse_date(parts[1].strip())
             elif date_text:
-                end_date = date_text.strip().replace('.', '-')
-                
+                end_date = _parse_date(date_text.strip())
+
             d_day = _calc_dday(end_date)
+            
+            # 상태: 사이트 자체 뱃지 우선, 없으면 d_day 기반
             status = "진행중"
-            if d_day is not None and d_day < 0:
+            if card.get("status") == "종료":
                 status = "종료"
-                
+            elif d_day is not None and d_day < 0:
+                status = "종료"
+
             events.append({
-                "id": generate_event_id("RISE", title),
+                "id": generate_event_id("RISE", card["title"]),
                 "provider": "RISE",
-                "title": title,
+                "title": card["title"],
                 "start_date": start_date,
                 "end_date": end_date,
                 "d_day": d_day,
                 "status": status,
-                "link": full_link,
+                "link": card["link"],
                 "scraped_at": datetime.now().isoformat(),
             })
+            
     except Exception as e:
         print(f"[RISE] 스크래핑 실패: {e}")
 
