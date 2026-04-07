@@ -253,9 +253,17 @@ async def scrape_tiger(page) -> list[dict]:
     try:
         tiger_url = PROVIDERS["TIGER"]["url"]
         await page.goto(tiger_url, wait_until="networkidle", timeout=30000)
-        try:
-            await page.wait_for_timeout(7000)
-        except: pass
+        
+        # TIGER는 더보기 버튼을 눌러야 전체 목록이 나옵니다 (약 22~25건 수집을 위해 3회 클릭)
+        for _ in range(3):
+            try:
+                more_btn = page.locator("button:has-text('더보기')")
+                if await more_btn.is_visible():
+                    await more_btn.click()
+                    await page.wait_for_timeout(1500)
+                else:
+                    break
+            except: break
         
         # TIGER는 탭 구분이 없으므로 전체 카드를 수집한 후 필터링
         cards = await page.evaluate("""
@@ -782,10 +790,21 @@ async def run_scrape_and_save():
         raise ValueError("Supabase 환경 변수가 설정되지 않았습니다.")
 
     supabase: Client = create_client(url, key)
-    
-    # 1. 현재 DB에 있는 모든 '진행중' 이벤트 가져오기 (기존 이벤트 정리용)
-    active_in_db = supabase.table("events").select("*").eq("status", "진행중").execute().data
-    active_map = {e["id"]: e for e in active_in_db}
+
+    try:
+        # 1. 상태 기록: 진행 중
+        await log_status(supabase, "진행중")
+
+        # 2. 모든 이벤트 수집
+        events = await scrape_all()
+        if not events:
+            print("[Warn] 수집된 이벤트가 없습니다.")
+            await log_status(supabase, "실패", "수집된 데이터가 0건입니다.")
+            return []
+        
+        # 3. 현재 DB에 있는 모든 '진행중' 이벤트 가져오기 (기존 이벤트 정리용)
+        active_in_db = supabase.table("events").select("*").eq("status", "진행중").execute().data
+        active_map = {e["id"]: e for e in active_in_db}
     
     records = []
     seen_ids = set()
@@ -845,22 +864,21 @@ async def run_scrape_and_save():
                     r["d_day"] = (end_date - today).days
             except: pass
 
-    # 5. Supabase Upsert 실행
-    if records:
-        try:
-            response = supabase.table("events").upsert(records).execute()
-            print(f"[Supabase] {len(response.data)}건 저장/업데이트(상태 정리 포함) 완료")
-        except Exception as e:
-            print(f"[Supabase 오류] {e}")
-            
-    # 6. 로컬 events.json에도 저장 (백업/로컬 서버용)
-    try:
-        db_upsert_events(records)
-        print(f"[Local DB] {len(records)}건 로컬 저장 완료")
+        if records:
+            try:
+                response = supabase.table("events").upsert(records).execute()
+                print(f"[Supabase] {len(response.data)}건 저장/업데이트 완료")
+            except Exception as e:
+                print(f"[Supabase 오류] {e}")
+                
+        # 6. 최종 상태 기록: 성공
+        await log_status(supabase, "성공")
+        return events
+
     except Exception as e:
-        print(f"[Local DB 오류] {e}")
-    
-    return events
+        print(f"[Critical Error] {e}")
+        await log_status(supabase, "실패", str(e))
+        return []
 
 
 if __name__ == "__main__":
