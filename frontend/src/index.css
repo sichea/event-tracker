@@ -956,3 +956,51 @@ body::before {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================
+   Supabase Auth UI Overrides
+   - 해결: 입력 필드 글자색이 검은색인 문제
+   ============================================ */
+.supabase-auth-ui_ui-input {
+  color: white !important;
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.supabase-auth-ui_ui-input:focus {
+  border-color: #38bdf8 !important;
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2) !important;
+}
+
+.supabase-auth-ui_ui-label {
+  color: #94a3b8 !important;
+  font-size: 0.85rem !important;
+  margin-bottom: 6px !important;
+  display: block !important;
+}
+
+.supabase-auth-ui_ui-button {
+  transition: all 0.2s ease !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+}
+
+.supabase-auth-ui_ui-button:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.1) !important;
+}
+
+.supabase-auth-ui_ui-anchor {
+  color: #38bdf8 !important;
+  text-decoration: none !important;
+  font-size: 0.85rem !important;
+}
+
+.supabase-auth-ui_ui-anchor:hover {
+  text-decoration: underline !important;
+}
