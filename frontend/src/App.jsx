@@ -296,6 +296,7 @@ export default function App() {
     
     try {
       showToast("🚀 스크래핑 요청을 보냈습니다...");
+      setScrapingStatus(prev => ({ ...prev, status: '진행중' })); // 즉시 UI 반영
       await triggerManualScrape(token);
       showToast("✅ 워크플로우 실행됨 (약 5-10분 소요)");
     } catch (err) {
@@ -407,35 +408,57 @@ export default function App() {
 
       {/* 관리자 도구 */}
       {isAdmin && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <span style={{ color: '#f87171', fontWeight: 700, marginRight: '8px' }}>🛠️ Admin Console</span>
-            <span style={{ fontSize: '0.85rem', color: '#fca5a5' }}>
-              스크래핑 상태: {scrapingStatus?.status === 'success' ? '정상 ✅' : scrapingStatus?.status === 'failed' ? '실패 ❌' : '확인 중...'}
+        <div style={{ 
+          background: 'rgba(30, 41, 59, 0.5)', 
+          border: '1px solid rgba(239, 68, 68, 0.2)', 
+          padding: '8px 16px', 
+          borderRadius: '8px', 
+          marginBottom: '1rem', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          fontSize: '0.85rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ color: '#f87171', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ fontSize: '1rem' }}>🛠️</span> Admin
             </span>
-          </div>
-          <button 
-            onClick={handleManualScrape}
-            style={{ background: '#ef4444', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
-          >
-            수동 스크래핑 실행
-          </button>
-          
-          <button 
-            onClick={() => {
-              const newToken = prompt("새로운 GitHub Token을 입력하세요:", adminToken || "");
-              if (newToken) {
-                saveAdminSecret('GITHUB_PAT', newToken)
-                  .then(() => {
-                    setAdminToken(newToken);
-                    showToast("✅ 토큰이 업데이트되었습니다.");
-                  });
+            <span style={{ color: '#94a3b8', borderLeft: '1px solid #334155', paddingLeft: '12px' }}>
+              상태: {
+                scrapingStatus?.status === 'success' || scrapingStatus?.status === '성공' ? '정상 ✅' : 
+                scrapingStatus?.status === 'failed' || scrapingStatus?.status === '실패' ? '실패 ❌' : 
+                scrapingStatus?.status === '진행중' ? '진행 중 🔄' : '데이터 없음 ⏳'
               }
-            }}
-            style={{ marginLeft: '8px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
-          >
-            토큰 수정
-          </button>
+            </span>
+            {scrapingStatus?.last_run && (
+              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                (최근: {new Date(scrapingStatus.last_run).toLocaleTimeString()})
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              onClick={handleManualScrape}
+              style={{ background: '#ef4444', border: 'none', color: 'white', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem' }}
+            >
+              스크래핑 실행
+            </button>
+            <button 
+              onClick={() => {
+                const newToken = prompt("새로운 GitHub Token을 입력하세요:", adminToken || "");
+                if (newToken) {
+                  saveAdminSecret('GITHUB_PAT', newToken)
+                    .then(() => {
+                      setAdminToken(newToken);
+                      showToast("✅ 토큰 업데이트됨");
+                    });
+                }
+              }}
+              style={{ background: 'transparent', border: '1px solid #475569', color: '#94a3b8', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
+            >
+              토큰 수정
+            </button>
+          </div>
         </div>
       )}
 
