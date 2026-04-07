@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias } from "./api";
+import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret } from "./api";
 import { supabase } from "./supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -9,11 +9,16 @@ import "./index.css";
    Provider 설정 & 다국어
    ============================================ */
 const PROVIDERS = [
-  { key: "TIGER", label: "TIGER", color: "#FF6B00" },
-  { key: "KODEX", label: "KODEX", color: "#3B82F6" },
-  { key: "ACE", label: "ACE", color: "#10B981" },
-  { key: "SOL", label: "SOL", color: "#8B5CF6" },
-  { key: "RISE", label: "RISE", color: "#EAB308" },
+  { key: "TIGER", label: "TIGER", color: "#FF6B00", url: "https://www.tigeretf.com" },
+  { key: "KODEX", label: "KODEX", color: "#2563EB", url: "https://www.samsungfund.com" },
+  { key: "ACE", label: "ACE", color: "#EF4444", url: "https://www.aceetf.co.kr" },
+  { key: "SOL", label: "SOL", color: "#8B5CF6", url: "https://www.soletf.com" },
+  { key: "RISE", label: "RISE", color: "#EAB308", url: "https://www.riseetf.co.kr" },
+  { key: "AMUNDI", label: "AMUNDI", color: "#06B6D4", url: "https://www.nh-amundi.com" },
+  { key: "1Q", label: "1Q", color: "#10B981", url: "https://www.1qetf.com" },
+  { key: "PLUS", label: "PLUS", color: "#EC4899", url: "https://www.plusetf.co.kr" },
+  { key: "KIWOOM", label: "KIWOOM", color: "#A21CAF", url: "https://www.kiwoometf.com" },
+  { key: "FUN", label: "FUN", color: "#6366F1", url: "https://www.funetf.co.kr" },
 ];
 
 const korAuthLocalization = {
@@ -101,10 +106,8 @@ function EventCard({ event, aliases, onToggle }) {
       
       <div className="event-card__body">
         <div className="event-card__header">
-          <span className={`event-card__provider event-card__provider--${event.provider}`}>{event.provider}</span>
-          <span className={`event-card__status ${isActive ? "event-card__status--active" : "event-card__status--ended"}`}>
-            <span className="event-card__status-dot" />
-            {event.status}
+          <span className={`event-card__provider event-card__provider--${event.provider}`}>
+            {event.provider}
           </span>
           {dday && <span className={`event-card__dday ${dday.className}`}>{dday.text}</span>}
         </div>
@@ -152,20 +155,25 @@ export default function App() {
   const [events, setEvents] = useState([]);
   const [aliases, setAliases] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProvider, setSelectedProvider] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [selectedProvider, setSelectedProvider] = useState("TIGER");
+  const [selectedStatus, setSelectedStatus] = useState("이벤트");
   const [toast, setToast] = useState({ message: "", visible: false });
   const [showSettings, setShowSettings] = useState(false);
   const [newAliasName, setNewAliasName] = useState("");
+  const [scrapingStatus, setScrapingStatus] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminToken, setAdminToken] = useState(null);
 
   // 세션 확인
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      setIsAdmin(session?.user?.email === 'aikks3782@gmail.com');
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setIsAdmin(session?.user?.email === 'aikks3782@gmail.com');
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -184,12 +192,20 @@ export default function App() {
     setLoading(true);
     try {
       // 순차/병렬 로드
-      const [fetchedAliases, eventsData] = await Promise.all([
+      const [fetchedAliases, eventsData, statusUpdate] = await Promise.all([
         fetchAliases(session.user.id),
-        fetchEvents(session.user.id)
+        fetchEvents(session.user.id),
+        fetchScrapingStatus()
       ]);
       setAliases(fetchedAliases || []);
       setEvents(eventsData.events || []);
+      setScrapingStatus(statusUpdate);
+
+      // 관리자라면 토큰도 가져옴
+      if (isAdmin) {
+        const token = await fetchAdminSecret('GITHUB_PAT');
+        setAdminToken(token);
+      }
     } catch (err) {
       console.error("데이터 로드 실패:", err);
       showToast("데이터를 불러오는 중 오류가 발생했습니다.");
@@ -260,6 +276,39 @@ export default function App() {
     }
   };
 
+  // 수동 스크래핑 트리거
+  const handleManualScrape = async () => {
+    let token = adminToken;
+    
+    if (!token) {
+      token = prompt("GitHub Personal Access Token을 입력하세요 (최초 1회 저장):");
+      if (!token) return;
+      
+      try {
+        await saveAdminSecret('GITHUB_PAT', token);
+        setAdminToken(token);
+        showToast("💾 토큰이 DB에 저장되었습니다.");
+      } catch (err) {
+        console.error(err);
+        showToast("⚠️ 토큰 저장 실패");
+      }
+    }
+    
+    try {
+      showToast("🚀 스크래핑 요청을 보냈습니다...");
+      await triggerManualScrape(token);
+      showToast("✅ 워크플로우 실행됨 (약 5-10분 소요)");
+    } catch (err) {
+      console.error(err);
+      if (err.message.includes("401")) {
+        showToast("❌ 토큰 만료! 다시 입력해 주세요.");
+        setAdminToken(null);
+      } else {
+        showToast(`❌ 실행 실패: ${err.message}`);
+      }
+    }
+  };
+
   // [UI렌더링 영역 - 로그인 전]
   if (!session) {
     return (
@@ -277,38 +326,37 @@ export default function App() {
     );
   }
 
-  // 헬퍼: 이벤트가 "기타(발표/세미나)"인지 판별
-  const isMiscEvent = (e) => {
-    if (!e.start_date && !e.end_date) return true;
-    if (e.title.includes("당첨") || e.title.includes("세미나") || e.title.includes("휴장")) return true;
-    return false;
-  };
-
   // [UI렌더링 영역 - 로그인 후]
-  const activeEvents = events.filter((e) => e.status === "진행중" && !isMiscEvent(e));
-  const miscEvents = events.filter((e) => e.status === "진행중" && isMiscEvent(e));
+  // 1. 중복 제거
+  const uniqueEventsMap = new Map();
+  events.forEach(e => {
+    if (!uniqueEventsMap.has(e.id)) {
+      uniqueEventsMap.set(e.id, e);
+    }
+  });
+  const uniqueEvents = Array.from(uniqueEventsMap.values());
 
-  // 프론트엔드 필터링 적용
-  let displayEvents = events.filter(e => {
+  let displayEvents = uniqueEvents.filter(e => {
+    // 운용사 필터
     if (selectedProvider && e.provider !== selectedProvider) return false;
     
-    const isMisc = isMiscEvent(e);
-    if (selectedStatus === "진행중") {
-      if (e.status !== "진행중" || isMisc) return false;
-    } else if (selectedStatus === "기타") {
-      if (!isMisc) return false;
+    // 상태 탭 필터링 ("홈페이지" 선택시에는 필터링 스킵)
+    if (selectedStatus === "이벤트") {
+      // 진행중인 것만 보여줌
+      if (e.status !== "진행중") return false;
+    } else if (selectedStatus === "참여완료") {
+      // 최소 한 가지 계좌라도 체크된 이벤트만 필터링
+      const hasAnyCheck = Object.values(e.checkedAliases || {}).some((v) => v);
+      if (!hasAnyCheck || e.status !== "진행중") return false;
     } else if (selectedStatus === "종료") {
       if (e.status !== "종료") return false;
     }
-    
     return true;
   });
   
-  // 통계 계산: 모든 체크된 이벤트의 수 (이벤트 수 × 계좌 수는 아님)
-  let totalChecks = 0;
-  events.forEach(e => {
-    totalChecks += Object.values(e.checkedAliases || {}).filter(Boolean).length;
-  });
+  // 통계 계산
+  const participatedCount = uniqueEvents.filter(e => Object.values(e.checkedAliases || {}).some(Boolean)).length;
+  const totalChecks = events.reduce((acc, e) => acc + Object.values(e.checkedAliases || {}).filter(Boolean).length, 0);
   const maxPossibleChecks = events.length * Math.max(aliases.length, 1);
   const checkPercent = maxPossibleChecks > 0 ? Math.round((totalChecks / maxPossibleChecks) * 100) : 0;
 
@@ -329,10 +377,16 @@ export default function App() {
         <div className="header__title-area">
           <h1 className="header__title">📊 ETF Event Tracker</h1>
           <p className="header__subtitle">TIGER · KODEX · ACE · SOL · RISE — 이벤트를 한눈에</p>
-          {events.length > 0 && events[0]?.scraped_at && (
-            <p className="header__last-updated">
-              🔄 최근 수집: {new Date(events[0].scraped_at).toLocaleString("ko-KR")}
+          {scrapingStatus?.status === 'failed' ? (
+            <p className="header__last-updated" style={{ color: '#f87171', fontWeight: 700 }}>
+              ⚠️ 최근 수집: 스크래핑 실패 ({new Date(scrapingStatus.last_run).toLocaleString("ko-KR")})
             </p>
+          ) : (
+            events.length > 0 && events[0]?.scraped_at && (
+              <p className="header__last-updated">
+                🔄 최근 수집: {new Date(events[0].scraped_at).toLocaleString("ko-KR")}
+              </p>
+            )
           )}
         </div>
         <div className="header__actions">
@@ -350,6 +404,40 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {/* 관리자 도구 */}
+      {isAdmin && (
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <span style={{ color: '#f87171', fontWeight: 700, marginRight: '8px' }}>🛠️ Admin Console</span>
+            <span style={{ fontSize: '0.85rem', color: '#fca5a5' }}>
+              스크래핑 상태: {scrapingStatus?.status === 'success' ? '정상 ✅' : scrapingStatus?.status === 'failed' ? '실패 ❌' : '확인 중...'}
+            </span>
+          </div>
+          <button 
+            onClick={handleManualScrape}
+            style={{ background: '#ef4444', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+          >
+            수동 스크래핑 실행
+          </button>
+          
+          <button 
+            onClick={() => {
+              const newToken = prompt("새로운 GitHub Token을 입력하세요:", adminToken || "");
+              if (newToken) {
+                saveAdminSecret('GITHUB_PAT', newToken)
+                  .then(() => {
+                    setAdminToken(newToken);
+                    showToast("✅ 토큰이 업데이트되었습니다.");
+                  });
+              }
+            }}
+            style={{ marginLeft: '8px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
+          >
+            토큰 수정
+          </button>
+        </div>
+      )}
 
       {/* 설정 패널 (아코디언 형태) */}
       {showSettings && (
@@ -378,14 +466,13 @@ export default function App() {
       )}
 
       <div className="stats-bar">
-        <StatCard label="전체 이벤트" value={events.length} gradient="linear-gradient(90deg, #6366f1, #8b5cf6)" />
-        <StatCard label="진행중" value={activeEvents.length} sub="현재 참여 가능" gradient="linear-gradient(90deg, #22c55e, #34d399)" />
-        <StatCard label="총 체크 횟수" value={totalChecks} sub={`${checkPercent}% 목표 달성`} gradient="linear-gradient(90deg, #f59e0b, #fbbf24)" />
+        <StatCard label="🎁 전체 이벤트" value={events.length} gradient="linear-gradient(90deg, #6366f1, #8b5cf6)" />
+        <StatCard label="✅ 참여 완료" value={participatedCount} gradient="linear-gradient(90deg, #f59e0b, #fbbf24)" />
+        <StatCard label="📊 참여율" value={`${checkPercent}%`} gradient="linear-gradient(90deg, #10b981, #34d399)" />
         <StatCard label="등록 계좌" value={`${aliases.length}개`} sub="체크 가능 슬롯" gradient="linear-gradient(90deg, #ef4444, #f97316)" />
       </div>
 
       <div className="filters">
-        <button className={`filter-tab ${!selectedProvider ? "filter-tab--active" : ""}`} onClick={() => setSelectedProvider(null)}>전체</button>
         {PROVIDERS.map((p) => (
           <button key={p.key} className={`filter-tab ${selectedProvider === p.key ? "filter-tab--active" : ""}`} onClick={() => setSelectedProvider(selectedProvider === p.key ? null : p.key)}>
             <span className="filter-dot" style={{ background: p.color }} />
@@ -393,22 +480,44 @@ export default function App() {
           </button>
         ))}
         <span className="filter-separator" />
-        <button className={`filter-tab filter-tab--status ${selectedStatus === "기타" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus(selectedStatus === "기타" ? null : "기타")}>📢 안내/발표</button>
-        <button className={`filter-tab filter-tab--status ${selectedStatus === "진행중" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus(selectedStatus === "진행중" ? null : "진행중")}>🟢 진행중</button>
-        <button className={`filter-tab filter-tab--status ${selectedStatus === "종료" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus(selectedStatus === "종료" ? null : "종료")}>🔴 종료</button>
+        <button className={`filter-tab filter-tab--status ${selectedStatus === "이벤트" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus("이벤트")}>🎁 전체 이벤트</button>
+        <button className={`filter-tab filter-tab--status ${selectedStatus === "참여완료" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus("참여완료")}>✅ 참여 완료</button>
+        <button className={`filter-tab filter-tab--status ${selectedStatus === "홈페이지" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus("홈페이지")}>🏢 운용사 홈페이지</button>
       </div>
 
-      {displayEvents.length > 0 ? (
-        <div className="events-grid">
-          {displayEvents.map((event, idx) => (
-            <EventCard key={event.id || idx} event={event} aliases={aliases} onToggle={handleToggle} />
+      {/* 4-3. "홈페이지 바로가기" 탭일 때의 특별 뷰 */}
+      {selectedStatus === "홈페이지" && (
+        <div className="homepage-shortcuts-grid">
+          {PROVIDERS.filter(p => !selectedProvider || p.key === selectedProvider).map(p => (
+            <div key={p.key} className="shortcut-card">
+              <a href={p.url} target="_blank" rel="noreferrer" className="shortcut-link">
+                <div className="shortcut-header">
+                  <div className="provider-icon" style={{ backgroundColor: p.color }}>{p.label[0]}</div>
+                  <span className="provider-name">{p.label} <span className="provider-sub">공식 홈페이지</span></span>
+                </div>
+                <div className="shortcut-action">
+                  <span>이벤트 보러가기</span>
+                  <span className="link-arrow">↗</span>
+                </div>
+              </a>
+            </div>
           ))}
         </div>
-      ) : (
-        <div className="empty-state">
-          <div className="empty-state__icon">📭</div>
-          <div className="empty-state__text">{selectedProvider || selectedStatus ? "해당 조건의 이벤트가 없습니다" : "수집된 이벤트가 없습니다."}</div>
-        </div>
+      )}
+
+      {selectedStatus !== "홈페이지" && (
+        displayEvents.length > 0 ? (
+          <div className="events-grid">
+            {displayEvents.map((event, idx) => (
+              <EventCard key={event.id || idx} event={event} aliases={aliases} onToggle={handleToggle} />
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <div className="empty-state__icon">📭</div>
+            <div className="empty-state__text">{selectedProvider || selectedStatus ? "해당 조건의 이벤트가 없습니다" : "수집된 이벤트가 없습니다."}</div>
+          </div>
+        )
       )}
 
       <Toast message={toast.message} visible={toast.visible} />

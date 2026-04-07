@@ -2,7 +2,11 @@ import { supabase } from './supabaseClient';
 
 // 모든 이벤트를 가져옵니다 (필터링은 프론트엔드에서 처리)
 export async function fetchEvents(userId) {
-  let query = supabase.from('events').select('*').order('end_date', { ascending: false, nullsFirst: false });
+  let query = supabase
+    .from('events')
+    .select('*')
+    .eq('status', '진행중')
+    .order('end_date', { ascending: false, nullsFirst: false });
   
   const { data: events, error } = await query;
   if (error) throw error;
@@ -88,4 +92,81 @@ export async function toggleEventChecked(eventId, userId, aliasId, currentlyChec
     if (error) throw error;
     return { eventId, aliasId, checked: true };
   }
+}
+
+// --- 스크래핑 상태 관리 ---
+
+export async function fetchScrapingStatus() {
+  const { data, error } = await supabase
+    .from('scraping_status')
+    .select('*')
+    .eq('id', 1)
+    .single();
+    
+  if (error && error.code !== 'PGRST116') { // PGRST116: 결과 없음 (정상 범위)
+    console.error("Status fetch error:", error);
+    return null;
+  }
+  return data;
+}
+
+/**
+ * GitHub Actions 워크플로우를 수동으로 실행합니다.
+ * @param {string} token - GitHub Personal Access Token
+ */
+export async function triggerManualScrape(token) {
+  const GITHUB_REPO = "sichea/event-tracker"; // 실제 저장소 경로로 수정 필요
+  const WORKFLOW_ID = "scrape.yml";
+  
+  const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ref: 'main', // 또는 스크래퍼가 있는 브랜치
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`GitHub API Error: ${response.status} - ${errorBody}`);
+  }
+  
+  return true;
+}
+
+// --- 관리자 전용 비밀 데이터 (토큰 등) 관리 ---
+
+/**
+ * 관리자용 비밀 데이터를 저장합니다.
+ */
+export async function saveAdminSecret(key, value) {
+  const { data, error } = await supabase
+    .from('admin_secrets')
+    .upsert({ key_name: key, secret_value: value }, { onConflict: 'key_name' })
+    .select()
+    .single();
+    
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * 관리자용 비밀 데이터를 가져옵니다.
+ */
+export async function fetchAdminSecret(key) {
+  const { data, error } = await supabase
+    .from('admin_secrets')
+    .select('secret_value')
+    .eq('key_name', key)
+    .single();
+    
+  if (error) {
+    if (error.code === 'PGRST116') return null; // 데이터 없음
+    throw error;
+  }
+  return data.secret_value;
 }
