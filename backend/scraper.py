@@ -806,63 +806,63 @@ async def run_scrape_and_save():
         active_in_db = supabase.table("events").select("*").eq("status", "진행중").execute().data
         active_map = {e["id"]: e for e in active_in_db}
     
-    records = []
-    seen_ids = set()
-    today = datetime.now().date()
-    
-    # 2. 이번에 새로 수집된 이벤트 처리
-    for e in events:
-        if e["id"] in seen_ids:
-            continue
-        seen_ids.add(e["id"])
+        records = []
+        seen_ids = set()
+        today = datetime.now().date()
         
-        # 새로 수집된 것들은 이미 scrape_detail... 에서 d_day와 status가 계산되어 있음
-        records.append({
-            "id": e["id"],
-            "provider": e["provider"],
-            "title": e["title"],
-            "start_date": e.get("start_date") or None,
-            "end_date": e.get("end_date") or None,
-            "d_day": e.get("d_day"),
-            "status": e["status"],
-            "link": e.get("link"),
-            "scraped_at": e.get("scraped_at")
-        })
-        # DB에 이미 있던 거라면 active_map에서 제거 (나중에 남은 것들은 이번 수집에 없는 것들)
-        if e["id"] in active_map:
-            del active_map[e["id"]]
+        # 2. 이번에 새로 수집된 이벤트 처리
+        for e in events:
+            if e["id"] in seen_ids:
+                continue
+            seen_ids.add(e["id"])
+            
+            # 새로 수집된 것들은 이미 scrape_detail... 에서 d_day와 status가 계산되어 있음
+            records.append({
+                "id": e["id"],
+                "provider": e["provider"],
+                "title": e["title"],
+                "start_date": e.get("start_date") or None,
+                "end_date": e.get("end_date") or None,
+                "d_day": e.get("d_day"),
+                "status": e["status"],
+                "link": e.get("link"),
+                "scraped_at": e.get("scraped_at")
+            })
+            # DB에 이미 있던 거라면 active_map에서 제거 (나중에 남은 것들은 이번 수집에 없는 것들)
+            if e["id"] in active_map:
+                del active_map[e["id"]]
 
-    # 3. 이번 수집에 없었으나 DB에는 '진행중'인 것들 처리 (종료 처리)
-    for old_id, old_evt in active_map.items():
-        # 수동으로 종료 상태로 변경
-        old_evt["status"] = "종료"
-        old_evt["d_day"] = -1
-        # upsert 명단에 추가
-        records.append({
-            "id": old_evt["id"],
-            "provider": old_evt["provider"],
-            "title": old_evt["title"],
-            "start_date": old_evt.get("start_date"),
-            "end_date": old_evt.get("end_date"),
-            "d_day": -1,
-            "status": "종료",
-            "link": old_evt.get("link"),
-            "scraped_at": old_evt.get("scraped_at")
-        })
+        # 3. 이번 수집에 없었으나 DB에는 '진행중'인 것들 처리 (종료 처리)
+        for old_id, old_evt in active_map.items():
+            # 수동으로 종료 상태로 변경
+            old_evt["status"] = "종료"
+            old_evt["d_day"] = -1
+            # upsert 명단에 추가
+            records.append({
+                "id": old_evt["id"],
+                "provider": old_evt["provider"],
+                "title": old_evt["title"],
+                "start_date": old_evt.get("start_date"),
+                "end_date": old_evt.get("end_date"),
+                "d_day": -1,
+                "status": "종료",
+                "link": old_evt.get("link"),
+                "scraped_at": old_evt.get("scraped_at")
+            })
 
-    # 4. 전체 DB 점검: 날짜가 지난 것이 있다면 최종적으로 종료 처리 (강제 보정)
-    for r in records:
-        if r.get("status") == "진행중" and r.get("end_date"):
-            try:
-                # yyyy-mm-dd 형식 가정
-                end_date = datetime.strptime(r["end_date"], "%Y-%m-%d").date()
-                if end_date < today:
-                    r["status"] = "종료"
-                    r["d_day"] = -1
-                else:
-                    # D-Day 최신화 (수집 시점과 실제 동기화 시점 차이 보정)
-                    r["d_day"] = (end_date - today).days
-            except: pass
+        # 4. 전체 DB 점검: 날짜가 지난 것이 있다면 최종적으로 종료 처리 (강제 보정)
+        for r in records:
+            if r.get("status") == "진행중" and r.get("end_date"):
+                try:
+                    # yyyy-mm-dd 형식 가정
+                    end_date = datetime.strptime(r["end_date"], "%Y-%m-%d").date()
+                    if end_date < today:
+                        r["status"] = "종료"
+                        r["d_day"] = -1
+                    else:
+                        # D-Day 최신화 (수집 시점과 실제 동기화 시점 차이 보정)
+                        r["d_day"] = (end_date - today).days
+                except: pass
 
         if records:
             try:
