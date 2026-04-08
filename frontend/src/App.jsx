@@ -354,10 +354,10 @@ export default function App() {
     }
     return true;
   }).sort((a, b) => {
-    // d_day가 클수록(기간이 넉넉할수록) 위로 오게 반대로 정렬
-    const ddayA = a.d_day === null || a.d_day === undefined ? -9999 : a.d_day;
-    const ddayB = b.d_day === null || b.d_day === undefined ? -9999 : b.d_day;
-    return ddayB - ddayA;
+    // d_day가 적을수록(마감이 임박할수록) 위로
+    const ddayA = a.d_day === null || a.d_day === undefined ? 9999 : a.d_day;
+    const ddayB = b.d_day === null || b.d_day === undefined ? 9999 : b.d_day;
+    return ddayA - ddayB;
   });
   
   // 통계 계산
