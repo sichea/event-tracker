@@ -353,6 +353,11 @@ export default function App() {
       if (e.status !== "종료") return false;
     }
     return true;
+  }).sort((a, b) => {
+    // d_day가 클수록(기간이 넉넉할수록) 위로 오게 반대로 정렬
+    const ddayA = a.d_day === null || a.d_day === undefined ? -9999 : a.d_day;
+    const ddayB = b.d_day === null || b.d_day === undefined ? -9999 : b.d_day;
+    return ddayB - ddayA;
   });
   
   // 통계 계산

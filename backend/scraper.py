@@ -248,87 +248,91 @@ async def scrape_detail_page_and_period(page, link: str, title: str, reference_y
 
 
 async def scrape_tiger(page) -> list[dict]:
-    """TIGER ETF 이벤트 페이지 스크래핑 - 전수 상세 방문 최적화"""
+    """TIGER ETF 공식 홈페이지 이벤트 섹션 스크래핑"""
     events = []
     try:
-        tiger_url = PROVIDERS["TIGER"]["url"]
+        tiger_url = "https://investments.miraeasset.com/tigeretf/ko/customer/event/list.do"
         await page.goto(tiger_url, wait_until="networkidle", timeout=30000)
         
-        # TIGER는 더보기 버튼을 눌러야 전체 목록이 나옵니다 (약 22~25건 수집을 위해 3회 클릭)
-        for _ in range(3):
-            try:
-                more_btn = page.locator("button:has-text('더보기')")
-                if await more_btn.is_visible():
-                    await more_btn.click()
-                    await page.wait_for_timeout(1500)
-                else:
-                    break
-            except: break
-        
-        # TIGER는 탭 구분이 없으므로 전체 카드를 수집한 후 필터링
-        cards = await page.evaluate("""
-        () => {
-            const results = [];
-            // 모든 카드 아이템을 직접 텍스트 기반으로 탐색
-            document.querySelectorAll('a.c-card').forEach(card => {
-                // 정확한 타이틀 엘리먼트 찾기 (구조: a.c-card > div[2] > div)
-                const titleEl = card.querySelector('.c-card__title') || 
-                               card.querySelector('.c-card__txt') || 
-                               (card.children[1] && card.children[1].querySelector('div')) ||
-                               card;
-                
-                const title = titleEl.innerText.trim();
-                const onclick = card.getAttribute('onclick') || card.getAttribute('href') || '';
-                
-                // 목록에서 날짜 추출 시도
-                const dateValEl = card.querySelector('.info-list .val') || card.querySelector('.c-card-date .val');
-                const dateText = dateValEl ? dateValEl.innerText.trim() : "";
+        # 필터 적용 (진행중)
+        try:
+            await page.select_option('select[name="searchStts"]', value="진행중")
+            await page.evaluate("() => { if (typeof cmmCtrl !== 'undefined') cmmCtrl.list(1); }")
+            await page.wait_for_timeout(3000)
+        except: pass
 
-                // detailsKey 파싱: 쉼표(',') 이후의 숫자 추출
-                const parts = onclick.split(',');
-                if (parts.length >= 2) {
-                    const idMatch = parts[1].match(/\\d+/);
-                    if (idMatch) {
-                        const link = 'https://investments.miraeasset.com/tigeretf/ko/customer/event/view.do?detailsKey=' + idMatch[0];
-                        results.push({ title, link, dateText });
-                    }
-                }
-            });
-            return results;
+        # 더보기 클릭
+        try:
+            for _ in range(2):
+                more = page.locator("#btnMore, button.btn-list-more").first
+                if await more.is_visible():
+                    await more.click()
+                    await page.wait_for_timeout(1000)
+        except: pass
+
+        # 데이터 추출
+        cards_raw = await page.evaluate("""
+        () => {
+            return Array.from(document.querySelectorAll('a.c-card')).map(card => ({
+                text: card.innerText,
+                link: card.getAttribute('onclick') || card.getAttribute('href')
+            }));
         }
         """)
+        
+        print(f"[TIGER] {len(cards_raw)}개 카드 데이터 분석 시작...")
+        
+        for card in cards_raw:
+            text = card["text"]
+            lines = [l.strip() for l in text.split('\n') if l.strip()]
+            
+            # 제목 추출 (보통 '진행중' 다음 줄)
+            title = ""
+            try:
+                idx = lines.index("진행중")
+                if idx + 1 < len(lines): title = lines[idx+1]
+            except ValueError:
+                # '진행중'이 없거나 다른 형태인 경우
+                if lines: title = lines[0]
+            
+            if not title: continue
+            if is_announcement(title): continue
 
-        for card in cards:
-            # 키워드 필터링
-            if not is_event_title(card["title"]) or is_announcement(card["title"]):
-                continue
-            
-            # 목록에서 날짜 파싱 시도
-            period = parse_period_from_text(card["dateText"])
-            
-            # 목록에 날짜가 없으면 상세 페이지 확인
-            if not period["end"]:
-                p = await scrape_detail_page_and_period(page, card["link"], card["title"])
-                period = p if p["end"] else period
-            
-            d_day = _calc_dday(period["end"])
+            # TIGER 전용 날짜 추출 (파이프 '|' 및 닷 '.' 구분자 처리)
+            # 예: "이벤트 기간 | 2026.04.07 ~ 2026.04.30"
+            date_match = re.search(r"(\d{4}[./]\d{1,2}[./]\d{1,2})\s*~\s*(\d{4}[./]\d{1,2}[./]\d{1,2})", text)
+            if date_match:
+                start_date = _parse_date(date_match.group(1))
+                end_date = _parse_date(date_match.group(2))
+            else:
+                # 정규식 실패 시 기존 범용 파서 사용
+                p = parse_period_from_text(text)
+                start_date, end_date = p["start"], p["end"]
 
-            # 필터링: 기간이 오늘보다 지났으면 스킵, 기한 정보 없으면 신뢰 불가로 스킵
+            # 날짜가 없으면 상세 페이지 방문
+            if not end_date:
+                p = await scrape_detail_page_and_period(page, card["link"], title)
+                start_date, end_date = p["start"], p["end"]
+            
+            d_day = _calc_dday(end_date)
             if d_day is not None and d_day < 0: continue
-            if not period["end"]: continue
+            if not end_date: continue
 
             events.append({
-                "id": generate_event_id("TIGER", card["title"]),
+                "id": generate_event_id("TIGER", title),
                 "provider": "TIGER",
-                "title": card["title"],
-                "start_date": period["start"],
-                "end_date": period["end"],
+                "title": title,
+                "start_date": start_date,
+                "end_date": end_date,
                 "d_day": d_day,
                 "status": "진행중",
                 "link": card["link"],
                 "scraped_at": datetime.now().isoformat(),
             })
-    except Exception as e: print(f"[TIGER] {e}")
+            print(f"[TIGER Success] {title[:20]}... ({end_date})")
+
+    except Exception as e:
+        print(f"[TIGER] 에러 발생: {e}")
     return events
 
 
@@ -772,11 +776,6 @@ async def run_scrape_and_save():
     import os
     from supabase import create_client, Client
     
-    events = await scrape_all()
-    if not events:
-        print("[Warn] 수집된 이벤트가 없습니다.")
-        return []
-
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_SERVICE_KEY")
     
@@ -795,7 +794,7 @@ async def run_scrape_and_save():
         # 1. 상태 기록: 진행 중
         await log_status(supabase, "진행중")
 
-        # 2. 모든 이벤트 수집
+        # 2. 모든 이벤트 수집 (중복 호출 제거)
         events = await scrape_all()
         if not events:
             print("[Warn] 수집된 이벤트가 없습니다.")
