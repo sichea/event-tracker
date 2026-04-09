@@ -254,12 +254,8 @@ async def scrape_tiger(page) -> list[dict]:
         tiger_url = "https://investments.miraeasset.com/tigeretf/ko/customer/event/list.do"
         await page.goto(tiger_url, wait_until="networkidle", timeout=30000)
         
-        # 필터 적용 (진행중)
-        try:
-            await page.select_option('select[name="searchStts"]', value="진행중")
-            await page.evaluate("() => { if (typeof cmmCtrl !== 'undefined') cmmCtrl.list(1); }")
-            await page.wait_for_timeout(3000)
-        except: pass
+        # 필터 적용 대신 바로 데이터 추출 (사이트 개편으로 필터 박스 실종 대응)
+        await page.wait_for_timeout(2000)
 
         # 더보기 모든 데이터를 가져올 때까지 반복 클릭
         clicked_count = 0
@@ -282,6 +278,11 @@ async def scrape_tiger(page) -> list[dict]:
         
         for card in cards:
             try:
+                # 카드 전체 텍스트에서 '진행중' 여부 확인
+                card_text = await card.inner_text()
+                if "진행중" not in card_text:
+                    continue
+
                 title = await card.query_selector_eval(".txt", "el => el.innerText.trim()")
                 
                 # TIGER는 href/onclick에 javascript:cmmCtrl.details('detailsKey', 'ID', './view.do') 형태임
