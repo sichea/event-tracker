@@ -731,16 +731,20 @@ async def scrape_fun(page) -> list[dict]:
 
 
 async def log_status(supabase, status: str, error_msg: str = None):
-    """스크래핑 상태를 DB에 기록합니다."""
+    """스크래핑 상태를 DB에 기록합니다. (status: success, failed, running)"""
     try:
+        # 프론트엔드 호환성을 위해 영문으로 변환 (한글로 들어온 경우 대비)
+        status_map = {"성공": "success", "실패": "failed", "진행중": "running"}
+        final_status = status_map.get(status, status)
+
         data = {
             "id": 1, # 단일 레코드 점유
             "last_run": datetime.now().isoformat(),
-            "status": status,
+            "status": final_status,
             "error_message": error_msg
         }
         supabase.table("scraping_status").upsert(data).execute()
-        print(f"[Status Log] {status}: {error_msg if error_msg else '완료'}")
+        print(f"[Status Log] {final_status}: 완료")
     except Exception as e:
         print(f"[Status Log Error] {e}")
 
