@@ -274,16 +274,30 @@ async def scrape_tiger(page) -> list[dict]:
 
         # 데이터 추출
         cards = await page.query_selector_all("a.c-card")
-        print(f"[TIGER] {len(cards)}개 카드 데이터 분석 시작...")
+        print(f"[TIGER DEBUG] 발견된 총 카드 개수: {len(cards)}개")
         
-        for card in cards:
+        for idx, card in enumerate(cards):
             try:
-                # 카드 전체 텍스트에서 '진행중' 여부 확인
+                # 카드 전체 텍스트 확인
                 card_text = await card.inner_text()
-                if "진행중" not in card_text:
+                is_ongoing = "진행중" in card_text
+                
+                # 디버그: 첫 5개 카드에 대해서는 텍스트 일부 출력
+                if idx < 5:
+                    safe_text = card_text[:50].replace('\n', ' ')
+                    print(f"[TIGER DEBUG] Card {idx+1} text: {safe_text}... (진행중 포함: {is_ongoing})")
+
+                if not is_ongoing:
                     continue
 
-                title = await card.query_selector_eval(".txt", "el => el.innerText.trim()")
+                # 제목 추출 시도
+                try:
+                    title = await card.query_selector_eval(".txt", "el => el.innerText.trim()")
+                except Exception as te:
+                    print(f"[TIGER DEBUG] 제목(.txt) 추출 실패: {te}")
+                    continue
+                
+                print(f"[TIGER DEBUG] 처리 중인 이벤트: {title[:20]}")
                 
                 # TIGER는 href/onclick에 javascript:cmmCtrl.details('detailsKey', 'ID', './view.do') 형태임
                 onclick = await card.get_attribute("onclick") or ""
@@ -296,13 +310,17 @@ async def scrape_tiger(page) -> list[dict]:
                     event_id = id_match.group(1)
                     link = f"https://investments.miraeasset.com/tigeretf/ko/customer/event/view.do?detailsKey={event_id}"
                 else:
-                    # 일반 링크인 경우
+                    print(f"[TIGER DEBUG] ID 추출 실패 (link_text: {link_text[:50]})")
                     link = href if href.startswith("http") else f"https://investments.miraeasset.com{href}"
 
-                if not title or is_announcement(title): continue
+                if not title or is_announcement(title): 
+                    print(f"[TIGER DEBUG] 공지사항 또는 빈 제목 스킵: {title}")
+                    continue
                 
                 p = await scrape_detail_page_and_period(page, link, title)
-                if not p["end"]: continue
+                if not p["end"]: 
+                    print(f"[TIGER DEBUG] 기간 추출 실패: {title}")
+                    continue
                 
                 events.append({
                     "id": generate_event_id("TIGER", title),
@@ -317,7 +335,7 @@ async def scrape_tiger(page) -> list[dict]:
                 })
                 print(f"[TIGER Success] {title[:20]}... ({p['end']})")
             except Exception as e:
-                print(f"[TIGER Card Error] {e}")
+                print(f"[TIGER Card Error] Card {idx+1}: {e}")
 
     except Exception as e:
         print(f"[TIGER] 에러 발생: {e}")
