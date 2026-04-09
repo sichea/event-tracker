@@ -21,14 +21,24 @@ jobs:
         with:
           python-version: '3.11'
           
+      - name: Playwright 브라우저 캐시 확인
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('backend/requirements.txt') }}
+
       - name: 패키지 설치
         run: |
           cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install supabase
-          playwright install chromium
-          npx playwright install-deps
+          
+      - name: Playwright 브라우저 설치 (캐시 미적중 시)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: |
+          npx playwright install chromium --with-deps
           
       - name: 스크래핑 및 Supabase 푸시 실행
         env:

@@ -257,6 +257,16 @@ async def scrape_tiger(page) -> list[dict]:
         # 필터 적용 대신 바로 데이터 추출 (사이트 개편으로 필터 박스 실종 대응)
         await page.wait_for_timeout(2000)
 
+        # 끈기 있게 목록 대기 (최대 15초)
+        try:
+            print("[TIGER DEBUG] 이벤트 목록 로딩 대기 중...")
+            await page.wait_for_selector("a.c-card", timeout=15000)
+            print("[TIGER DEBUG] 이벤트 목록 감지 성공!")
+        except Exception as we:
+            print(f"[TIGER DEBUG] 목록 대기 중 타임아웃 또는 실패: {we}")
+            # 목록이 없어도 '더보기' 버튼이 있다면 시도해볼 수 있음
+            pass
+
         # 더보기 모든 데이터를 가져올 때까지 반복 클릭
         clicked_count = 0
         while clicked_count < 10:  # 최대 10번 (약 80개 데이터) 시도
