@@ -13,6 +13,17 @@ import re
 from datetime import datetime, date, timedelta
 from bs4 import BeautifulSoup
 from db import generate_event_id, upsert_events as db_upsert_events
+import sys
+import io
+
+# Windows 터미널 한글/이모지 출력 문제 해결
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        # 3.7 미만 버전 fallback
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # 하드코딩 방지: 상수 정의
 PROVIDERS = {
@@ -223,7 +234,7 @@ async def scrape_detail_page_and_period(page, link: str, title: str, reference_y
     try:
         # 이미 상세 페이지 일 수 있으므로 비교
         if page.url != link:
-            await page.goto(link, wait_until="domcontentloaded", timeout=15000)
+            await page.goto(link, wait_until="load", timeout=15000)
             await page.wait_for_timeout(1000)
             
         body_text = await page.evaluate("() => document.body.innerText")
@@ -282,50 +293,50 @@ async def scrape_tiger(page) -> list[dict]:
             except:
                 break
 
-        # 데이터 추출
+        # 데이터 추출 (context 파괴를 피하기 위해 필요한 정보를 먼저 리스트에 담습니다)
         cards = await page.query_selector_all("a.c-card")
         print(f"[TIGER DEBUG] 발견된 총 카드 개수: {len(cards)}개")
         
+        candidates = []
         for idx, card in enumerate(cards):
             try:
-                # 카드 전체 텍스트 확인
                 card_text = await card.inner_text()
                 is_ongoing = "진행중" in card_text
                 
-                # 디버그: 첫 5개 카드에 대해서는 텍스트 일부 출력
-                if idx < 5:
-                    safe_text = card_text[:50].replace('\n', ' ')
-                    print(f"[TIGER DEBUG] Card {idx+1} text: {safe_text}... (진행중 포함: {is_ongoing})")
-
                 if not is_ongoing:
                     continue
 
-                # 제목 추출 시도
+                # 제목 추출
                 try:
-                    title = await card.query_selector_eval(".txt", "el => el.innerText.trim()")
-                except Exception as te:
-                    print(f"[TIGER DEBUG] 제목(.txt) 추출 실패: {te}")
+                    title = await card.eval_on_selector(".title", "el => el.innerText.trim()")
+                except Exception:
                     continue
                 
-                print(f"[TIGER DEBUG] 처리 중인 이벤트: {title[:20]}")
-                
-                # TIGER는 href/onclick에 javascript:cmmCtrl.details('detailsKey', 'ID', './view.do') 형태임
+                # 링크 ID 추출
                 onclick = await card.get_attribute("onclick") or ""
                 href = await card.get_attribute("href") or ""
                 link_text = onclick + href
                 
-                # ID 추출 (숫자)
                 id_match = re.search(r"'(\d+)'", link_text)
                 if id_match:
                     event_id = id_match.group(1)
                     link = f"https://investments.miraeasset.com/tigeretf/ko/customer/event/view.do?detailsKey={event_id}"
                 else:
-                    print(f"[TIGER DEBUG] ID 추출 실패 (link_text: {link_text[:50]})")
                     link = href if href.startswith("http") else f"https://investments.miraeasset.com{href}"
 
                 if not title or is_announcement(title): 
-                    print(f"[TIGER DEBUG] 공지사항 또는 빈 제목 스킵: {title}")
                     continue
+                
+                candidates.append({"title": title, "link": link})
+            except Exception as ce:
+                print(f"[TIGER Candidate Error] {ce}")
+
+        # 상세 페이지 방문 및 데이터 완성
+        for item in candidates:
+            try:
+                title = item["title"]
+                link = item["link"]
+                print(f"[TIGER DEBUG] 상세 페이지 분석 중: {title[:20]}")
                 
                 p = await scrape_detail_page_and_period(page, link, title)
                 if not p["end"]: 
@@ -345,7 +356,7 @@ async def scrape_tiger(page) -> list[dict]:
                 })
                 print(f"[TIGER Success] {title[:20]}... ({p['end']})")
             except Exception as e:
-                print(f"[TIGER Card Error] Card {idx+1}: {e}")
+                print(f"[TIGER Detail Error] {title}: {e}")
 
     except Exception as e:
         print(f"[TIGER] 에러 발생: {e}")
@@ -357,7 +368,7 @@ async def scrape_kodex(page) -> list[dict]:
     events = []
     try:
         kodex_url = PROVIDERS["KODEX"]["url"]
-        await page.goto(kodex_url, wait_until="domcontentloaded", timeout=60000)
+        await page.goto(kodex_url, wait_until="networkidle", timeout=60000)
         await page.wait_for_timeout(3000)
 
         html = await page.content()
@@ -455,7 +466,7 @@ async def scrape_naver_blog_generic(page, provider_id: str) -> list[dict]:
         url = config["url"] + "&listStyle=post" if "&" in config["url"] else config["url"] + "?listStyle=post"
         
         print(f"[{provider_id}] 블로그 스크래핑 시작: {url}")
-        await page.goto(url, wait_until="domcontentloaded", timeout=60000)
+        await page.goto(url, wait_until="networkidle", timeout=60000)
         await page.wait_for_timeout(3000)
         
         # 대표님, 일부 블로그는 스크롤을 해야 목록이 나타납니다. 스크롤을 수행합니다.
@@ -574,7 +585,7 @@ async def scrape_rise(page) -> list[dict]:
     events = []
     try:
         url = PROVIDERS["RISE"]["url"]
-        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+        await page.goto(url, wait_until="networkidle", timeout=30000)
         await page.wait_for_timeout(5000)
         
         # 목록에서 '진행중'인 카드와 기간을 동시에 수집
@@ -819,7 +830,7 @@ async def run_scrape_and_save():
         if not events:
             print("[Warn] 수집된 이벤트가 없습니다.")
             await log_status(supabase, "실패", "수집된 데이터가 0건입니다.")
-            return []
+            sys.exit(1)
         
         # 3. 현재 DB에 있는 모든 '진행중' 이벤트 가져오기 (기존 이벤트 정리용)
         active_in_db = supabase.table("events").select("*").eq("status", "진행중").execute().data
@@ -897,7 +908,8 @@ async def run_scrape_and_save():
     except Exception as e:
         print(f"[Critical Error] {e}")
         await log_status(supabase, "실패", str(e))
-        return []
+        sys.exit(1)
+
 
 
 if __name__ == "__main__":
