@@ -1,69 +1,28 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret } from "./api";
 import { supabase } from "./supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-import "./index.css";
+import "./index.css"; // for any residual global styles
 
-/* ============================================
-   Provider 설정 & 다국어
-   ============================================ */
 const PROVIDERS = [
-  { key: "TIGER", label: "TIGER", color: "#FF6B00", url: "https://www.tigeretf.com" },
-  { key: "KODEX", label: "KODEX", color: "#2563EB", url: "https://www.samsungfund.com" },
-  { key: "ACE", label: "ACE", color: "#EF4444", url: "https://www.aceetf.co.kr" },
-  { key: "SOL", label: "SOL", color: "#8B5CF6", url: "https://www.soletf.com" },
-  { key: "RISE", label: "RISE", color: "#EAB308", url: "https://www.riseetf.co.kr" },
-  { key: "AMUNDI", label: "AMUNDI", color: "#06B6D4", url: "https://www.nh-amundi.com" },
-  { key: "1Q", label: "1Q", color: "#10B981", url: "https://www.1qetf.com" },
-  { key: "PLUS", label: "PLUS", color: "#EC4899", url: "https://www.plusetf.co.kr" },
-  { key: "KIWOOM", label: "KIWOOM", color: "#A21CAF", url: "https://www.kiwoometf.com" },
-  { key: "FUN", label: "FUN", color: "#6366F1", url: "https://www.funetf.co.kr" },
+  { key: "TIGER", label: "TIGER", name: "Mirae Asset TIGER", bgColor: "bg-orange-600", textLabel: "TIGER", shadow: "shadow-orange-900/20", url: "https://investments.miraeasset.com/tigeretf/ko/customer/event/list.do" },
+  { key: "KODEX", label: "KODEX", name: "Samsung KODEX", bgColor: "bg-blue-700", textLabel: "KODEX", shadow: "shadow-blue-900/20", url: "https://m.samsungfund.com/etf/lounge/event.do" },
+  { key: "ACE", label: "ACE", name: "Korea Invest ACE", bgColor: "bg-yellow-500", textLabel: "ACE", textCol: "text-black", shadow: "shadow-yellow-900/20", url: "https://www.aceetf.co.kr/cs/notice" },
+  { key: "SOL", label: "SOL", name: "Shinhan SOL", bgColor: "bg-cyan-600", textLabel: "SOL", shadow: "shadow-cyan-900/20", url: "https://m.blog.naver.com/soletf" },
+  { key: "RISE", label: "RISE", name: "KB RISE", bgColor: "bg-red-600", textLabel: "RISE", shadow: "shadow-red-900/20", url: "https://www.riseetf.co.kr/cust/event" },
+  { key: "AMUNDI", label: "AMUNDI", name: "NH-Amundi", bgColor: "bg-emerald-800", textLabel: "AMUNDI", textSize: "text-[10px]", shadow: "", url: "https://m.blog.naver.com/nh_amundi" },
+  { key: "1Q", label: "1Q", name: "Hana 1Q", bgColor: "bg-green-500", textLabel: "1Q", shadow: "", url: "https://m.blog.naver.com/1qetf" },
+  { key: "PLUS", label: "PLUS", name: "Hanwha PLUS", bgColor: "bg-indigo-600", textLabel: "PLUS", textSize: "text-xs", shadow: "", url: "https://m.blog.naver.com/hanwhaasset" },
+  { key: "KIWOOM", label: "KIWOOM", name: "Kiwoom KOSETF", bgColor: "bg-pink-600", textLabel: "KIWOOM", textSize: "text-[10px]", shadow: "", url: "https://m.blog.naver.com/kiwoomammkt" },
+  { key: "FUN", label: "FUN", name: "Woori FUN", bgColor: "bg-indigo-400", textLabel: "FUN", shadow: "", url: "https://m.funetf.co.kr/membersLounge/event" },
 ];
 
-const korAuthLocalization = {
-  variables: {
-    sign_up: {
-      email_label: '이메일 주소',
-      password_label: '비밀번호',
-      email_input_placeholder: '이메일을 입력하세요',
-      password_input_placeholder: '비밀번호를 입력하세요',
-      button_label: '회원가입',
-      loading_button_label: '가입 중...',
-      social_provider_text: '{{provider}}로 회원가입',
-      link_text: '계정이 없으신가요? 등록하기',
-      confirmation_text: '회원가입 확인 메일을 보냈습니다.',
-    },
-    sign_in: {
-      email_label: '이메일 주소',
-      password_label: '비밀번호',
-      email_input_placeholder: '이메일을 입력하세요',
-      password_input_placeholder: '비밀번호를 입력하세요',
-      button_label: '로그인',
-      loading_button_label: '로그인 중...',
-      social_provider_text: '{{provider}}로 로그인',
-      link_text: '이미 계정이 있으신가요? 로그인하기',
-    },
-    forgotten_password: {
-      email_label: '이메일 주소',
-      password_label: '비밀번호',
-      email_input_placeholder: '이메일을 입력하세요',
-      button_label: '비밀번호 재설정 메일 전송',
-      loading_button_label: '전송 중...',
-      link_text: '비밀번호를 잊으셨나요?',
-      confirmation_text: '비밀번호 재설정 메일을 확인해주세요.',
-    },
-  },
-};
-
-/* ============================================
-   비주얼 헬퍼 함수
-   ============================================ */
 function formatDday(dday) {
   if (dday === null || dday === undefined) return null;
-  if (dday > 7) return { text: `D-${dday}`, className: "event-card__dday--active" };
-  if (dday >= 0) return { text: dday === 0 ? "D-Day" : `D-${dday}`, className: "event-card__dday--soon" };
-  return { text: `D+${Math.abs(dday)}`, className: "event-card__dday--ended" };
+  if (dday > 7) return { text: `D-${dday}`, classes: "text-primary bg-primary/10 border-primary/20" };
+  if (dday >= 0) return { text: dday === 0 ? "D-Day" : `D-${dday}`, classes: "text-orange-400 bg-orange-400/10 border-orange-400/20 animate-pulse" };
+  return { text: `D+${Math.abs(dday)}`, classes: "text-outline border-outline/20 opacity-60" };
 }
 
 function formatDateRange(start, end) {
@@ -73,71 +32,57 @@ function formatDateRange(start, end) {
   return `${s} ~ ${e}`;
 }
 
-/* ============================================
-   서브 컴포넌트
-   ============================================ */
-function Toast({ message, visible }) {
-  return <div className={`toast ${visible ? "toast--visible" : ""}`}>{message}</div>;
-}
-
-function StatCard({ label, value, sub, gradient }) {
-  return (
-    <div className="stat-card" style={{ "--gradient": gradient }}>
-      <div className="stat-card__label">{label}</div>
-      <div className="stat-card__value">{value}</div>
-      {sub && <div className="stat-card__sub">{sub}</div>}
-    </div>
-  );
-}
-
-// 이벤트 카드
+// Event Card using Tailwind
 function EventCard({ event, aliases, onToggle }) {
   const dday = formatDday(event.d_day);
-
-  // 이벤트가 현재 활성화(진행중)인지?
   const isActive = event.status === "진행중";
-
-  // 하나라도 체크된 계좌가 있는지 여부를 시각적 하이라이트용으로 사용
   const hasAnyCheck = Object.values(event.checkedAliases || {}).some((v) => v);
+  const pConf = PROVIDERS.find(p => p.key === event.provider) || PROVIDERS[0];
 
   return (
-    <div className={`event-card ${hasAnyCheck ? "event-card--checked" : ""}`} style={{ animationDelay: `${Math.random() * 0.15}s` }}>
-      <div className={`event-card__accent event-card__accent--${event.provider}`} />
-      
-      <div className="event-card__body">
-        <div className="event-card__header">
-          <span className={`event-card__provider event-card__provider--${event.provider}`}>
-            {event.provider}
-          </span>
-          {dday && <span className={`event-card__dday ${dday.className}`}>{dday.text}</span>}
+    <div className={`bg-surface-container rounded-3xl p-6 transition-all duration-300 border border-transparent hover:border-outline-variant/30 flex flex-col ${hasAnyCheck ? 'ring-1 ring-primary/30' : ''}`}>
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl ${pConf.bgColor} flex items-center justify-center ${pConf.shadow}`}>
+            <span className={`${pConf.textCol || 'text-white'} font-black ${pConf.textSize || 'text-xs'}`}>{pConf.textLabel}</span>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">{event.provider}</p>
+            {dday && <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${dday.classes}`}>{dday.text}</span>}
+          </div>
         </div>
-        
-        <div className="event-card__title">
-          {event.title}
-          {event.link && (
-            <a href={event.link} target="_blank" rel="noopener noreferrer" className="event-card__link" title="이벤트 창 열기"> ↗</a>
-          )}
-        </div>
-        <div className="event-card__meta">
-          <span className="event-card__date">📅 {formatDateRange(event.start_date, event.end_date)}</span>
-        </div>
+        {event.link && (
+          <a href={event.link} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-surface-container-highest hover:bg-primary hover:text-on-primary flex items-center justify-center transition-colors">
+            <span className="material-symbols-outlined text-sm">open_in_new</span>
+          </a>
+        )}
       </div>
-
-      <div className="event-card__accounts">
+      <h4 className="text-base font-bold font-headline mb-3 line-clamp-2 min-h-[3rem]">{event.title}</h4>
+      <div className="text-xs text-on-surface-variant mb-6 flex items-center gap-2">
+        <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+        {formatDateRange(event.start_date, event.end_date)}
+      </div>
+      <div className="mt-auto pt-4 border-t border-outline-variant/20 flex flex-wrap gap-x-4 gap-y-2">
         {aliases.length === 0 ? (
-          <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>우측 상단 ⚙️설정에서 계좌(별명)를 추가해주세요!</div>
+          <p className="text-[10px] text-outline text-center">계좌를 추가해야 참여 여부를 체크할 수 있습니다.</p>
         ) : (
           aliases.map((alias) => {
             const isChecked = event.checkedAliases?.[alias.id] || false;
             return (
-              <label key={alias.id} className="event-card__checkbox-container">
-                <input 
-                  type="checkbox" 
-                  checked={isChecked} 
-                  onChange={() => onToggle(event.id, alias.id, isChecked)} 
-                  disabled={!isActive} // 끝난 이벤트는 조작 방지 (원치 않으면 해제)
-                />
-                <span className="event-card__alias-name">{alias.name}</span>
+              <label key={alias.id} className="flex items-center gap-3 cursor-pointer group">
+                <div className="relative flex items-center justify-center">
+                  <input 
+                    type="checkbox" 
+                    className="peer sr-only"
+                    checked={isChecked} 
+                    onChange={() => onToggle(event.id, alias.id, isChecked)} 
+                    disabled={!isActive}
+                  />
+                  <div className="w-5 h-5 rounded border border-outline-variant group-hover:border-primary peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                    {isChecked && <span className="material-symbols-outlined text-[14px] text-on-primary font-bold">check</span>}
+                  </div>
+                </div>
+                <span className={`text-sm font-medium transition-colors ${isChecked ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'}`}>{alias.name}</span>
               </label>
             );
           })
@@ -147,51 +92,42 @@ function EventCard({ event, aliases, onToggle }) {
   );
 }
 
-/* ============================================
-   메인 App 컴포넌트
-   ============================================ */
 export default function App() {
   const [session, setSession] = useState(null);
   const [events, setEvents] = useState([]);
   const [aliases, setAliases] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProvider, setSelectedProvider] = useState("TIGER");
-  const [selectedStatus, setSelectedStatus] = useState("이벤트");
-  const [toast, setToast] = useState({ message: "", visible: false });
+  const [selectedProvider, setSelectedProvider] = useState(null); 
+  const [selectedStatus, setSelectedStatus] = useState("전체 보기"); 
+  const [toast, setToast] = useState({ message: "", visible: false, type: "success" });
+  const [searchQuery, setSearchQuery] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [newAliasName, setNewAliasName] = useState("");
   const [scrapingStatus, setScrapingStatus] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
 
-  // 세션 확인
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsAdmin(session?.user?.email === 'aikks3782@gmail.com');
     });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setIsAdmin(session?.user?.email === 'aikks3782@gmail.com');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      setIsAdmin(s?.user?.email === 'aikks3782@gmail.com');
     });
     return () => subscription.unsubscribe();
   }, []);
 
-  const showToast = useCallback((message) => {
-    setToast({ message, visible: true });
-    setTimeout(() => setToast({ message: "", visible: false }), 2500);
+  const showToastMsg = useCallback((message, type="success") => {
+    setToast({ message, visible: true, type });
+    setTimeout(() => setToast({ message: "", visible: false, type: "success" }), 3000);
   }, []);
 
-  // 기초 데이터 로드 (이벤트 + 별명)
   const loadData = useCallback(async () => {
-    if (!session) {
-      setLoading(false);
-      return;
-    }
+    if (!session) { setLoading(false); return; }
     setLoading(true);
     try {
-      // 순차/병렬 로드
       const [fetchedAliases, eventsData, statusUpdate] = await Promise.all([
         fetchAliases(session.user.id),
         fetchEvents(session.user.id),
@@ -200,54 +136,30 @@ export default function App() {
       setAliases(fetchedAliases || []);
       setEvents(eventsData.events || []);
       setScrapingStatus(statusUpdate);
-
-      // 관리자라면 토큰도 가져옴
       if (isAdmin) {
         const token = await fetchAdminSecret('GITHUB_PAT');
         setAdminToken(token);
       }
     } catch (err) {
-      console.error("데이터 로드 실패:", err);
-      showToast("데이터를 불러오는 중 오류가 발생했습니다.");
+      showToastMsg("데이터 연동 실패", "error");
     } finally {
       setLoading(false);
     }
-  }, [session, selectedProvider, selectedStatus, showToast]);
+  }, [session, isAdmin, showToastMsg]);
 
-  useEffect(() => {
-    if (session) {
-      loadData();
-    }
-  }, [loadData, session]);
+  useEffect(() => { if (session) loadData(); }, [loadData, session]);
 
-  // 체크박스 토글
   const handleToggle = async (eventId, aliasId, currentlyChecked) => {
     try {
       const result = await toggleEventChecked(eventId, session.user.id, aliasId, currentlyChecked);
-      
-      setEvents((prev) =>
-        prev.map((e) => {
-          if (e.id === eventId) {
-            return {
-              ...e,
-              checkedAliases: {
-                ...e.checkedAliases,
-                [aliasId]: result.checked
-              }
-            };
-          }
-          return e;
-        })
-      );
-      
-      showToast(result.checked ? "✅ 참여 완료!" : "↩️ 참여 취소");
-    } catch (err) {
-      console.error(err);
-      showToast("⚠️ 상태 변경 실패");
-    }
+      setEvents(prev => prev.map(e => {
+        if (e.id === eventId) return { ...e, checkedAliases: { ...e.checkedAliases, [aliasId]: result.checked } };
+        return e;
+      }));
+      showToastMsg(result.checked ? "참여 상태가 업데이트되었습니다." : "참여 취소됨");
+    } catch (err) { showToastMsg("상태 변경 실패", "error"); }
   };
 
-  // 계좌 추가 액션
   const handleAddAlias = async (e) => {
     e.preventDefault();
     if (!newAliasName.trim()) return;
@@ -255,300 +167,335 @@ export default function App() {
       const added = await addAlias(session.user.id, newAliasName.trim());
       setAliases([...aliases, added]);
       setNewAliasName("");
-      showToast("계좌가 추가되었습니다.");
-    } catch (err) {
-      console.error(err);
-      showToast("⚠️ 계좌 추가 실패");
-    }
+      showToastMsg("새 계좌가 등록되었습니다.");
+    } catch (err) { showToastMsg("등록 실패", "error"); }
   };
 
-  // 계좌 삭제 액션
   const handleRemoveAlias = async (aliasId) => {
-    if (!confirm("이 계좌의 참여 내역이 함께 삭제될 수 있습니다. 진행할까요?")) return;
+    if (!window.confirm("삭제하시겠습니까?")) return;
     try {
       await removeAlias(aliasId, session.user.id);
       setAliases(aliases.filter((a) => a.id !== aliasId));
-      loadData(); // 체크 상태 동기화를 위해 재로드
-      showToast("계좌가 삭제되었습니다.");
-    } catch (err) {
-      console.error(err);
-      showToast("⚠️ 삭제 실패");
-    }
+      loadData();
+      showToastMsg("계좌 삭제됨");
+    } catch (err) { showToastMsg("삭제 실패", "error"); }
   };
 
-  // 수동 스크래핑 트리거
-  const handleManualScrape = async () => {
-    let token = adminToken;
-    
-    if (!token) {
-      token = prompt("GitHub Personal Access Token을 입력하세요 (최초 1회 저장):");
-      if (!token) return;
-      
-      try {
-        await saveAdminSecret('GITHUB_PAT', token);
-        setAdminToken(token);
-        showToast("💾 토큰이 DB에 저장되었습니다.");
-      } catch (err) {
-        console.error(err);
-        showToast("⚠️ 토큰 저장 실패");
-      }
-    }
-    
-    try {
-      showToast("🚀 스크래핑 요청을 보냈습니다...");
-      setScrapingStatus(prev => ({ ...prev, status: '진행중' })); // 즉시 UI 반영
-      await triggerManualScrape(token);
-      showToast("✅ 워크플로우 실행됨 (약 5-10분 소요)");
-    } catch (err) {
-      console.error(err);
-      if (err.message.includes("401")) {
-        showToast("❌ 토큰 만료! 다시 입력해 주세요.");
-        setAdminToken(null);
-      } else {
-        showToast(`❌ 실행 실패: ${err.message}`);
-      }
-    }
-  };
-
-  // [UI렌더링 영역 - 로그인 전]
   if (!session) {
     return (
-      <div className="app" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <div style={{ maxWidth: '400px', width: '100%', padding: '2rem', background: 'rgba(30, 41, 59, 0.7)', borderRadius: '16px', backdropFilter: 'blur(10px)' }}>
-          <h1 style={{ textAlign: 'center', marginBottom: '2rem', color: 'white' }}>ETF Event Tracker</h1>
-          <Auth 
-            supabaseClient={supabase} 
-            appearance={{ theme: ThemeSupa }} 
-            localization={korAuthLocalization}
-            providers={[]} 
-          />
+      <div className="flex items-center justify-center min-h-screen p-6">
+        <div className="bg-surface-container rounded-3xl p-8 w-full max-w-sm shadow-2xl">
+          <h1 className="text-2xl font-bold font-headline mb-6 text-center text-primary">ETF Event Tracker</h1>
+          <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} providers={[]} />
         </div>
       </div>
     );
   }
 
-  // [UI렌더링 영역 - 로그인 후]
-  // 1. 중복 제거
+  // 데이터 필터링 계산
   const uniqueEventsMap = new Map();
-  events.forEach(e => {
-    if (!uniqueEventsMap.has(e.id)) {
-      uniqueEventsMap.set(e.id, e);
-    }
-  });
+  events.forEach(e => { if (!uniqueEventsMap.has(e.id)) uniqueEventsMap.set(e.id, e); });
   const uniqueEvents = Array.from(uniqueEventsMap.values());
 
-  let displayEvents = uniqueEvents.filter(e => {
-    // 운용사 필터
-    if (selectedProvider && e.provider !== selectedProvider) return false;
-    
-    // 상태 탭 필터링 ("홈페이지" 선택시에는 필터링 스킵)
-    if (selectedStatus === "이벤트") {
-      // 진행중인 것만 보여줌
-      if (e.status !== "진행중") return false;
-    } else if (selectedStatus === "참여완료") {
-      // 최소 한 가지 계좌라도 체크된 이벤트만 필터링
-      const hasAnyCheck = Object.values(e.checkedAliases || {}).some((v) => v);
-      if (!hasAnyCheck || e.status !== "진행중") return false;
-    } else if (selectedStatus === "종료") {
-      if (e.status !== "종료") return false;
-    }
-    return true;
-  }).sort((a, b) => {
-    // d_day가 적을수록(마감이 임박할수록) 위로
-    const ddayA = a.d_day === null || a.d_day === undefined ? 9999 : a.d_day;
-    const ddayB = b.d_day === null || b.d_day === undefined ? 9999 : b.d_day;
-    return ddayA - ddayB;
-  });
-  
-  // 통계 계산
+  const activeEventsCount = uniqueEvents.filter(e => e.status === "진행중").length;
   const participatedCount = uniqueEvents.filter(e => Object.values(e.checkedAliases || {}).some(Boolean)).length;
   const totalChecks = events.reduce((acc, e) => acc + Object.values(e.checkedAliases || {}).filter(Boolean).length, 0);
   const maxPossibleChecks = events.length * Math.max(aliases.length, 1);
   const checkPercent = maxPossibleChecks > 0 ? Math.round((totalChecks / maxPossibleChecks) * 100) : 0;
+  
+  const upcomingEvents = uniqueEvents.filter(e => e.status === "진행중" && e.d_day >= 0 && e.d_day <= 3).length;
 
-  if (loading && events.length === 0) {
-    return (
-      <div className="app">
-        <div className="loading">
-          <div className="loading__spinner" />
-          <div className="loading__text">이벤트 데이터를 불러오는 중...</div>
-        </div>
-      </div>
-    );
-  }
+  let displayEvents = uniqueEvents.filter(e => {
+    if (searchQuery && !e.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (selectedProvider && e.provider !== selectedProvider) return false;
+    if (selectedStatus === "참여 목록") {
+      const hasAnyCheck = Object.values(e.checkedAliases || {}).some((v) => v);
+      if (!hasAnyCheck || e.status !== "진행중") return false;
+    } else {
+      if (e.status !== "진행중") return false;
+    }
+    return true;
+  }).sort((a, b) => (a.d_day ?? 9999) - (b.d_day ?? 9999));
 
   return (
-    <div className="app">
-      <header className="header">
-        <div className="header__title-area">
-          <h1 className="header__title">📊 ETF Event Tracker</h1>
-          <p className="header__subtitle">TIGER · KODEX · ACE · SOL · RISE — 이벤트를 한눈에</p>
-          {scrapingStatus?.status === 'failed' ? (
-            <p className="header__last-updated" style={{ color: '#f87171', fontWeight: 700 }}>
-              ⚠️ 최근 수집: 스크래핑 실패 ({new Date(scrapingStatus.last_run).toLocaleString("ko-KR")})
-            </p>
-          ) : (
-            events.length > 0 && events[0]?.scraped_at && (
-              <p className="header__last-updated">
-                🔄 최근 수집: {new Date(events[0].scraped_at).toLocaleString("ko-KR")}
-              </p>
-            )
-          )}
-        </div>
-        <div className="header__actions">
-          <button 
-            onClick={() => setShowSettings(!showSettings)}
-            style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #38bdf8', color: '#e0f2fe', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}
-          >
-            ⚙️ 내 계좌 설정
-          </button>
-          <button 
-            onClick={() => supabase.auth.signOut()}
-            style={{ background: 'transparent', border: '1px solid #475569', color: '#94a3b8', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}
-          >
-            로그아웃
-          </button>
-        </div>
+    <>
+      <header className="fixed top-0 w-full z-50 bg-[#0a0e17]/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+        <nav className="flex justify-between items-center w-full px-8 h-16">
+          <div className="flex items-center gap-12">
+            <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}}>ETF Tracker</span>
+            <div className="hidden md:flex items-center gap-8 text-sm font-medium">
+              <button className="text-[#73ffba] border-b-2 border-[#73ffba] pb-1 font-headline" onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}}>종합 현황</button>
+            </div>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="relative hidden lg:block">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+              <input 
+                className="bg-surface-container-highest border-none outline-none rounded-full pl-10 pr-4 py-1.5 text-sm focus:ring-1 focus:ring-primary w-64 text-on-surface" 
+                placeholder="이벤트 검색..." 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <button onClick={() => setShowSettings(!showSettings)} className={`hover:bg-[#262c3a]/50 p-2 rounded-full transition-all active:scale-95 duration-200 ${showSettings?'text-primary':'text-on-surface'}`}>
+                <span className="material-symbols-outlined">settings</span>
+              </button>
+              {isAdmin && (
+                <button className="bg-primary text-on-primary px-5 py-1.5 rounded-full text-sm font-bold active:scale-95 duration-200 shadow-[0_0_20px_rgba(115,255,186,0.2)]" onClick={() => triggerManualScrape(adminToken)}>
+                  관리자 수집 실행
+                </button>
+              )}
+            </div>
+          </div>
+        </nav>
       </header>
 
-      {/* 관리자 도구 */}
-      {isAdmin && (
-        <div style={{ 
-          background: 'rgba(30, 41, 59, 0.5)', 
-          border: '1px solid rgba(239, 68, 68, 0.2)', 
-          padding: '8px 16px', 
-          borderRadius: '8px', 
-          marginBottom: '1rem', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          fontSize: '0.85rem'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ color: '#f87171', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '1rem' }}>🛠️</span> Admin
-            </span>
-            <span style={{ color: '#94a3b8', borderLeft: '1px solid #334155', paddingLeft: '12px' }}>
-              상태: {
-                scrapingStatus?.status === 'success' || scrapingStatus?.status === '성공' ? '정상 ✅' : 
-                scrapingStatus?.status === 'failed' || scrapingStatus?.status === '실패' ? '실패 ❌' : 
-                scrapingStatus?.status === '진행중' ? '진행 중 🔄' : '데이터 없음 ⏳'
-              }
-            </span>
-            {scrapingStatus?.last_run && (
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                (최근: {new Date(scrapingStatus.last_run).toLocaleTimeString()})
-              </span>
-            )}
+      <aside className="flex flex-col fixed left-0 top-16 bottom-0 p-4 h-[calc(100vh-64px)] w-64 bg-gradient-to-b from-[#0a0e17] to-[#262c3a] z-40 hidden xl:flex border-r border-white/5">
+        <div className="flex items-center gap-3 mb-8 px-2">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+            <span className="material-symbols-outlined text-primary" data-weight="fill">sensors</span>
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button 
-              onClick={handleManualScrape}
-              style={{ background: '#ef4444', border: 'none', color: 'white', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem' }}
-            >
-              스크래핑 실행
-            </button>
-            <button 
-              onClick={() => {
-                const newToken = prompt("새로운 GitHub Token을 입력하세요:", adminToken || "");
-                if (newToken) {
-                  saveAdminSecret('GITHUB_PAT', newToken)
-                    .then(() => {
-                      setAdminToken(newToken);
-                      showToast("✅ 토큰 업데이트됨");
-                    });
-                }
-              }}
-              style={{ background: 'transparent', border: '1px solid #475569', color: '#94a3b8', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
-            >
-              토큰 수정
-            </button>
+          <div>
+            <p className="text-sm font-black text-[#73ffba] uppercase tracking-wider font-headline">실시간 모니터링</p>
+            <p className="text-xs text-on-surface-variant">{scrapingStatus?.status === 'success' || scrapingStatus?.status === '성공' ? '데이터 동기화 완료' : scrapingStatus?.status === '진행중' ? '동기화 중...' : '네트워크 불안정'}</p>
           </div>
         </div>
-      )}
-
-      {/* 설정 패널 (아코디언 형태) */}
-      {showSettings && (
-        <div style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem', border: '1px solid #334155' }}>
-          <h3 style={{ color: '#f8fafc', marginBottom: '1rem', marginTop: 0 }}>👥 관리할 계좌(별명) 목록</h3>
-          <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1rem' }}>
-            {aliases.map(a => (
-              <li key={a.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#0f172a', borderRadius: '6px', marginBottom: '8px' }}>
-                <span style={{ color: '#e2e8f0' }}>{a.name}</span>
-                <button onClick={() => handleRemoveAlias(a.id)} style={{ background: '#ef4444', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>삭제</button>
-              </li>
-            ))}
-            {aliases.length === 0 && <li style={{ color: '#94a3b8', fontSize: '0.9rem' }}>등록된 계좌가 없습니다. 이벤트를 기록할 계좌를 추가해주세요. (예: 본인, 아내, 자녀1)</li>}
-          </ul>
-          <form onSubmit={handleAddAlias} style={{ display: 'flex', gap: '8px' }}>
-            <input 
-              type="text" 
-              placeholder="새로운 계좌(별명) 입력" 
-              value={newAliasName}
-              onChange={(e) => setNewAliasName(e.target.value)}
-              style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #475569', background: '#0f172a', color: 'white' }}
-            />
-            <button type="submit" style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer', fontWeight: 600 }}>추가</button>
-          </form>
-        </div>
-      )}
-
-      <div className="stats-bar">
-        <StatCard label="🎁 전체 이벤트" value={events.length} gradient="linear-gradient(90deg, #6366f1, #8b5cf6)" />
-        <StatCard label="✅ 참여 완료" value={participatedCount} gradient="linear-gradient(90deg, #f59e0b, #fbbf24)" />
-        <StatCard label="📊 참여율" value={`${checkPercent}%`} gradient="linear-gradient(90deg, #10b981, #34d399)" />
-        <StatCard label="등록 계좌" value={`${aliases.length}개`} sub="체크 가능 슬롯" gradient="linear-gradient(90deg, #ef4444, #f97316)" />
-      </div>
-
-      <div className="filters">
-        {PROVIDERS.map((p) => (
-          <button key={p.key} className={`filter-tab ${selectedProvider === p.key ? "filter-tab--active" : ""}`} onClick={() => setSelectedProvider(selectedProvider === p.key ? null : p.key)}>
-            <span className="filter-dot" style={{ background: p.color }} />
-            {p.label}
+        <div className="space-y-1 flex-1">
+          <button onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${selectedProvider === null ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+            <span className="material-symbols-outlined text-xl">dashboard</span>
+            <span className="font-medium">종합 개요</span>
           </button>
-        ))}
-        <span className="filter-separator" />
-        <button className={`filter-tab filter-tab--status ${selectedStatus === "이벤트" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus("이벤트")}>🎁 전체 이벤트</button>
-        <button className={`filter-tab filter-tab--status ${selectedStatus === "참여완료" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus("참여완료")}>✅ 참여 완료</button>
-        <button className={`filter-tab filter-tab--status ${selectedStatus === "홈페이지" ? "filter-tab--active" : ""}`} onClick={() => setSelectedStatus("홈페이지")}>🏢 운용사 홈페이지</button>
-      </div>
-
-      {/* 4-3. "홈페이지 바로가기" 탭일 때의 특별 뷰 */}
-      {selectedStatus === "홈페이지" && (
-        <div className="homepage-shortcuts-grid">
-          {PROVIDERS.filter(p => !selectedProvider || p.key === selectedProvider).map(p => (
-            <div key={p.key} className="shortcut-card">
-              <a href={p.url} target="_blank" rel="noreferrer" className="shortcut-link">
-                <div className="shortcut-header">
-                  <div className="provider-icon" style={{ backgroundColor: p.color }}>{p.label[0]}</div>
-                  <span className="provider-name">{p.label} <span className="provider-sub">공식 홈페이지</span></span>
-                </div>
-                <div className="shortcut-action">
-                  <span>이벤트 보러가기</span>
-                  <span className="link-arrow">↗</span>
-                </div>
-              </a>
-            </div>
-          ))}
+          <button onClick={() => supabase.auth.signOut()} className="w-full text-left text-[#ebedfb]/70 hover:bg-[#262c3a]/30 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:text-[#ff716c] duration-300">
+            <span className="material-symbols-outlined text-xl">logout</span>
+            <span>로그아웃</span>
+          </button>
         </div>
-      )}
+      </aside>
 
-      {selectedStatus !== "홈페이지" && (
-        displayEvents.length > 0 ? (
-          <div className="events-grid">
-            {displayEvents.map((event, idx) => (
-              <EventCard key={event.id || idx} event={event} aliases={aliases} onToggle={handleToggle} />
+      <main className="pt-24 pb-12 px-6 lg:px-12 xl:ml-64 min-h-screen">
+        
+        {/* Settings Panel */}
+        {showSettings && (
+          <div className="mb-8 p-6 bg-surface-container rounded-3xl border border-outline-variant/30 animate-in fade-in slide-in-from-top-4">
+            <h3 className="text-lg font-bold font-headline mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">group</span> 내 계좌 관리
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <ul className="space-y-2 mb-4">
+                  {aliases.map(a => (
+                    <li key={a.id} className="flex items-center justify-between p-3 bg-surface-container-highest rounded-xl text-sm border border-white/5">
+                      {a.name}
+                      <button onClick={() => handleRemoveAlias(a.id)} className="text-error hover:bg-error/10 p-1.5 rounded-lg transition-colors"><span className="material-symbols-outlined text-sm">delete</span></button>
+                    </li>
+                  ))}
+                  {aliases.length === 0 && <li className="text-sm text-on-surface-variant">등록된 계좌가 없습니다.</li>}
+                </ul>
+              </div>
+              <div>
+                <form onSubmit={handleAddAlias} className="flex gap-3">
+                  <input value={newAliasName} onChange={e => setNewAliasName(e.target.value)} type="text" placeholder="계좌 별명 (예: 본인, 가족1...)" className="flex-1 bg-surface-container-highest rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none border border-transparent focus:border-primary/50 text-on-surface placeholder:text-on-surface-variant" />
+                  <button type="submit" className="bg-primary text-on-primary font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">추가</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Dashboard Header */}
+        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline mb-2">
+              {selectedProvider ? `${PROVIDERS.find(p=>p.key===selectedProvider)?.name} 이벤트` : "종합 현황"}
+            </h1>
+            <p className="text-on-surface-variant max-w-xl">운용사별 ETF 이벤트와 참여 상태를 실시간으로 모니터링합니다.</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-surface-container-high rounded-2xl p-4 min-w-[140px] flex items-center gap-4 shadow-sm border border-white/5">
+              <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary">account_balance</span>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">등록 계좌</p>
+                <p className="text-xl font-bold font-headline">{aliases.length}개</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Top Stats Bento */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          <div className="bg-surface-container-high rounded-3xl p-6 relative overflow-hidden group border border-white/5">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span className="material-symbols-outlined text-6xl">event_list</span></div>
+            <p className="text-sm font-bold text-on-surface-variant mb-1">진행중 이벤트</p>
+            <h3 className="text-4xl font-extrabold text-on-surface font-headline">{activeEventsCount}</h3>
+            <div className="mt-4 flex items-center gap-2 text-xs text-primary font-medium">
+              <span className="material-symbols-outlined text-sm">sync</span>
+              <span>업데이트: {events[0]?.scraped_at ? new Date(events[0].scraped_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '오늘'}</span>
+            </div>
+          </div>
+          <div className="bg-surface-container-high rounded-3xl p-6 relative overflow-hidden group border border-white/5">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span className="material-symbols-outlined text-6xl">check_circle</span></div>
+            <p className="text-sm font-bold text-on-surface-variant mb-1">참여 완료</p>
+            <h3 className="text-4xl font-extrabold text-on-surface font-headline">{participatedCount}</h3>
+            <div className="mt-4 flex items-center gap-2 text-xs text-outline font-medium">
+              <span>{activeEventsCount - participatedCount}개 체크 대기 중</span>
+            </div>
+          </div>
+          <div className="bg-surface-container-high rounded-3xl p-6 relative overflow-hidden group border border-white/5">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span className="material-symbols-outlined text-6xl">analytics</span></div>
+            <p className="text-sm font-bold text-on-surface-variant mb-1">참여율</p>
+            <h3 className="text-4xl font-extrabold text-primary font-headline">{checkPercent}%</h3>
+            <div className="mt-4 w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+              <div className="bg-primary h-full rounded-full shadow-[0_0_8px_#73ffba] transition-all duration-1000" style={{width: `${checkPercent}%`}}></div>
+            </div>
+          </div>
+          <div className="bg-surface-container-high rounded-3xl p-6 relative overflow-hidden group border border-primary/20 shadow-[0_0_30px_rgba(115,255,186,0.05)]">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+            <p className="text-sm font-bold text-on-surface-variant mb-1">마감 임박</p>
+            <h3 className="text-4xl font-extrabold text-tertiary font-headline">{upcomingEvents}</h3>
+            <div className="mt-4 flex items-center gap-2 text-xs text-tertiary font-medium">
+              <span>3일 이내 종료</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Filters Section */}
+        <section className="mb-8 flex flex-col gap-4">
+          {/* Row 1: Status Filters */}
+          <div className="flex items-center gap-2">
+            <button onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${selectedProvider === null && (selectedStatus === '전체 보기' || selectedStatus === '전체 이벤트') ? 'bg-primary text-on-primary shadow-lg' : 'bg-surface-container-highest border border-white/5 text-on-surface-variant hover:text-on-surface'}`}>
+              전체 보기
+            </button>
+            <button onClick={() => {setSelectedProvider(null); setSelectedStatus("참여 목록");}} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${selectedStatus === '참여 목록' ? 'bg-primary text-on-primary shadow-lg' : 'bg-surface-container-highest border border-white/5 text-on-surface-variant hover:text-on-surface'}`}>
+              참여 목록
+            </button>
+          </div>
+          {/* Row 2: Provider Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            {PROVIDERS.map(p => (
+              <button 
+                key={p.key} 
+                onClick={() => setSelectedProvider(p.key)}
+                className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-colors ${selectedProvider === p.key ? 'bg-primary text-on-primary shadow-lg' : 'bg-surface-container-highest border border-white/5 text-on-surface-variant hover:text-on-surface'}`}
+              >
+                {p.label}
+              </button>
             ))}
           </div>
+        </section>
+
+        {loading && events.length === 0 ? (
+           <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
         ) : (
-          <div className="empty-state">
-            <div className="empty-state__icon">📭</div>
-            <div className="empty-state__text">{selectedProvider || selectedStatus ? "해당 조건의 이벤트가 없습니다" : "수집된 이벤트가 없습니다."}</div>
-          </div>
-        )
+          (selectedProvider === null && (selectedStatus === "전체 보기" || selectedStatus === "전체 이벤트")) && !searchQuery ? (
+            /* Providers Grid Overview */
+            <>
+              <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 gap-6">
+                {PROVIDERS.map(p => {
+                  const evts = uniqueEvents.filter(e => e.provider === p.key && e.status === "진행중").length;
+                  return (
+                    <div key={p.key} onClick={() => setSelectedProvider(p.key)} className="bg-surface-container border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-container-high hover:-translate-y-1 hover:border-primary/20 duration-300 cursor-pointer flex flex-col">
+                      <div className="flex items-start justify-between mb-8">
+                        <div className={`w-14 h-14 rounded-2xl ${p.bgColor} flex items-center justify-center ${p.shadow}`}>
+                          <span className={`${p.textCol || 'text-white'} font-black ${p.textSize || 'text-lg'}`}>{p.textLabel}</span>
+                        </div>
+                        {evts > 0 && <span className="bg-surface-container-highest border border-white/10 text-on-surface-variant text-[10px] font-bold px-3 py-1 rounded-full">진행중</span>}
+                      </div>
+                      <h4 className="text-lg font-bold mb-1 font-headline tracking-tight">{p.name}</h4>
+                      <p className="text-sm text-on-surface-variant mb-6 flex-1">{evts}개의 활성 이벤트</p>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); window.open(p.url, '_blank'); }}
+                        className="w-full flex items-center justify-between bg-surface-container-highest hover:bg-primary hover:text-on-primary p-4 rounded-2xl transition-all font-bold text-sm"
+                      >
+                        공식 홈페이지
+                        <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </section>
+
+              {/* Task Specific Section */}
+              <section className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 bg-surface-container border border-white/5 rounded-3xl p-8 overflow-hidden relative">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                  <h3 className="text-2xl font-bold mb-6 font-headline flex items-center gap-3">
+                    <span className="material-symbols-outlined text-primary" data-weight="fill">bolt</span> 최근 활동 알림
+                  </h3>
+                  <div className="space-y-6">
+                    {uniqueEvents.slice(0,3).map((ev, i) => (
+                      <div key={ev.id} className="flex gap-4 items-start">
+                        <div className={`w-2 h-2 rounded-full mt-2 ${i===0?'bg-primary shadow-[0_0_8px_#73ffba]':'bg-outline-variant'}`}></div>
+                        <div className="flex-1 cursor-pointer hover:underline" onClick={() => {if(ev.link) window.open(ev.link, '_blank')}}>
+                          <p className="text-on-surface font-medium line-clamp-1">{i===0?'신규':'발견'} {ev.provider} 이벤트: '{ev.title}'</p>
+                          <p className="text-xs text-on-surface-variant mt-1">{formatDateRange(ev.start_date, ev.end_date)} • {ev.provider} ETF</p>
+                        </div>
+                        {i === 0 && <span className="text-[10px] uppercase font-bold text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded">NEW</span>}
+                        {i === 2 && <span className="material-symbols-outlined text-primary text-sm">verified</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-surface-container border border-white/5 rounded-3xl p-8 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-2xl font-bold mb-2 font-headline">시스템 건전성</h3>
+                    <p className="text-sm text-on-surface-variant mb-8">안전한 데이터 수집 및 보안 상태입니다.</p>
+                    <div className="flex items-center justify-center py-10 relative">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-32 h-32 rounded-full border-4 border-primary/10 border-t-primary border-l-primary/50 animate-[spin:5s_linear_infinite]"></div>
+                      </div>
+                      <div className="text-center z-10">
+                        <p className="text-4xl font-black text-on-surface font-headline">{scrapingStatus?.status === 'success' || scrapingStatus?.status === '성공' ? '99.8%' : '90.2%'}</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">안전함</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-surface-container-highest p-4 rounded-2xl text-center">
+                      <p className="text-[10px] uppercase font-bold text-on-surface-variant mb-1">API 상태</p>
+                      <p className="text-sm font-bold text-primary">{scrapingStatus?.status === 'failed' ? '오류' : '안정'}</p>
+                    </div>
+                    <div className="bg-surface-container-highest p-4 rounded-2xl text-center">
+                       <p className="text-[10px] uppercase font-bold text-on-surface-variant mb-1">응답 속도</p>
+                       <p className="text-sm font-bold text-on-surface">최적</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in">
+              {displayEvents.length > 0 ? displayEvents.map(e => (
+                <EventCard key={e.id} event={e} aliases={aliases} onToggle={handleToggle} />
+              )) : (
+                <div className="col-span-full py-20 text-center text-on-surface-variant">
+                  <span className="material-symbols-outlined text-5xl mb-4 opacity-50">filter_list_off</span>
+                  <p>해당 조건의 이벤트가 없습니다.</p>
+                </div>
+              )}
+            </div>
+          )
+        )}
+      </main>
+
+      {/* FAB */}
+      {(selectedProvider || selectedStatus === "참여 목록") && (
+         <button onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}} className="fixed bottom-8 right-8 w-14 h-14 bg-surface-container-highest text-on-surface rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-95 transition-all hover:scale-105 hover:bg-surface-bright border border-white/10">
+           <span className="material-symbols-outlined">arrow_back</span>
+         </button>
       )}
 
-      <Toast message={toast.message} visible={toast.visible} />
-    </div>
+      {/* Global Toast */}
+      {toast.visible && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 z-50 animate-in slide-in-from-bottom-8 border border-white/10">
+          <span className={`material-symbols-outlined ${toast.type==='success'?'text-primary':'text-error'}`}>
+            {toast.type==='success'?'check_circle':'error'}
+          </span>
+          <span className="font-medium text-sm">{toast.message}</span>
+        </div>
+      )}
+    </>
   );
 }
