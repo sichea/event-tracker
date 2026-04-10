@@ -301,10 +301,10 @@ async def scrape_tiger(page) -> list[dict]:
         for idx, card in enumerate(cards):
             try:
                 card_text = await card.inner_text()
-                is_ongoing = "진행중" in card_text
+                # is_ongoing = "진행중" in card_text
                 
-                if not is_ongoing:
-                    continue
+                # if not is_ongoing:
+                #     continue
 
                 # 제목 추출
                 try:
@@ -343,6 +343,10 @@ async def scrape_tiger(page) -> list[dict]:
                     print(f"[TIGER DEBUG] 기간 추출 실패: {title}")
                     continue
                 
+                if p["d_day"] is not None and p["d_day"] < 0:
+                    print(f"[TIGER DEBUG] 종료된 이벤트 스킵: {title}")
+                    continue
+                
                 events.append({
                     "id": generate_event_id("TIGER", title),
                     "provider": "TIGER",
@@ -374,18 +378,23 @@ async def scrape_kodex(page) -> list[dict]:
         html = await page.content()
         soup = BeautifulSoup(html, "html.parser")
 
-        # 모든 이벤트 카드 (진행중 + 종료)
-        all_cards = soup.select("a[href*='event-view']")
+        # 모든 이벤트 카드 (진행중만)
+        all_cards = soup.select("a[href*='event-view']:not([href*='event-view-end'])")
 
+        seen_titles = set()
         for card in all_cards:
             title_el = card.select_one("h3")
             if not title_el: continue
             title = title_el.get_text(strip=True)
+            if title in seen_titles: continue
+            seen_titles.add(title)
             
             # 키워드 필터링
             if not is_event_title(title) or is_announcement(title): continue
 
             href = card.get("href", "")
+            if "event-view-end" in href: 
+                continue  # 종료된 이벤트 스킵
             link = f"https://m.samsungfund.com/etf/lounge/{href}" if href and not href.startswith("http") else href
             
             # 상세 페이지 방문하여 실제 기간 추출
