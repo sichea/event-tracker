@@ -26,7 +26,7 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('backend/requirements.txt') }}
+          key: ${{ runner.os }}-playwright-v2-${{ hashFiles('backend/requirements.txt') }}
 
       - name: 패키지 설치
         run: |
@@ -35,8 +35,7 @@ jobs:
           pip install -r requirements.txt
           pip install supabase
           
-      - name: Playwright 브라우저 설치 (캐시 미적중 시)
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+      - name: Playwright 시스템 종속성 및 브라우저 설치
         run: |
           python -m playwright install chromium --with-deps
           
