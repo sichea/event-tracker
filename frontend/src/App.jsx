@@ -554,7 +554,6 @@ export default function App() {
             </h1>
             <p className="text-on-surface-variant max-w-xl italic">미래의 내가 보낸 수익 시그널을 확인하세요.</p>
           </div>
-          </div>
         </div>
 
         {/* Dashboard Stats Section */}
