@@ -103,6 +103,8 @@ function IpoCalendar({ ipoEvents }) {
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
   
@@ -150,6 +152,13 @@ function IpoCalendar({ ipoEvents }) {
     if (type === '상장') return 'bg-purple-400/20 text-purple-400 border-purple-400/30';
     return 'bg-outline-variant/20 text-outline border-outline-variant/30';
   };
+
+  const getDotStyle = (type) => {
+    if (type === '청약시작') return 'bg-primary';
+    if (type === '청약마감') return 'bg-orange-400';
+    if (type === '상장') return 'bg-purple-400';
+    return 'bg-outline';
+  };
   
   // Upcoming IPOs (sorted by date)
   const upcomingIpos = (ipoEvents || []).filter(e => e.status === '청약예정' || e.status === '청약중').sort((a,b) => (a.subscription_start || '').localeCompare(b.subscription_start || ''));
@@ -171,17 +180,14 @@ function IpoCalendar({ ipoEvents }) {
       </div>
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Calendar View (Grid for Desktop, List for Mobile) */}
-        <div className="xl:col-span-2">
+        <div className="xl:col-span-2 space-y-6">
           {/* Desktop Grid View */}
           <div className="hidden md:block bg-surface-container border border-white/5 rounded-3xl p-6">
-            {/* Weekday headers */}
             <div className="grid grid-cols-7 gap-1 mb-2">
               {weekDays.map(wd => (
                 <div key={wd} className={`text-center text-xs font-bold py-2 ${wd === '일' ? 'text-error' : wd === '토' ? 'text-tertiary' : 'text-on-surface-variant'}`}>{wd}</div>
               ))}
             </div>
-            {/* Day cells */}
             <div className="grid grid-cols-7 gap-1">
               {days.map((day, idx) => {
                 if (day === null) return <div key={`empty-${idx}`} className="aspect-square" />;
@@ -206,98 +212,103 @@ function IpoCalendar({ ipoEvents }) {
             </div>
           </div>
 
-          {/* Mobile Agenda List View */}
-          <div className="md:hidden space-y-4">
-            {(() => {
-              const currentMonthEvents = Object.entries(dateEventMap)
-                .filter(([date]) => date.startsWith(`${year}-${String(month+1).padStart(2,'0')}`))
-                .sort(([dateA], [dateB]) => dateA.localeCompare(dateB));
-                
-              if (currentMonthEvents.length === 0) {
-                return (
-                  <div className="bg-surface-container border border-white/5 rounded-3xl p-12 text-center">
-                    <span className="material-symbols-outlined text-4xl opacity-20 mb-2">calendar_today</span>
-                    <p className="text-sm text-on-surface-variant italic">이번 달 일정이 없습니다.</p>
-                  </div>
-                );
-              }
-              
-              return currentMonthEvents.map(([dateStr, evts]) => {
-                const d = new Date(dateStr);
-                const day = d.getDate();
-                const dayOfWeek = weekDays[d.getDay()];
+          {/* Mobile Dot Grid View */}
+          <div className="md:hidden bg-surface-container border border-white/10 rounded-3xl overflow-hidden mb-6 shadow-2xl">
+            <div className="grid grid-cols-7 gap-px bg-white/5 p-4">
+              {weekDays.map(wd => (
+                <div key={wd} className={`text-center text-[10px] font-black pb-2 ${wd === '일' ? 'text-error' : wd === '토' ? 'text-tertiary' : 'text-on-surface-variant'}`}>{wd}</div>
+              ))}
+              {days.map((day, idx) => {
+                if (day === null) return <div key={`empty-${idx}`} className="aspect-square bg-surface-container/50 opacity-10" />;
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                const eventsForDay = dateEventMap[dateStr] || [];
                 const isToday = dateStr === todayStr;
+                const isSelected = dateStr === selectedDate;
+                
                 return (
-                  <div key={dateStr} className={`flex gap-4 p-4 rounded-3xl border ${isToday ? 'bg-primary/5 border-primary/30' : 'bg-surface-container border-white/5'}`}>
-                    <div className="flex flex-col items-center justify-center min-w-[50px]">
-                      <span className={`text-xl font-black ${isToday ? 'text-primary' : dayOfWeek === '일' ? 'text-error' : dayOfWeek === '토' ? 'text-tertiary' : 'text-on-surface'}`}>{day}</span>
-                      <span className="text-[10px] font-bold text-on-surface-variant uppercase">{dayOfWeek}</span>
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      {evts.map((ev, i) => (
-                        <div key={i} className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-bold text-on-surface line-clamp-1">{ev.company_name}</span>
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${getTagStyle(ev.type)}`}>{ev.type}</span>
-                        </div>
+                  <div 
+                    key={dateStr} 
+                    onClick={() => setSelectedDate(dateStr)}
+                    className={`aspect-square relative flex flex-col items-center justify-center gap-1 transition-all ${isSelected ? 'ring-2 ring-primary bg-primary/10 rounded-lg z-10' : ''}`}
+                  >
+                    <span className={`text-sm font-bold ${isToday ? 'text-primary underline underline-offset-4 decoration-2' : isSelected ? 'text-on-surface' : 'text-on-surface/80'}`}>{day}</span>
+                    <div className="flex gap-0.5 flex-wrap justify-center px-1 h-1">
+                      {eventsForDay.slice(0,3).map((ev,i) => (
+                        <div key={i} className={`w-1 h-1 rounded-full ${getDotStyle(ev.type)}`} />
                       ))}
                     </div>
                   </div>
                 );
-              });
-            })()}
+              })}
+            </div>
+            
+            {/* Selected Date Detail List (Mobile) */}
+            <div className="bg-[#1a1f2c] p-6 border-t border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-bold text-[#ebedfb] flex items-center gap-2">
+                   <span className="material-symbols-outlined text-sm text-primary">event_note</span>
+                   {selectedDate.replace(/-/g, '.')} 일정
+                </h4>
+                {selectedDate === todayStr && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">TODAY</span>}
+              </div>
+              <div className="space-y-3">
+                {(dateEventMap[selectedDate] || []).length === 0 ? (
+                  <div className="text-center py-6 opacity-40">
+                    <p className="text-xs italic text-on-surface-variant">일정이 없습니다.</p>
+                  </div>
+                ) : (
+                  dateEventMap[selectedDate].map((ev, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5 animate-in fade-in slide-in-from-bottom-2">
+                      <span className="text-sm font-bold text-on-surface">{ev.company_name}</span>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${getTagStyle(ev.type)}`}>{ev.type}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
         
         {/* Upcoming IPO List */}
-        <div>
+        <div className="xl:block">
           <div className="bg-surface-container border border-white/5 rounded-3xl p-6">
             <h3 className="text-xl font-bold font-headline mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-tertiary">upcoming</span> 예정된 공모주
             </h3>
-            <div className="space-y-4 max-h-[600px] overflow-y-auto">
+            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
               {upcomingIpos.length === 0 ? (
                 <p className="text-sm text-on-surface-variant text-center py-8">예정된 공모주가 없습니다.</p>
               ) : upcomingIpos.map(ipo => (
-                <div key={ipo.id} className="bg-surface-container-highest rounded-2xl p-4 border border-white/5 hover:border-primary/20 transition-colors">
-                  <div className="flex items-start justify-between mb-2">
+                <div key={ipo.id} className="bg-surface-container-highest rounded-2xl p-4 border border-white/5 hover:border-primary/20 transition-all">
+                  <div className="flex items-start justify-between mb-2 gap-2">
                     <h4 className="font-bold text-sm font-headline line-clamp-1">{ipo.company_name}</h4>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusColor(ipo.status)}`}>{ipo.status}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${statusColor(ipo.status)}`}>{ipo.status}</span>
                   </div>
-                  <div className="text-xs text-on-surface-variant space-y-1">
+                  <div className="text-xs text-on-surface-variant space-y-1.5">
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                       <span>{ipo.subscription_start?.replace(/-/g,'.')} ~ {ipo.subscription_end?.replace(/-/g,'.')}</span>
                     </div>
-                    {ipo.desired_price && (
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[14px]">payments</span>
-                        <span>희망가: {ipo.desired_price}</span>
-                      </div>
-                    )}
-                    {ipo.confirmed_price && (
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[14px]">price_check</span>
-                        <span>확정가: {ipo.confirmed_price}</span>
-                      </div>
-                    )}
-                    {ipo.lead_manager && (
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[14px]">business</span>
-                        <span className="truncate">{ipo.lead_manager}</span>
-                      </div>
-                    )}
                     {ipo.listing_date && (
                       <div className="flex items-center gap-2 text-purple-400 font-bold">
                         <span className="material-symbols-outlined text-[14px]">rocket_launch</span>
                         <span>상장일: {ipo.listing_date?.replace(/-/g,'.')}</span>
                       </div>
                     )}
-                    {ipo.competition_rate && (
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                        <span>경쟁률: {ipo.competition_rate}</span>
-                      </div>
-                    )}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      {ipo.confirmed_price && (
+                        <div className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px]">price_check</span>
+                          <span className="truncate">{ipo.confirmed_price}</span>
+                        </div>
+                      )}
+                      {ipo.lead_manager && (
+                        <div className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px]">business</span>
+                          <span className="truncate">{ipo.lead_manager}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
