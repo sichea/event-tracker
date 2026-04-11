@@ -554,53 +554,53 @@ export default function App() {
             </h1>
             <p className="text-on-surface-variant max-w-xl italic">미래의 내가 보낸 수익 시그널을 확인하세요.</p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="bg-surface-container-high rounded-2xl p-4 min-w-[140px] flex items-center gap-4 shadow-sm border border-white/5">
-              <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                <span className="material-symbols-outlined text-primary">account_balance</span>
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">등록 계좌</p>
-                <p className="text-xl font-bold font-headline">{aliases.length}개</p>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Top Stats Bento */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          <div className="bg-surface-container-high rounded-3xl p-6 relative overflow-hidden group border border-white/5">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span className="material-symbols-outlined text-6xl">event_list</span></div>
-            <p className="text-sm font-bold text-on-surface-variant mb-1">진행중 이벤트</p>
-            <h3 className="text-4xl font-extrabold text-on-surface font-headline">{activeEventsCount}</h3>
-            <div className="mt-4 flex items-center gap-2 text-xs text-primary font-medium">
-              <span className="material-symbols-outlined text-sm">sync</span>
-              <span>업데이트: {events[0]?.scraped_at ? new Date(events[0].scraped_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '오늘'}</span>
+        {/* Dashboard Stats Section */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
+          {/* Registered Accounts */}
+          <div className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-6 relative overflow-hidden group">
+            <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+              <span className="material-symbols-outlined text-6xl md:text-8xl">account_balance_wallet</span>
             </div>
+            <p className="text-[10px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">등록 계좌</p>
+            <h3 className="text-2xl md:text-4xl font-extrabold text-on-surface font-headline">{aliases.length}<span className="text-xs md:text-base ml-1 opacity-50 font-medium">개</span></h3>
           </div>
-          <div className="bg-surface-container-high rounded-3xl p-6 relative overflow-hidden group border border-white/5">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span className="material-symbols-outlined text-6xl">check_circle</span></div>
-            <p className="text-sm font-bold text-on-surface-variant mb-1">참여 완료</p>
-            <h3 className="text-4xl font-extrabold text-on-surface font-headline">{participatedCount}</h3>
-            <div className="mt-4 flex items-center gap-2 text-xs text-outline font-medium">
-              <span>{activeEventsCount - participatedCount}개 체크 대기 중</span>
+
+          {/* Active Events */}
+          <div className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-6 relative overflow-hidden group">
+            <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+              <span className="material-symbols-outlined text-6xl md:text-8xl">bolt</span>
             </div>
+            <p className="text-[10px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">진행중 이벤트</p>
+            <h3 className="text-2xl md:text-4xl font-extrabold text-on-surface font-headline">{activeEventsCount}</h3>
+            <p className="mt-1 md:mt-2 text-[9px] md:text-xs text-primary flex items-center gap-1">
+              <span className="material-symbols-outlined text-[12px] md:text-[14px]">sync</span>
+              {scrapingStatus?.last_run ? new Date(scrapingStatus.last_run).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '오늘'}
+            </p>
           </div>
-          <div className="bg-surface-container-high rounded-3xl p-6 relative overflow-hidden group border border-white/5">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span className="material-symbols-outlined text-6xl">analytics</span></div>
-            <p className="text-sm font-bold text-on-surface-variant mb-1">참여율</p>
-            <h3 className="text-4xl font-extrabold text-primary font-headline">{checkPercent}%</h3>
-            <div className="mt-4 w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+
+          {/* Participation Rate */}
+          <div className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-6 relative overflow-hidden group">
+            <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+              <span className="material-symbols-outlined text-6xl md:text-8xl">analytics</span>
+            </div>
+            <p className="text-[10px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">참여율</p>
+            <h3 className="text-2xl md:text-4xl font-extrabold text-primary font-headline">{checkPercent}%</h3>
+            <div className="mt-2 md:mt-4 w-full bg-surface-container-highest rounded-full h-1 md:h-1.5 overflow-hidden">
               <div className="bg-primary h-full rounded-full shadow-[0_0_8px_#73ffba] transition-all duration-1000" style={{width: `${checkPercent}%`}}></div>
             </div>
           </div>
-          <div className="bg-surface-container-high rounded-3xl p-6 relative overflow-hidden group border border-primary/20 shadow-[0_0_30px_rgba(115,255,186,0.05)]">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-            <p className="text-sm font-bold text-on-surface-variant mb-1">마감 임박</p>
-            <h3 className="text-4xl font-extrabold text-tertiary font-headline">{upcomingEvents}</h3>
-            <div className="mt-4 flex items-center gap-2 text-xs text-tertiary font-medium">
-              <span>3일 이내 종료</span>
+
+          {/* Closing Soon */}
+          <div className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-6 relative overflow-hidden group border-primary/10">
+            <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+              <span className="material-symbols-outlined text-6xl md:text-8xl text-tertiary">notification_important</span>
             </div>
+            <p className="text-[10px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">마감 임박</p>
+            <h3 className="text-2xl md:text-4xl font-extrabold text-tertiary font-headline">{upcomingEvents}</h3>
+            <p className="mt-1 md:mt-2 text-[9px] md:text-xs text-tertiary/70">3일 이내 종료</p>
           </div>
         </section>
 
@@ -635,25 +635,26 @@ export default function App() {
           (selectedProvider === null && (selectedStatus === "전체 보기" || selectedStatus === "전체 이벤트")) && !searchQuery ? (
             /* Providers Grid Overview */
             <>
-              <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 gap-6">
+              <section className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
                 {PROVIDERS.map(p => {
                   const evts = uniqueEvents.filter(e => e.provider === p.key && e.status === "진행중").length;
                   return (
-                    <div key={p.key} onClick={() => setSelectedProvider(p.key)} className="bg-surface-container border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-container-high hover:-translate-y-1 hover:border-primary/20 duration-300 cursor-pointer flex flex-col">
-                      <div className="flex items-start justify-between mb-8">
-                        <div className={`w-14 h-14 rounded-2xl ${p.bgColor} flex items-center justify-center ${p.shadow}`}>
-                          <span className={`${p.textCol || 'text-white'} font-black ${p.textSize || 'text-lg'}`}>{p.textLabel}</span>
+                    <div key={p.key} onClick={() => setSelectedProvider(p.key)} className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-3 md:p-6 transition-all hover:bg-surface-container-high hover:-translate-y-1 hover:border-primary/20 duration-300 cursor-pointer flex flex-col">
+                      <div className="flex items-start justify-between mb-4 md:mb-8">
+                        <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl ${p.bgColor} flex items-center justify-center ${p.shadow}`}>
+                          <span className={`${p.textCol || 'text-white'} font-black ${p.textSize || 'text-xs md:text-lg'}`}>{p.textLabel}</span>
                         </div>
-                        {evts > 0 && <span className="bg-surface-container-highest border border-white/10 text-on-surface-variant text-[10px] font-bold px-3 py-1 rounded-full">진행중</span>}
+                        {evts > 0 && <span className="hidden md:inline-block bg-surface-container-highest border border-white/10 text-on-surface-variant text-[10px] font-bold px-3 py-1 rounded-full">진행중</span>}
                       </div>
-                      <h4 className="text-lg font-bold mb-1 font-headline tracking-tight">{p.name}</h4>
-                      <p className="text-sm text-on-surface-variant mb-6 flex-1">{evts}개의 활성 이벤트</p>
+                      <h4 className="text-sm md:text-lg font-bold mb-0.5 md:mb-1 font-headline tracking-tight line-clamp-1">{p.name}</h4>
+                      <p className="text-[10px] md:text-sm text-on-surface-variant mb-4 md:mb-6 flex-1 truncate">{evts}개 진행중</p>
                       <button 
                         onClick={(e) => { e.stopPropagation(); window.open(p.url, '_blank'); }}
-                        className="w-full flex items-center justify-between bg-surface-container-highest hover:bg-primary hover:text-on-primary p-4 rounded-2xl transition-all font-bold text-sm"
+                        className="w-full flex items-center justify-between bg-surface-container-highest hover:bg-primary hover:text-on-primary p-2 md:p-4 rounded-xl md:rounded-2xl transition-all font-bold text-[10px] md:text-sm"
                       >
-                        공식 홈페이지
-                        <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                        <span className="hidden md:inline">공식 홈페이지</span>
+                        <span className="md:hidden">홈페이지</span>
+                        <span className="material-symbols-outlined text-[14px] md:text-[18px]">open_in_new</span>
                       </button>
                     </div>
                   );
