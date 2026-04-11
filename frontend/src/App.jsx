@@ -172,12 +172,12 @@ function IpoCalendar({ ipoEvents }) {
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Calendar Grid */}
-        <div className="xl:col-span-2">
-          <div className="bg-surface-container border border-white/5 rounded-3xl p-6 overflow-hidden">
+        <div className="xl:col-span-2 overflow-x-auto">
+          <div className="bg-surface-container border border-white/5 rounded-3xl p-4 md:p-6 min-w-[320px]">
             {/* Weekday headers */}
             <div className="grid grid-cols-7 gap-1 mb-2">
               {weekDays.map(wd => (
-                <div key={wd} className={`text-center text-xs font-bold py-2 ${wd === '일' ? 'text-error' : wd === '토' ? 'text-tertiary' : 'text-on-surface-variant'}`}>{wd}</div>
+                <div key={wd} className={`text-center text-[10px] md:text-xs font-bold py-2 ${wd === '일' ? 'text-error' : wd === '토' ? 'text-tertiary' : 'text-on-surface-variant'}`}>{wd}</div>
               ))}
             </div>
             {/* Day cells */}
@@ -398,15 +398,16 @@ export default function App() {
   return (
     <>
       <header className="fixed top-0 w-full z-50 bg-[#0a0e17]/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
-        <nav className="flex justify-between items-center w-full px-8 h-16">
-          <div className="flex items-center gap-12">
+        <nav className="flex justify-between items-center w-full px-4 md:px-8 h-16">
+          <div className="flex items-center gap-4 md:gap-12">
             <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>RE:MEMBER</span>
+            {/* Desktop Tabs */}
             <div className="hidden md:flex items-center gap-8 text-sm font-medium">
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>ETF 이벤트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'ipo' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents().then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>공모주 캘린더</button>
             </div>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 md:gap-6">
             <div className="relative hidden lg:block">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
               <input 
@@ -416,13 +417,14 @@ export default function App() {
                 onChange={e => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <button onClick={() => setShowSettings(!showSettings)} className={`hover:bg-[#262c3a]/50 p-2 rounded-full transition-all active:scale-95 duration-200 ${showSettings?'text-primary':'text-on-surface'}`}>
                 <span className="material-symbols-outlined">settings</span>
               </button>
               {isAdmin && (
-                <button className="bg-primary text-on-primary px-5 py-1.5 rounded-full text-sm font-bold active:scale-95 duration-200 shadow-[0_0_20px_rgba(115,255,186,0.2)]" onClick={() => triggerManualScrape(adminToken)}>
-                  관리자 수집 실행
+                <button className="bg-primary text-on-primary px-3 md:px-5 py-1.5 rounded-full text-[10px] md:text-sm font-bold active:scale-95 duration-200 shadow-[0_0_20px_rgba(115,255,186,0.2)]" onClick={() => triggerManualScrape(adminToken)}>
+                  <span className="md:inline hidden">관리자 수집 실행</span>
+                  <span className="md:hidden inline flex items-center justify-center"><span className="material-symbols-outlined text-sm">refresh</span></span>
                 </button>
               )}
             </div>
@@ -452,7 +454,7 @@ export default function App() {
         </div>
       </aside>
 
-      <main className="pt-24 pb-12 px-6 lg:px-12 xl:ml-64 min-h-screen">
+      <main className="pt-20 pb-24 md:pb-12 px-4 md:px-12 xl:ml-64 min-h-screen">
         
         {/* Settings Panel */}
         {showSettings && (
@@ -670,16 +672,36 @@ export default function App() {
         )}
       </main>
 
+      {/* Mobile Bottom Navigation Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-[#0a0e17]/90 backdrop-blur-xl border-t border-white/10 flex items-center justify-around z-50 px-6">
+        <button onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기"); window.scrollTo(0,0);}} className={`flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-primary' : 'text-on-surface-variant'}`}>
+          <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'dashboard' ? 'fill' : 'normal'}>layers</span>
+          <span className="text-[10px] font-bold">ETF 이벤트</span>
+        </button>
+        <button onClick={() => { setActiveTab("ipo"); window.scrollTo(0,0); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents().then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }} className={`flex flex-col items-center gap-1 ${activeTab === 'ipo' ? 'text-primary' : 'text-on-surface-variant'}`}>
+          <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'ipo' ? 'fill' : 'normal'}>calendar_month</span>
+          <span className="text-[10px] font-bold">공모주</span>
+        </button>
+        <button onClick={() => setShowSettings(!showSettings)} className={`flex flex-col items-center gap-1 ${showSettings ? 'text-primary' : 'text-on-surface-variant'}`}>
+          <span className="material-symbols-outlined text-2xl" data-weight={showSettings ? 'fill' : 'normal'}>person</span>
+          <span className="text-[10px] font-bold">계좌관리</span>
+        </button>
+        <button onClick={() => supabase.auth.signOut()} className="flex flex-col items-center gap-1 text-on-surface-variant">
+          <span className="material-symbols-outlined text-2xl">logout</span>
+          <span className="text-[10px] font-bold">로그아웃</span>
+        </button>
+      </div>
+
       {/* FAB */}
       {(selectedProvider || selectedStatus === "참여 목록") && (
-         <button onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}} className="fixed bottom-8 right-8 w-14 h-14 bg-surface-container-highest text-on-surface rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-95 transition-all hover:scale-105 hover:bg-surface-bright border border-white/10">
+         <button onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}} className="fixed bottom-20 md:bottom-8 right-6 md:right-8 w-14 h-14 bg-surface-container-highest text-on-surface rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-95 transition-all hover:scale-105 hover:bg-surface-bright border border-white/10">
            <span className="material-symbols-outlined">arrow_back</span>
          </button>
       )}
 
       {/* Global Toast */}
       {toast.visible && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 z-50 animate-in slide-in-from-bottom-8 border border-white/10">
+        <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 z-50 animate-in slide-in-from-bottom-8 border border-white/10 w-[90%] md:w-auto text-center justify-center">
           <span className={`material-symbols-outlined ${toast.type==='success'?'text-primary':'text-error'}`}>
             {toast.type==='success'?'check_circle':'error'}
           </span>
