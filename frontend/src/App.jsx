@@ -171,13 +171,14 @@ function IpoCalendar({ ipoEvents }) {
       </div>
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Calendar Grid */}
-        <div className="xl:col-span-2 overflow-x-auto">
-          <div className="bg-surface-container border border-white/5 rounded-3xl p-4 md:p-6 min-w-[320px]">
+        {/* Calendar View (Grid for Desktop, List for Mobile) */}
+        <div className="xl:col-span-2">
+          {/* Desktop Grid View */}
+          <div className="hidden md:block bg-surface-container border border-white/5 rounded-3xl p-6">
             {/* Weekday headers */}
             <div className="grid grid-cols-7 gap-1 mb-2">
               {weekDays.map(wd => (
-                <div key={wd} className={`text-center text-[10px] md:text-xs font-bold py-2 ${wd === '일' ? 'text-error' : wd === '토' ? 'text-tertiary' : 'text-on-surface-variant'}`}>{wd}</div>
+                <div key={wd} className={`text-center text-xs font-bold py-2 ${wd === '일' ? 'text-error' : wd === '토' ? 'text-tertiary' : 'text-on-surface-variant'}`}>{wd}</div>
               ))}
             </div>
             {/* Day cells */}
@@ -197,12 +198,53 @@ function IpoCalendar({ ipoEvents }) {
                           {ev.company_name}
                         </div>
                       ))}
-                      {eventsForDay.length > 2 && <div className="text-[8px] text-on-surface-variant text-center">+{eventsForDay.length - 2}</div>}
+                      {eventsForDay.length > 3 && <div className="text-[8px] text-on-surface-variant text-center">+{eventsForDay.length - 3}</div>}
                     </div>
                   </div>
                 );
               })}
             </div>
+          </div>
+
+          {/* Mobile Agenda List View */}
+          <div className="md:hidden space-y-4">
+            {(() => {
+              const currentMonthEvents = Object.entries(dateEventMap)
+                .filter(([date]) => date.startsWith(`${year}-${String(month+1).padStart(2,'0')}`))
+                .sort(([dateA], [dateB]) => dateA.localeCompare(dateB));
+                
+              if (currentMonthEvents.length === 0) {
+                return (
+                  <div className="bg-surface-container border border-white/5 rounded-3xl p-12 text-center">
+                    <span className="material-symbols-outlined text-4xl opacity-20 mb-2">calendar_today</span>
+                    <p className="text-sm text-on-surface-variant italic">이번 달 일정이 없습니다.</p>
+                  </div>
+                );
+              }
+              
+              return currentMonthEvents.map(([dateStr, evts]) => {
+                const d = new Date(dateStr);
+                const day = d.getDate();
+                const dayOfWeek = weekDays[d.getDay()];
+                const isToday = dateStr === todayStr;
+                return (
+                  <div key={dateStr} className={`flex gap-4 p-4 rounded-3xl border ${isToday ? 'bg-primary/5 border-primary/30' : 'bg-surface-container border-white/5'}`}>
+                    <div className="flex flex-col items-center justify-center min-w-[50px]">
+                      <span className={`text-xl font-black ${isToday ? 'text-primary' : dayOfWeek === '일' ? 'text-error' : dayOfWeek === '토' ? 'text-tertiary' : 'text-on-surface'}`}>{day}</span>
+                      <span className="text-[10px] font-bold text-on-surface-variant uppercase">{dayOfWeek}</span>
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      {evts.map((ev, i) => (
+                        <div key={i} className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-bold text-on-surface line-clamp-1">{ev.company_name}</span>
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${getTagStyle(ev.type)}`}>{ev.type}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
         
