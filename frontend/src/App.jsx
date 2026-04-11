@@ -40,15 +40,15 @@ function EventCard({ event, aliases, onToggle }) {
   const pConf = PROVIDERS.find(p => p.key === event.provider) || PROVIDERS[0];
 
   return (
-    <div className={`bg-surface-container rounded-3xl p-6 transition-all duration-300 border border-transparent hover:border-outline-variant/30 flex flex-col ${hasAnyCheck ? 'ring-1 ring-primary/30' : ''}`}>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl ${pConf.bgColor} flex items-center justify-center ${pConf.shadow}`}>
-            <span className={`${pConf.textCol || 'text-white'} font-black ${pConf.textSize || 'text-xs'}`}>{pConf.textLabel}</span>
+    <div className={`bg-surface-container rounded-3xl p-4 md:p-6 transition-all duration-300 border border-transparent hover:border-outline-variant/30 flex flex-col ${hasAnyCheck ? 'ring-1 ring-primary/30 shadow-[0_0_15px_rgba(115,255,186,0.05)]' : ''}`}>
+      <div className="flex items-start justify-between mb-3 md:mb-4">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl ${pConf.bgColor} flex items-center justify-center ${pConf.shadow}`}>
+            <span className={`${pConf.textCol || 'text-white'} font-black ${pConf.textSize || 'text-[10px] md:text-xs'}`}>{pConf.textLabel}</span>
           </div>
           <div>
-            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">{event.provider}</p>
-            {dday && <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${dday.classes}`}>{dday.text}</span>}
+            <p className="text-[10px] md:text-xs font-bold text-on-surface-variant uppercase tracking-wider">{event.provider}</p>
+            {dday && <span className={`inline-block mt-0.5 text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded-full border ${dday.classes}`}>{dday.text}</span>}
           </div>
         </div>
         {event.link && (
@@ -57,19 +57,19 @@ function EventCard({ event, aliases, onToggle }) {
           </a>
         )}
       </div>
-      <h4 className="text-base font-bold font-headline mb-3 line-clamp-2 min-h-[3rem]">{event.title}</h4>
-      <div className="text-xs text-on-surface-variant mb-6 flex items-center gap-2">
+      <h4 className="text-sm md:text-base font-bold font-headline mb-2 md:mb-3 line-clamp-2 min-h-[2.5rem] md:min-h-[3rem] leading-snug">{event.title}</h4>
+      <div className="text-[11px] md:text-xs text-on-surface-variant mb-4 md:mb-6 flex items-center gap-2">
         <span className="material-symbols-outlined text-[14px]">calendar_today</span>
         {formatDateRange(event.start_date, event.end_date)}
       </div>
-      <div className="mt-auto pt-4 border-t border-outline-variant/20 flex flex-wrap gap-x-4 gap-y-2">
+      <div className="mt-auto pt-3 md:pt-4 border-t border-outline-variant/20 flex flex-wrap gap-x-3 md:gap-x-4 gap-y-2">
         {aliases.length === 0 ? (
-          <p className="text-[10px] text-outline text-center">계좌를 추가해야 참여 여부를 체크할 수 있습니다.</p>
+          <p className="text-[10px] text-outline text-center w-full">계좌를 추가해야 참여 여부를 체크할 수 있습니다.</p>
         ) : (
           aliases.map((alias) => {
             const isChecked = event.checkedAliases?.[alias.id] || false;
             return (
-              <label key={alias.id} className="flex items-center gap-3 cursor-pointer group">
+              <label key={alias.id} className="flex items-center gap-2 md:gap-3 cursor-pointer group">
                 <div className="relative flex items-center justify-center">
                   <input 
                     type="checkbox" 
@@ -78,11 +78,11 @@ function EventCard({ event, aliases, onToggle }) {
                     onChange={() => onToggle(event.id, alias.id, isChecked)} 
                     disabled={!isActive}
                   />
-                  <div className="w-5 h-5 rounded border border-outline-variant group-hover:border-primary peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
-                    {isChecked && <span className="material-symbols-outlined text-[14px] text-on-primary font-bold">check</span>}
+                  <div className="w-4 h-4 md:w-5 md:h-5 rounded border border-outline-variant group-hover:border-primary peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                    {isChecked && <span className="material-symbols-outlined text-[10px] md:text-[14px] text-on-primary font-bold">check</span>}
                   </div>
                 </div>
-                <span className={`text-sm font-medium transition-colors ${isChecked ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'}`}>{alias.name}</span>
+                <span className={`text-xs md:text-sm font-medium transition-colors ${isChecked ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'}`}>{alias.name}</span>
               </label>
             );
           })
