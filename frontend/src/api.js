@@ -170,3 +170,19 @@ export async function fetchAdminSecret(key) {
   }
   return data.secret_value;
 }
+
+// --- IPO(공모주) 일정 API ---
+
+export async function fetchIpoEvents() {
+  const { data, error } = await supabase
+    .from('ipo_events')
+    .select('*')
+    .order('subscription_start', { ascending: true, nullsFirst: false });
+    
+  if (error) {
+    console.error("IPO fetch error:", error);
+    return [];
+  }
+  return data || [];
+}
+

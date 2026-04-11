@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret } from "./api";
+import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents } from "./api";
 import { supabase } from "./supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -92,6 +92,181 @@ function EventCard({ event, aliases, onToggle }) {
   );
 }
 
+// ============ IPO Calendar Component ============
+function IpoCalendar({ ipoEvents }) {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  
+  const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
+  const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
+  
+  // Build a map: dateStr -> [events]
+  const dateEventMap = useMemo(() => {
+    const map = {};
+    (ipoEvents || []).forEach(evt => {
+      if (evt.subscription_start) {
+        const s = evt.subscription_start;
+        if (!map[s]) map[s] = [];
+        map[s].push({ ...evt, type: '청약시작' });
+      }
+      if (evt.subscription_end) {
+        const e = evt.subscription_end;
+        if (!map[e]) map[e] = [];
+        map[e].push({ ...evt, type: '청약마감' });
+      }
+      if (evt.listing_date) {
+        const l = evt.listing_date;
+        if (!map[l]) map[l] = [];
+        map[l].push({ ...evt, type: '상장' });
+      }
+    });
+    return map;
+  }, [ipoEvents]);
+  
+  const days = [];
+  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+  
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) days.push(null);
+  for (let d = 1; d <= daysInMonth; d++) days.push(d);
+  
+  // Status color helper
+  const statusColor = (status) => {
+    if (status === '청약예정') return 'bg-tertiary/20 text-tertiary border-tertiary/30';
+    if (status === '청약중') return 'bg-primary/20 text-primary border-primary/30 animate-pulse';
+    return 'bg-outline-variant/20 text-outline border-outline-variant/30';
+  };
+  
+  // Tag color helper
+  const getTagStyle = (type) => {
+    if (type === '청약시작') return 'bg-primary/20 text-primary border-primary/30';
+    if (type === '청약마감') return 'bg-orange-400/20 text-orange-400 border-orange-400/30';
+    if (type === '상장') return 'bg-purple-400/20 text-purple-400 border-purple-400/30';
+    return 'bg-outline-variant/20 text-outline border-outline-variant/30';
+  };
+  
+  // Upcoming IPOs (sorted by date)
+  const upcomingIpos = (ipoEvents || []).filter(e => e.status === '청약예정' || e.status === '청약중').sort((a,b) => (a.subscription_start || '').localeCompare(b.subscription_start || ''));
+
+  return (
+    <div>
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline">공모주 캘린더</h1>
+        <div className="flex items-center gap-4">
+          <button onClick={prevMonth} className="w-10 h-10 rounded-full bg-surface-container-highest hover:bg-surface-bright flex items-center justify-center transition-colors">
+            <span className="material-symbols-outlined">chevron_left</span>
+          </button>
+          <span className="text-lg font-bold font-headline min-w-[140px] text-center">{year}년 {month + 1}월</span>
+          <button onClick={nextMonth} className="w-10 h-10 rounded-full bg-surface-container-highest hover:bg-surface-bright flex items-center justify-center transition-colors">
+            <span className="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        {/* Calendar Grid */}
+        <div className="xl:col-span-2">
+          <div className="bg-surface-container border border-white/5 rounded-3xl p-6 overflow-hidden">
+            {/* Weekday headers */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {weekDays.map(wd => (
+                <div key={wd} className={`text-center text-xs font-bold py-2 ${wd === '일' ? 'text-error' : wd === '토' ? 'text-tertiary' : 'text-on-surface-variant'}`}>{wd}</div>
+              ))}
+            </div>
+            {/* Day cells */}
+            <div className="grid grid-cols-7 gap-1">
+              {days.map((day, idx) => {
+                if (day === null) return <div key={`empty-${idx}`} className="aspect-square" />;
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                const eventsForDay = dateEventMap[dateStr] || [];
+                const isToday = dateStr === todayStr;
+                const dayOfWeek = new Date(year, month, day).getDay();
+                return (
+                  <div key={day} className={`aspect-square rounded-xl p-1 relative group transition-colors ${isToday ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-surface-container-highest'}`}>
+                    <span className={`text-xs font-bold block text-center ${isToday ? 'text-primary' : dayOfWeek === 0 ? 'text-error/70' : dayOfWeek === 6 ? 'text-tertiary/70' : 'text-on-surface-variant'}`}>{day}</span>
+                    <div className="mt-0.5 space-y-0.5 overflow-hidden">
+                      {eventsForDay.slice(0, 3).map((ev, ei) => (
+                        <div key={ei} title={`${ev.company_name} (${ev.type})`} className={`text-[8px] leading-tight px-1 py-0.5 rounded truncate border ${getTagStyle(ev.type)}`}>
+                          {ev.company_name}
+                        </div>
+                      ))}
+                      {eventsForDay.length > 2 && <div className="text-[8px] text-on-surface-variant text-center">+{eventsForDay.length - 2}</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        
+        {/* Upcoming IPO List */}
+        <div>
+          <div className="bg-surface-container border border-white/5 rounded-3xl p-6">
+            <h3 className="text-xl font-bold font-headline mb-6 flex items-center gap-2">
+              <span className="material-symbols-outlined text-tertiary">upcoming</span> 예정된 공모주
+            </h3>
+            <div className="space-y-4 max-h-[600px] overflow-y-auto">
+              {upcomingIpos.length === 0 ? (
+                <p className="text-sm text-on-surface-variant text-center py-8">예정된 공모주가 없습니다.</p>
+              ) : upcomingIpos.map(ipo => (
+                <div key={ipo.id} className="bg-surface-container-highest rounded-2xl p-4 border border-white/5 hover:border-primary/20 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-bold text-sm font-headline line-clamp-1">{ipo.company_name}</h4>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusColor(ipo.status)}`}>{ipo.status}</span>
+                  </div>
+                  <div className="text-xs text-on-surface-variant space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                      <span>{ipo.subscription_start?.replace(/-/g,'.')} ~ {ipo.subscription_end?.replace(/-/g,'.')}</span>
+                    </div>
+                    {ipo.desired_price && (
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[14px]">payments</span>
+                        <span>희망가: {ipo.desired_price}</span>
+                      </div>
+                    )}
+                    {ipo.confirmed_price && (
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[14px]">price_check</span>
+                        <span>확정가: {ipo.confirmed_price}</span>
+                      </div>
+                    )}
+                    {ipo.lead_manager && (
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[14px]">business</span>
+                        <span className="truncate">{ipo.lead_manager}</span>
+                      </div>
+                    )}
+                    {ipo.listing_date && (
+                      <div className="flex items-center gap-2 text-purple-400 font-bold">
+                        <span className="material-symbols-outlined text-[14px]">rocket_launch</span>
+                        <span>상장일: {ipo.listing_date?.replace(/-/g,'.')}</span>
+                      </div>
+                    )}
+                    {ipo.competition_rate && (
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[14px]">trending_up</span>
+                        <span>경쟁률: {ipo.competition_rate}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [events, setEvents] = useState([]);
@@ -106,6 +281,9 @@ export default function App() {
   const [scrapingStatus, setScrapingStatus] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
+  const [activeTab, setActiveTab] = useState("dashboard"); // "dashboard" | "ipo"
+  const [ipoEvents, setIpoEvents] = useState([]);
+  const [ipoLoading, setIpoLoading] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -222,9 +400,10 @@ export default function App() {
       <header className="fixed top-0 w-full z-50 bg-[#0a0e17]/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
         <nav className="flex justify-between items-center w-full px-8 h-16">
           <div className="flex items-center gap-12">
-            <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}}>ETF Tracker</span>
+            <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>RE:MEMBER</span>
             <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-              <button className="text-[#73ffba] border-b-2 border-[#73ffba] pb-1 font-headline" onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}}>종합 현황</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>ETF 이벤트</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'ipo' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents().then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>공모주 캘린더</button>
             </div>
           </div>
           <div className="flex items-center gap-6">
@@ -257,14 +436,14 @@ export default function App() {
             <span className="material-symbols-outlined text-primary" data-weight="fill">sensors</span>
           </div>
           <div>
-            <p className="text-sm font-black text-[#73ffba] uppercase tracking-wider font-headline">실시간 모니터링</p>
-            <p className="text-xs text-on-surface-variant">{scrapingStatus?.status === 'success' || scrapingStatus?.status === '성공' ? '데이터 동기화 완료' : scrapingStatus?.status === '진행중' ? '동기화 중...' : '네트워크 불안정'}</p>
+            <p className="text-sm font-black text-[#73ffba] uppercase tracking-wider font-headline font-italic">FUTURE SIGNAL</p>
+            <p className="text-xs text-on-surface-variant italic">"절대 놓치지 마, 기억해!"</p>
           </div>
         </div>
         <div className="space-y-1 flex-1">
           <button onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${selectedProvider === null ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
-            <span className="material-symbols-outlined text-xl">dashboard</span>
-            <span className="font-medium">종합 개요</span>
+            <span className="material-symbols-outlined text-xl">layers</span>
+            <span className="font-medium">ETF 이벤트</span>
           </button>
           <button onClick={() => supabase.auth.signOut()} className="w-full text-left text-[#ebedfb]/70 hover:bg-[#262c3a]/30 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:text-[#ff716c] duration-300">
             <span className="material-symbols-outlined text-xl">logout</span>
@@ -303,13 +482,22 @@ export default function App() {
           </div>
         )}
 
+        {/* Tab Content Switch */}
+        {activeTab === "ipo" ? (
+          ipoLoading ? (
+            <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
+          ) : (
+            <IpoCalendar ipoEvents={ipoEvents} />
+          )
+        ) : (
+        <>
         {/* Dashboard Header */}
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline mb-2">
-              {selectedProvider ? `${PROVIDERS.find(p=>p.key===selectedProvider)?.name} 이벤트` : "종합 현황"}
+              {selectedProvider ? `${PROVIDERS.find(p=>p.key===selectedProvider)?.name} 이벤트` : "ETF 이벤트"}
             </h1>
-            <p className="text-on-surface-variant max-w-xl">운용사별 ETF 이벤트와 참여 상태를 실시간으로 모니터링합니다.</p>
+            <p className="text-on-surface-variant max-w-xl italic">미래의 내가 보낸 수익 시그널을 확인하세요.</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="bg-surface-container-high rounded-2xl p-4 min-w-[140px] flex items-center gap-4 shadow-sm border border-white/5">
@@ -477,6 +665,8 @@ export default function App() {
               )}
             </div>
           )
+        )}
+        </>
         )}
       </main>
 
