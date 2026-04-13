@@ -442,6 +442,8 @@ export default function App() {
     if (selectedStatus === "참여 목록") {
       const hasAnyCheck = Object.values(e.checkedAliases || {}).some((v) => v);
       if (!hasAnyCheck || e.status !== "진행중") return false;
+    } else if (selectedStatus === "마감 임박") {
+      if (e.status !== "진행중" || e.d_day === null || e.d_day === undefined || e.d_day < 0 || e.d_day > 3) return false;
     } else {
       if (e.status !== "진행중") return false;
     }
@@ -610,6 +612,9 @@ export default function App() {
             <button onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${selectedProvider === null && (selectedStatus === '전체 보기' || selectedStatus === '전체 이벤트') ? 'bg-primary text-on-primary shadow-lg' : 'bg-surface-container-highest border border-white/5 text-on-surface-variant hover:text-on-surface'}`}>
               전체 보기
             </button>
+            <button onClick={() => {setSelectedProvider(null); setSelectedStatus("마감 임박");}} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${selectedStatus === '마감 임박' ? 'bg-[#ff716c] text-white shadow-lg' : 'bg-surface-container-highest border border-white/5 text-on-surface-variant hover:text-on-surface'}`}>
+              마감 임박
+            </button>
             <button onClick={() => {setSelectedProvider(null); setSelectedStatus("참여 목록");}} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${selectedStatus === '참여 목록' ? 'bg-primary text-on-primary shadow-lg' : 'bg-surface-container-highest border border-white/5 text-on-surface-variant hover:text-on-surface'}`}>
               참여 목록
             </button>
@@ -746,7 +751,7 @@ export default function App() {
       </div>
 
       {/* FAB */}
-      {(selectedProvider || selectedStatus === "참여 목록") && (
+      {(selectedProvider || selectedStatus === "참여 목록" || selectedStatus === "마감 임박") && (
          <button onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}} className="fixed bottom-20 md:bottom-8 right-6 md:right-8 w-14 h-14 bg-surface-container-highest text-on-surface rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-95 transition-all hover:scale-105 hover:bg-surface-bright border border-white/10">
            <span className="material-symbols-outlined">arrow_back</span>
          </button>
