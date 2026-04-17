@@ -261,8 +261,9 @@ export async function toggleIpoSubscription(ipoId, userId, brokerage, aliasId, c
       .from('user_ipo_subscriptions')
       .insert({ ipo_id: ipoId, user_id: userId, brokerage: brokerage, alias_id: aliasId });
     if (error) throw error;
+    return { ipoId, brokerage, aliasId, checked: true };
+  }
 }
-
 // --- 푸시 알림(Web Push) ---
 export async function savePushSubscription(userId, subscription) {
   const sub = JSON.parse(JSON.stringify(subscription));
