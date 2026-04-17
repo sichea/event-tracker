@@ -211,8 +211,8 @@ export async function fetchAdminSecret(key) {
 
 // --- IPO(공모주) 일정 API ---
 
-export async function fetchIpoEvents() {
-  const { data, error } = await supabase
+export async function fetchIpoEvents(userId) {
+  const { data: ipos, error } = await supabase
     .from('ipo_events')
     .select('*')
     .order('subscription_start', { ascending: true, nullsFirst: false });
@@ -221,6 +221,47 @@ export async function fetchIpoEvents() {
     console.error("IPO fetch error:", error);
     return [];
   }
-  return data || [];
+
+  const allIpos = ipos || [];
+  let checkedSubscriptionsMap = {}; // { ipoId: { brokerage: { aliasId: true } } }
+
+  if (userId && allIpos.length > 0) {
+    const { data: subs, error: subError } = await supabase
+      .from('user_ipo_subscriptions')
+      .select('ipo_id, brokerage, alias_id')
+      .eq('user_id', userId);
+
+    if (!subError && subs) {
+      subs.forEach(s => {
+        if (!checkedSubscriptionsMap[s.ipo_id]) checkedSubscriptionsMap[s.ipo_id] = {};
+        if (!checkedSubscriptionsMap[s.ipo_id][s.brokerage]) checkedSubscriptionsMap[s.ipo_id][s.brokerage] = {};
+        checkedSubscriptionsMap[s.ipo_id][s.brokerage][s.alias_id] = true;
+      });
+    }
+  }
+
+  return allIpos.map(ipo => ({
+    ...ipo,
+    checkedSubscriptions: checkedSubscriptionsMap[ipo.id] || {}
+  }));
+}
+
+export async function toggleIpoSubscription(ipoId, userId, brokerage, aliasId, currentlyChecked) {
+  if (!userId) throw new Error("로그인이 필요합니다");
+
+  if (currentlyChecked) {
+    const { error } = await supabase
+      .from('user_ipo_subscriptions')
+      .delete()
+      .match({ ipo_id: ipoId, user_id: userId, brokerage: brokerage, alias_id: aliasId });
+    if (error) throw error;
+    return { ipoId, brokerage, aliasId, checked: false };
+  } else {
+    const { error } = await supabase
+      .from('user_ipo_subscriptions')
+      .insert({ ipo_id: ipoId, user_id: userId, brokerage: brokerage, alias_id: aliasId });
+    if (error) throw error;
+    return { ipoId, brokerage, aliasId, checked: true };
+  }
 }
 

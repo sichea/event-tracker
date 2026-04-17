@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents } from "./api";
+import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription } from "./api";
 import { supabase } from "./supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -141,8 +141,97 @@ function EventCard({ event, aliases, onToggle }) {
   );
 }
 
+// ============ Ipo Modal Component ============
+function IpoModal({ ipo, aliases, onClose, onToggleIpo }) {
+  if (!ipo) return null;
+
+  const brokerages = (ipo.lead_manager || '알 수 없음')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const statusColor = (status) => {
+    if (status === '청약예정') return 'bg-tertiary/20 text-tertiary border-tertiary/30';
+    if (status === '청약중') return 'bg-primary/20 text-primary border-primary/30 animate-pulse';
+    return 'bg-outline-variant/20 text-outline border-outline-variant/30';
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in" onClick={onClose}>
+      <div className="bg-surface-container rounded-3xl w-full max-w-lg border border-white/10 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="p-6 border-b border-white/5 flex items-center justify-between">
+          <h2 className="text-xl font-bold font-headline truncate flex-1 pr-4">{ipo.company_name}</h2>
+          <button onClick={onClose} className="p-2 -mr-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors shrink-0">
+            <span className="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+          <div className="flex flex-wrap gap-2">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusColor(ipo.status)}`}>{ipo.status}</span>
+            {ipo.listing_date && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-400/30 bg-purple-400/10 text-purple-400">상장예정: {ipo.listing_date}</span>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 text-sm bg-surface-container-highest p-4 rounded-2xl border border-white/5">
+            <div>
+              <p className="text-[10px] text-on-surface-variant font-bold mb-1">청약일정</p>
+              <p className="font-medium text-on-surface">{ipo.subscription_start?.replace(/-/g,'.')} ~ {ipo.subscription_end?.replace(/-/g,'.')}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-on-surface-variant font-bold mb-1">확정/희망공모가</p>
+              <p className="font-medium text-on-surface">{ipo.confirmed_price || ipo.desired_price || '-'}</p>
+            </div>
+            {ipo.competition_rate && ipo.competition_rate !== '-' && (
+              <div className="col-span-2 border-t border-white/5 pt-3 mt-1">
+                <p className="text-[10px] text-on-surface-variant font-bold mb-1">기관경쟁률</p>
+                <p className="font-medium text-on-surface">{ipo.competition_rate}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-2">
+            <h3 className="text-sm font-bold font-headline mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">domain</span> 주관사 및 청약 기록
+            </h3>
+            {brokerages.map(brk => (
+              <div key={brk} className="mb-4 bg-surface-container-high rounded-xl p-4 border border-white/5">
+                <p className="text-xs font-bold text-on-surface mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                  {brk}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {aliases.length === 0 ? (
+                    <p className="text-[10px] text-outline">등록된 계좌가 없습니다. 창을 닫고 계좌관리를 이용해주세요.</p>
+                  ) : (
+                    aliases.map(alias => {
+                      const isChecked = ipo.checkedSubscriptions?.[brk]?.[alias.id] || false;
+                      return (
+                        <button 
+                          key={alias.id}
+                          onClick={() => onToggleIpo(ipo.id, brk, alias.id, isChecked)}
+                          className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5
+                            ${isChecked ? 'bg-primary/20 border-primary shadow-[0_0_10px_rgba(115,255,186,0.1)] text-primary' 
+                                        : 'bg-surface-container-highest border-transparent text-on-surface-variant hover:border-white/10 hover:text-on-surface'}`}
+                        >
+                          {isChecked && <span className="material-symbols-outlined text-[12px]">check</span>}
+                          {alias.name}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ============ IPO Calendar Component ============
-function IpoCalendar({ ipoEvents }) {
+function IpoCalendar({ ipoEvents, onSelectIpo }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
   const year = currentMonth.getFullYear();
@@ -249,7 +338,7 @@ function IpoCalendar({ ipoEvents }) {
                     <span className={`text-xs font-bold block text-center ${isToday ? 'text-primary' : dayOfWeek === 0 ? 'text-error/70' : dayOfWeek === 6 ? 'text-tertiary/70' : 'text-on-surface-variant'}`}>{day}</span>
                     <div className="mt-0.5 space-y-0.5 overflow-hidden">
                       {eventsForDay.slice(0, 3).map((ev, ei) => (
-                        <div key={ei} title={`${ev.company_name} (${ev.type})`} className={`text-[8px] leading-tight px-1 py-0.5 rounded truncate border ${getTagStyle(ev.type)}`}>
+                        <div key={ei} onClick={() => onSelectIpo(ev)} title={`${ev.company_name} (${ev.type})`} className={`text-[8px] leading-tight px-1 py-0.5 rounded truncate border cursor-pointer hover:opacity-80 transition-opacity ${getTagStyle(ev.type)}`}>
                           {ev.company_name}
                         </div>
                       ))}
@@ -307,9 +396,12 @@ function IpoCalendar({ ipoEvents }) {
                   </div>
                 ) : (
                   dateEventMap[selectedDate].map((ev, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5 animate-in fade-in slide-in-from-bottom-2">
-                      <span className="text-sm font-bold text-on-surface">{ev.company_name}</span>
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${getTagStyle(ev.type)}`}>{ev.type}</span>
+                    <div key={i} onClick={() => onSelectIpo(ev)} className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5 animate-in fade-in slide-in-from-bottom-2 cursor-pointer hover:bg-white/10 transition-colors">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-bold text-on-surface">{ev.company_name}</span>
+                        {ev.type !== '상장' && ev.lead_manager && <span className="text-[9px] text-on-surface-variant truncate max-w-[150px]">{ev.lead_manager}</span>}
+                      </div>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border shrink-0 ${getTagStyle(ev.type)}`}>{ev.type}</span>
                     </div>
                   ))
                 )}
@@ -328,9 +420,9 @@ function IpoCalendar({ ipoEvents }) {
               {upcomingIpos.length === 0 ? (
                 <p className="text-sm text-on-surface-variant text-center py-8">예정된 공모주가 없습니다.</p>
               ) : upcomingIpos.map(ipo => (
-                <div key={ipo.id} className="bg-surface-container-highest rounded-2xl p-4 border border-white/5 hover:border-primary/20 transition-all">
+                <div key={ipo.id} onClick={() => onSelectIpo(ipo)} className="bg-surface-container-highest rounded-2xl p-4 border border-white/5 hover:border-primary/20 transition-all cursor-pointer flex flex-col group">
                   <div className="flex items-start justify-between mb-2 gap-2">
-                    <h4 className="font-bold text-sm font-headline line-clamp-1">{ipo.company_name}</h4>
+                    <h4 className="font-bold text-sm font-headline line-clamp-1 group-hover:text-primary transition-colors">{ipo.company_name}</h4>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${statusColor(ipo.status)}`}>{ipo.status}</span>
                   </div>
                   <div className="text-xs text-on-surface-variant space-y-1.5">
@@ -386,6 +478,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("dashboard"); // "dashboard" | "ipo"
   const [ipoEvents, setIpoEvents] = useState([]);
   const [ipoLoading, setIpoLoading] = useState(false);
+  const [selectedIpo, setSelectedIpo] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -459,6 +552,30 @@ export default function App() {
       loadData();
       showToastMsg("계좌 삭제됨");
     } catch (err) { showToastMsg("삭제 실패", "error"); }
+  };
+
+  const handleToggleIpo = async (ipoId, brokerage, aliasId, currentlyChecked) => {
+    try {
+      const result = await toggleIpoSubscription(ipoId, session.user.id, brokerage, aliasId, currentlyChecked);
+      setIpoEvents(prev => prev.map(e => {
+        if (e.id === ipoId) {
+          const newChecked = { ...e.checkedSubscriptions };
+          if (!newChecked[brokerage]) newChecked[brokerage] = {};
+          newChecked[brokerage][aliasId] = result.checked;
+          return { ...e, checkedSubscriptions: newChecked };
+        }
+        return e;
+      }));
+      setSelectedIpo(prev => {
+        if (prev && prev.id === ipoId) {
+          const newChecked = { ...prev.checkedSubscriptions };
+          if (!newChecked[brokerage]) newChecked[brokerage] = {};
+          newChecked[brokerage][aliasId] = result.checked;
+          return { ...prev, checkedSubscriptions: newChecked };
+        }
+        return prev;
+      });
+    } catch (err) { showToastMsg("상태 변경 실패", "error"); }
   };
 
   if (!session) {
@@ -554,7 +671,7 @@ export default function App() {
             {/* Desktop Tabs */}
             <div className="hidden md:flex items-center gap-8 text-sm font-medium">
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>ETF 이벤트</button>
-              <button className={`pb-1 font-headline transition-colors ${activeTab === 'ipo' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents().then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>공모주 캘린더</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'ipo' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents(session?.user?.id).then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>공모주 캘린더</button>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-6">
@@ -639,7 +756,7 @@ export default function App() {
           ipoLoading ? (
             <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
           ) : (
-            <IpoCalendar ipoEvents={ipoEvents} />
+            <IpoCalendar ipoEvents={ipoEvents} onSelectIpo={setSelectedIpo} />
           )
         ) : (
         <>
@@ -826,12 +943,12 @@ export default function App() {
       </main>
 
       {/* Mobile Bottom Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-[#0a0e17]/90 backdrop-blur-xl border-t border-white/10 flex items-center justify-around z-50 px-6">
+      <div className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-[#0a0e17]/90 backdrop-blur-xl border-t border-white/10 flex items-center justify-around z-50 px-6 pb-safe">
         <button onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기"); window.scrollTo(0,0);}} className={`flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-primary' : 'text-on-surface-variant'}`}>
           <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'dashboard' ? 'fill' : 'normal'}>layers</span>
           <span className="text-[10px] font-bold">ETF 이벤트</span>
         </button>
-        <button onClick={() => { setActiveTab("ipo"); window.scrollTo(0,0); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents().then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }} className={`flex flex-col items-center gap-1 ${activeTab === 'ipo' ? 'text-primary' : 'text-on-surface-variant'}`}>
+        <button onClick={() => { setActiveTab("ipo"); window.scrollTo(0,0); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents(session?.user?.id).then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }} className={`flex flex-col items-center gap-1 ${activeTab === 'ipo' ? 'text-primary' : 'text-on-surface-variant'}`}>
           <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'ipo' ? 'fill' : 'normal'}>calendar_month</span>
           <span className="text-[10px] font-bold">공모주</span>
         </button>
@@ -844,6 +961,9 @@ export default function App() {
           <span className="text-[10px] font-bold">로그아웃</span>
         </button>
       </div>
+
+      {/* 모달 렌더링 */}
+      <IpoModal ipo={selectedIpo} aliases={aliases} onClose={() => setSelectedIpo(null)} onToggleIpo={handleToggleIpo} />
 
       {/* FAB */}
       {(selectedProvider || selectedStatus === "참여 목록" || selectedStatus === "마감 임박") && (
