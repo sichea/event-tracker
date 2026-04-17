@@ -7,22 +7,28 @@ from supabase import create_client, Client
 
 load_dotenv()
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+# 환경 변수에서 공백 제거 (복사/붙여넣기 시 공백이 포함될 수 있음)
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
 
-# 디버깅: 설정값 확인 (보안을 위해 앞 10자만 출력)
-print(f"DEBUG: SUPABASE_URL is {'set' if SUPABASE_URL else 'MISSING'}")
-if SUPABASE_URL: print(f"DEBUG: URL starts with: {SUPABASE_URL[:15]}...")
-print(f"DEBUG: SERVICE_KEY is {'set' if SUPABASE_SERVICE_KEY else 'MISSING'}")
-if SUPABASE_SERVICE_KEY: print(f"DEBUG: KEY starts with: {SUPABASE_SERVICE_KEY[:10]}...")
+# 디버깅: 설정값 확인
+print(f"DEBUG: SUPABASE_URL length: {len(SUPABASE_URL)}")
+print(f"DEBUG: SERVICE_KEY length: {len(SUPABASE_SERVICE_KEY)}")
 
 if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
-    raise ValueError("SUPABASE_URL 또는 SUPABASE_SERVICE_KEY 환경 변수가 설정되지 않았습니다.")
+    raise ValueError("환경 변수 로드 실패")
 
-VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
-VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:admin@local.com")
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "").strip()
+VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:admin@local.com").strip()
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+try:
+    # 최신 Supabase 키 형식을 지원하기 위해 클라이언트 생성 시도
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    print("DEBUG: Supabase Client initialized successfully.")
+except Exception as e:
+    print(f"DEBUG: First attempt failed: {str(e)}")
+    # 대체 방법: SUPABASE_KEY (익명 키)가 있다면 그것으로 시도하거나 환경 변수 재점검 권고
+    raise e
 
 def send_push(subscription, title, body):
     payload = json.dumps({"title": title, "body": body})
