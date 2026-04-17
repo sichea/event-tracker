@@ -1,26 +1,64 @@
 import { supabase } from './supabaseClient';
 
-// 모든 이벤트를 가져옵니다 (필터링은 프론트엔드에서 처리)
+// 모든 이벤트를 가져옵니다
+// - 진행중 이벤트 전체
+// - 내가 참여한(user_events에 기록된) 이벤트 중 종료 후 30일 이내인 것
 export async function fetchEvents(userId) {
-  let query = supabase
+  // 1) 진행중 이벤트 조회
+  const { data: activeEvents, error: activeError } = await supabase
     .from('events')
     .select('*')
     .eq('status', '진행중')
     .order('end_date', { ascending: false, nullsFirst: false });
-  
-  const { data: events, error } = await query;
-  if (error) throw error;
-  
+  if (activeError) throw activeError;
+
+  let participatedEndedEvents = [];
+
+  if (userId) {
+    // 2) 내가 참여한 이벤트 ID 목록 조회
+    const { data: myUserEvents, error: myError } = await supabase
+      .from('user_events')
+      .select('event_id, alias_id')
+      .eq('user_id', userId);
+
+    if (!myError && myUserEvents && myUserEvents.length > 0) {
+      const myEventIds = [...new Set(myUserEvents.map(ue => ue.event_id))];
+
+      // 3) 진행중이 아니지만 내가 참여한 이벤트 중 end_date가 30일 이내인 것 조회
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - 30);
+      const cutoffStr = cutoffDate.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+
+      const activeEventIds = new Set((activeEvents || []).map(e => e.id));
+      const endedParticipatedIds = myEventIds.filter(id => !activeEventIds.has(id));
+
+      if (endedParticipatedIds.length > 0) {
+        const { data: endedEvents, error: endedError } = await supabase
+          .from('events')
+          .select('*')
+          .in('id', endedParticipatedIds)
+          .gte('end_date', cutoffStr)
+          .order('end_date', { ascending: false, nullsFirst: false });
+
+        if (!endedError && endedEvents) {
+          participatedEndedEvents = endedEvents;
+        }
+      }
+    }
+  }
+
+  // 4) user_events checkedAliasMap 구성 (전체 이벤트 대상)
+  const allEvents = [...(activeEvents || []), ...participatedEndedEvents];
   let checkedAliasMap = {}; // { eventId: { aliasId: true, ... } }
-  
-  if (userId && events.length > 0) {
-    const eventIds = events.map(e => e.id);
+
+  if (userId && allEvents.length > 0) {
+    const eventIds = allEvents.map(e => e.id);
     const { data: userEvents, error: ueError } = await supabase
       .from('user_events')
       .select('event_id, alias_id')
       .eq('user_id', userId)
       .in('event_id', eventIds);
-      
+
     if (!ueError && userEvents) {
       userEvents.forEach(ue => {
         if (!checkedAliasMap[ue.event_id]) checkedAliasMap[ue.event_id] = {};
@@ -29,8 +67,8 @@ export async function fetchEvents(userId) {
     }
   }
 
-  // events 에 각 이벤트별로 체크된 alias ID 목록을 매핑
-  const mergedEvents = events.map(event => ({
+  // 5) events 에 각 이벤트별로 체크된 alias ID 목록을 매핑
+  const mergedEvents = allEvents.map(event => ({
     ...event,
     checkedAliases: checkedAliasMap[event.id] || {}
   }));

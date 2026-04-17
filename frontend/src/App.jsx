@@ -39,8 +39,24 @@ function EventCard({ event, aliases, onToggle }) {
   const hasAnyCheck = Object.values(event.checkedAliases || {}).some((v) => v);
   const pConf = PROVIDERS.find(p => p.key === event.provider) || PROVIDERS[0];
 
+  // 종료 후 남은 열람 가능 일수 계산 (참여 목록용)
+  const daysAfterEnd = (() => {
+    if (isActive || !event.end_date) return null;
+    const end = new Date(event.end_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    return Math.floor((today - end) / (1000 * 60 * 60 * 24));
+  })();
+
   return (
-    <div className={`bg-surface-container rounded-3xl p-4 md:p-6 transition-all duration-300 border border-transparent hover:border-outline-variant/30 flex flex-col ${hasAnyCheck ? 'ring-1 ring-primary/30 shadow-[0_0_15px_rgba(115,255,186,0.05)]' : ''}`}>
+    <div className={`bg-surface-container rounded-3xl p-4 md:p-6 transition-all duration-300 border flex flex-col
+      ${!isActive
+        ? 'border-outline-variant/10 opacity-70 grayscale-[30%]'
+        : hasAnyCheck
+          ? 'border-transparent ring-1 ring-primary/30 shadow-[0_0_15px_rgba(115,255,186,0.05)] hover:border-outline-variant/30'
+          : 'border-transparent hover:border-outline-variant/30'
+      }`}>
       <div className="flex items-start justify-between mb-3 md:mb-4">
         <div className="flex items-center gap-2 md:gap-3">
           <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl ${pConf.bgColor} flex items-center justify-center ${pConf.shadow}`}>
@@ -48,14 +64,25 @@ function EventCard({ event, aliases, onToggle }) {
           </div>
           <div>
             <p className="text-[10px] md:text-xs font-bold text-on-surface-variant uppercase tracking-wider">{event.provider}</p>
-            {dday && <span className={`inline-block mt-0.5 text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded-full border ${dday.classes}`}>{dday.text}</span>}
+            {isActive && dday && <span className={`inline-block mt-0.5 text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded-full border ${dday.classes}`}>{dday.text}</span>}
+            {!isActive && (
+              <span className="inline-flex items-center gap-1 mt-0.5 text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded-full border border-outline-variant/30 bg-outline-variant/10 text-outline">
+                <span className="material-symbols-outlined text-[10px]">event_busy</span>
+                종료 {daysAfterEnd !== null ? `D+${daysAfterEnd}` : ''}
+              </span>
+            )}
           </div>
         </div>
-        {event.link && (
-          <a href={event.link} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-surface-container-highest hover:bg-primary hover:text-on-primary flex items-center justify-center transition-colors">
-            <span className="material-symbols-outlined text-sm">open_in_new</span>
-          </a>
-        )}
+        <div className="flex items-center gap-1">
+          {!isActive && daysAfterEnd !== null && (
+            <span className="text-[9px] text-outline/60 font-medium">{30 - daysAfterEnd}일 후 목록에서 제거</span>
+          )}
+          {event.link && (
+            <a href={event.link} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-surface-container-highest hover:bg-primary hover:text-on-primary flex items-center justify-center transition-colors">
+              <span className="material-symbols-outlined text-sm">open_in_new</span>
+            </a>
+          )}
+        </div>
       </div>
       <h4 className="text-sm md:text-base font-bold font-headline mb-2 md:mb-3 line-clamp-2 min-h-[2.5rem] md:min-h-[3rem] leading-snug">{event.title}</h4>
       <div className="text-[11px] md:text-xs text-on-surface-variant mb-4 md:mb-6 flex items-center gap-2">
@@ -63,7 +90,12 @@ function EventCard({ event, aliases, onToggle }) {
         {formatDateRange(event.start_date, event.end_date)}
       </div>
       <div className="mt-auto pt-3 md:pt-4 border-t border-outline-variant/20 flex flex-wrap gap-x-3 md:gap-x-4 gap-y-2">
-        {aliases.length === 0 ? (
+        {!isActive ? (
+          <p className="text-[10px] text-outline w-full flex items-center gap-1">
+            <span className="material-symbols-outlined text-[12px]">lock</span>
+            종료된 이벤트입니다. 참여 기록은 {30 - (daysAfterEnd ?? 0)}일간 보관됩니다.
+          </p>
+        ) : aliases.length === 0 ? (
           <p className="text-[10px] text-outline text-center w-full">계좌를 추가해야 참여 여부를 체크할 수 있습니다.</p>
         ) : (
           aliases.map((alias) => {
@@ -436,19 +468,45 @@ export default function App() {
   
   const upcomingEvents = uniqueEvents.filter(e => e.status === "진행중" && e.d_day >= 0 && e.d_day <= 3).length;
 
+  // 참여 목록 탭에서 쓸 '종료 후 경과 일수' 계산 헬퍼
+  const daysAfterEndOf = (e) => {
+    if (!e.end_date) return null;
+    const end = new Date(e.end_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    return Math.floor((today - end) / (1000 * 60 * 60 * 24));
+  };
+
   let displayEvents = uniqueEvents.filter(e => {
     if (searchQuery && !e.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     if (selectedProvider && e.provider !== selectedProvider) return false;
     if (selectedStatus === "참여 목록") {
       const hasAnyCheck = Object.values(e.checkedAliases || {}).some((v) => v);
-      if (!hasAnyCheck || e.status !== "진행중") return false;
+      if (!hasAnyCheck) return false;
+      // 진행중이거나, 종료 후 30일 이내인 것만 표시
+      if (e.status !== "진행중") {
+        const dae = daysAfterEndOf(e);
+        if (dae === null || dae > 30) return false;
+      }
     } else if (selectedStatus === "마감 임박") {
       if (e.status !== "진행중" || e.d_day === null || e.d_day === undefined || e.d_day < 0 || e.d_day > 3) return false;
     } else {
       if (e.status !== "진행중") return false;
     }
     return true;
-  }).sort((a, b) => (a.d_day ?? 9999) - (b.d_day ?? 9999));
+  }).sort((a, b) => {
+    // 참여 목록: 진행중 먼저, 그 다음 종료 최근 순
+    if (selectedStatus === "참여 목록") {
+      const aActive = a.status === "진행중" ? 0 : 1;
+      const bActive = b.status === "진행중" ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      // 진행중끼리는 d_day 오름차순, 종료끼리는 end_date 내림차순
+      if (aActive === 0) return (a.d_day ?? 9999) - (b.d_day ?? 9999);
+      return (b.end_date || '').localeCompare(a.end_date || '');
+    }
+    return (a.d_day ?? 9999) - (b.d_day ?? 9999);
+  });
 
   return (
     <>

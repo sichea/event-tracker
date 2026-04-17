@@ -259,57 +259,58 @@ async def scrape_detail_page_and_period(page, link: str, title: str, reference_y
 
 
 async def scrape_tiger(page) -> list[dict]:
-    """TIGER ETF 공식 홈페이지 이벤트 섹션 스크래핑"""
+    """TIGER ETF 공식 홈페이지 이벤트 섹션 스크래핑 (안정화 v2)"""
     events = []
     try:
-        tiger_url = "https://investments.miraeasset.com/tigeretf/ko/customer/event/list.do"
-        await page.goto(tiger_url, wait_until="networkidle", timeout=30000)
+        # listCnt=100 으로 더보기 클릭 불필요하게 전체 로드
+        tiger_url = "https://investments.miraeasset.com/tigeretf/ko/customer/event/list.do?listCnt=100&pageIndex=1"
+        print("[TIGER] 페이지 로딩 시작 (domcontentloaded)...")
+        await page.goto(tiger_url, wait_until="domcontentloaded", timeout=30000)
         
-        # 필터 적용 대신 바로 데이터 추출 (사이트 개편으로 필터 박스 실종 대응)
-        await page.wait_for_timeout(2000)
-
-        # 끈기 있게 목록 대기 (최대 15초)
-        try:
-            print("[TIGER DEBUG] 이벤트 목록 로딩 대기 중...")
-            await page.wait_for_selector("a.c-card", timeout=15000)
-            print("[TIGER DEBUG] 이벤트 목록 감지 성공!")
-        except Exception as we:
-            print(f"[TIGER DEBUG] 목록 대기 중 타임아웃 또는 실패: {we}")
-            # 목록이 없어도 '더보기' 버튼이 있다면 시도해볼 수 있음
-            pass
-
-        # 더보기 모든 데이터를 가져올 때까지 반복 클릭
-        clicked_count = 0
-        while clicked_count < 10:  # 최대 10번 (약 80개 데이터) 시도
+        # 카드 셀렉터 대기 (실패 시 exception → 재시도 트리거)
+        # 여러 셀렉터를 OR로 시도하여 사이트 개편에 대비
+        card_selector = None
+        for sel in ["a.c-card", "a.card", ".event-list a", "li.c-card a"]:
             try:
-                more = page.locator("#btnMore, button.btn-list-more").first
-                if await more.is_visible():
-                    print(f"[TIGER] 더보기 클릭... ({clicked_count+1})")
-                    await more.click()
-                    await page.wait_for_timeout(1500)  # 로딩 대기
-                    clicked_count += 1
-                else:
-                    break
-            except:
+                await page.wait_for_selector(sel, timeout=10000)
+                card_selector = sel
+                print(f"[TIGER] 카드 셀렉터 감지 성공: {sel}")
                 break
+            except:
+                continue
+        
+        if not card_selector:
+            raise Exception("이벤트 목록 셀렉터를 찾지 못했습니다 (a.c-card, a.card, .event-list a 모두 실패)")
+
+        # 진행중 카드만 추출 (.closed 클래스가 없는 것)
+        # fallback: .closed 클래스가 없는 사이트 구조면 전체 카드를 가져와 상세 페이지에서 필터링
+        try:
+            cards = await page.query_selector_all(f"{card_selector}:not(.closed)")
+            if len(cards) == 0:
+                # closed 클래스가 없는 구조일 수 있음 → 전체 카드 사용
+                cards = await page.query_selector_all(card_selector)
+        except:
+            cards = await page.query_selector_all(card_selector)
+        
+        print(f"[TIGER] 카드 {len(cards)}개 발견 (진행중 필터 적용)")
+        
+        if len(cards) == 0:
+            raise Exception(f"카드 0개 감지됨 (셀렉터: {card_selector}) — 페이지 구조 변경 의심")
 
         # 데이터 추출 (context 파괴를 피하기 위해 필요한 정보를 먼저 리스트에 담습니다)
-        cards = await page.query_selector_all("a.c-card")
-        print(f"[TIGER DEBUG] 발견된 총 카드 개수: {len(cards)}개")
-        
         candidates = []
         for idx, card in enumerate(cards):
             try:
-                card_text = await card.inner_text()
-                # is_ongoing = "진행중" in card_text
+                # 제목 추출: 여러 셀렉터 시도
+                title = None
+                for title_sel in [".title", "h3", "h4", ".tit", "strong"]:
+                    try:
+                        title = await card.eval_on_selector(title_sel, "el => el.innerText.trim()")
+                        if title: break
+                    except:
+                        continue
                 
-                # if not is_ongoing:
-                #     continue
-
-                # 제목 추출
-                try:
-                    title = await card.eval_on_selector(".title", "el => el.innerText.trim()")
-                except Exception:
+                if not title:
                     continue
                 
                 # 링크 ID 추출
@@ -324,27 +325,29 @@ async def scrape_tiger(page) -> list[dict]:
                 else:
                     link = href if href.startswith("http") else f"https://investments.miraeasset.com{href}"
 
-                if not title or is_announcement(title): 
+                if is_announcement(title): 
                     continue
                 
                 candidates.append({"title": title, "link": link})
             except Exception as ce:
                 print(f"[TIGER Candidate Error] {ce}")
 
+        print(f"[TIGER] 후보 이벤트 {len(candidates)}개 (공지 제외)")
+
         # 상세 페이지 방문 및 데이터 완성
         for item in candidates:
             try:
                 title = item["title"]
                 link = item["link"]
-                print(f"[TIGER DEBUG] 상세 페이지 분석 중: {title[:20]}")
+                print(f"[TIGER] 상세 분석: {title[:30]}")
                 
                 p = await scrape_detail_page_and_period(page, link, title)
                 if not p["end"]: 
-                    print(f"[TIGER DEBUG] 기간 추출 실패: {title}")
+                    print(f"[TIGER] 기간 추출 실패 (건너뜀): {title[:30]}")
                     continue
                 
                 if p["d_day"] is not None and p["d_day"] < 0:
-                    print(f"[TIGER DEBUG] 종료된 이벤트 스킵: {title}")
+                    print(f"[TIGER] 종료 이벤트 (건너뜀): {title[:30]}")
                     continue
                 
                 events.append({
@@ -358,65 +361,114 @@ async def scrape_tiger(page) -> list[dict]:
                     "link": link,
                     "scraped_at": datetime.now().isoformat(),
                 })
-                print(f"[TIGER Success] {title[:20]}... ({p['end']})")
+                print(f"[TIGER ✓] {title[:30]}... ({p['end']})")
             except Exception as e:
-                print(f"[TIGER Detail Error] {title}: {e}")
+                print(f"[TIGER Detail Error] {item.get('title','?')[:30]}: {e}")
 
     except Exception as e:
-        print(f"[TIGER] 에러 발생: {e}")
+        print(f"[TIGER] 스크래핑 실패: {e}")
+        raise  # 재시도 래퍼가 감지할 수 있도록 exception 전파
     return events
 
 
 async def scrape_kodex(page) -> list[dict]:
-    """KODEX ETF 이벤트 페이지 스크래핑 (모바일 버전)"""
+    """KODEX ETF 이벤트 페이지 스크래핑 (안정화 v2 — Playwright DOM 쿼리 기반)"""
     events = []
     try:
         kodex_url = PROVIDERS["KODEX"]["url"]
-        await page.goto(kodex_url, wait_until="networkidle", timeout=60000)
-        await page.wait_for_timeout(3000)
+        print("[KODEX] 페이지 로딩 시작 (domcontentloaded)...")
+        await page.goto(kodex_url, wait_until="domcontentloaded", timeout=30000)
+        
+        # SPA 렌더링 대기: 이벤트 카드가 DOM에 주입될 때까지 대기
+        # 여러 셀렉터를 시도하여 사이트 변경에 대비
+        card_selector = None
+        for sel in ["a[href*='event-view']", ".event-list a", ".event-wrap a", ".card-list a"]:
+            try:
+                await page.wait_for_selector(sel, timeout=15000)
+                card_selector = sel
+                print(f"[KODEX] 카드 셀렉터 감지 성공: {sel}")
+                break
+            except:
+                continue
+        
+        if not card_selector:
+            raise Exception("이벤트 목록 셀렉터를 찾지 못했습니다 (모든 셀렉터 실패)")
 
-        html = await page.content()
-        soup = BeautifulSoup(html, "html.parser")
-
-        # 모든 이벤트 카드 (진행중만)
-        all_cards = soup.select("a[href*='event-view']:not([href*='event-view-end'])")
+        # 진행중 이벤트만 추출 (종료 이벤트 URL 패턴 제외)
+        # Playwright evaluate로 JavaScript 환경에서 직접 DOM 쿼리 (BeautifulSoup 미사용)
+        cards_data = await page.evaluate("""
+        () => {
+            const results = [];
+            const allLinks = document.querySelectorAll("a[href*='event-view']");
+            allLinks.forEach(a => {
+                const href = a.getAttribute('href') || '';
+                // 종료된 이벤트 (event-view-end) 제외
+                if (href.includes('event-view-end')) return;
+                // 종료 오버레이가 있는 카드 제외 (event-off-link 클래스)
+                if (a.classList.contains('event-off-link')) return;
+                
+                const titleEl = a.querySelector('h3') || a.querySelector('h4') || a.querySelector('.title') || a.querySelector('strong');
+                const title = titleEl ? titleEl.innerText.trim() : '';
+                
+                // 기간 텍스트 추출 시도 (카드 내 span, p 태그에서)
+                const allTexts = Array.from(a.querySelectorAll('span, p')).map(el => el.innerText.trim());
+                const periodText = allTexts.find(t => t.includes('~') || t.includes('기간')) || '';
+                
+                if (title) {
+                    results.push({ title, href, periodText });
+                }
+            });
+            return results;
+        }
+        """)
+        
+        print(f"[KODEX] 진행중 카드 {len(cards_data)}개 발견 (Playwright DOM 쿼리)")
+        
+        if len(cards_data) == 0:
+            raise Exception("진행중 이벤트 카드 0개 감지됨 — 페이지 구조 변경 또는 로딩 실패")
 
         seen_titles = set()
-        for card in all_cards:
-            title_el = card.select_one("h3")
-            if not title_el: continue
-            title = title_el.get_text(strip=True)
+        for card in cards_data:
+            title = card["title"]
+            href = card["href"]
+            
             if title in seen_titles: continue
             seen_titles.add(title)
             
             # 키워드 필터링
             if not is_event_title(title) or is_announcement(title): continue
 
-            href = card.get("href", "")
-            if "event-view-end" in href: 
-                continue  # 종료된 이벤트 스킵
             link = f"https://m.samsungfund.com/etf/lounge/{href}" if href and not href.startswith("http") else href
             
-            # 상세 페이지 방문하여 실제 기간 추출
-            p = await scrape_detail_page_and_period(page, link, title)
+            # 1차: 카드 내 기간 텍스트에서 날짜 추출 시도
+            period = parse_period_from_text(card.get("periodText", ""))
+            
+            # 2차: 카드에 날짜 없으면 상세 페이지 방문
+            if not period["end"]:
+                p = await scrape_detail_page_and_period(page, link, title)
+                period = {"start": p["start"], "end": p["end"]}
+            
+            d_day = _calc_dday(period["end"])
             
             # 필터링: 종료일이 과거면 제외, 기한 정보 없으면 제외
-            if p["d_day"] is not None and p["d_day"] < 0: continue
-            if not p["end"]: continue
+            if d_day is not None and d_day < 0: continue
+            if not period["end"]: continue
 
             events.append({
                 "id": generate_event_id("KODEX", title),
                 "provider": "KODEX",
                 "title": title,
-                "start_date": p["start"],
-                "end_date": p["end"],
-                "d_day": p["d_day"],
+                "start_date": period["start"],
+                "end_date": period["end"],
+                "d_day": d_day,
                 "status": "진행중",
                 "link": link,
                 "scraped_at": datetime.now().isoformat(),
             })
+            print(f"[KODEX ✓] {title[:30]}... ({period['end']})")
     except Exception as e:
         print(f"[KODEX] 스크래핑 실패: {e}")
+        raise  # 재시도 래퍼가 감지할 수 있도록 exception 전파
 
     return events
 
@@ -769,19 +821,56 @@ async def log_status(supabase, status: str, error_msg: str = None):
         print(f"[Status Log Error] {e}")
 
 
-async def scrape_all() -> list[dict]:
-    """모든 운용사의 이벤트를 수집합니다."""
-    from playwright.async_api import async_playwright
-
-    all_events = []
-
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+async def _run_scraper_with_retry(name, scraper, browser, max_retries=2):
+    """개별 스크래퍼를 재시도 래퍼로 실행합니다.
+    - 매 시도마다 새로운 context/page를 생성하여 상태 오염 방지
+    - 0건 수집 시 재시도 (실제 0건인 경우 구분을 위해 마지막 시도 결과 반환)
+    """
+    last_error = None
+    for attempt in range(max_retries + 1):
         context = await browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             viewport={"width": 1024, "height": 768},
         )
         page = await context.new_page()
+        try:
+            events = await scraper(page)
+            await context.close()
+            if len(events) > 0:
+                if attempt > 0:
+                    print(f"[{name}] 재시도 {attempt}회 만에 {len(events)}건 수집 성공!")
+                return events
+            # 0건이지만 exception이 아닌 경우 (실제로 이벤트가 없을 수도 있음)
+            if attempt < max_retries:
+                print(f"[{name}] 0건 수집 → 재시도 {attempt+1}/{max_retries} (새 context 생성)")
+                await asyncio.sleep(2)  # 재시도 전 짧은 대기
+            else:
+                print(f"[{name}] {max_retries+1}회 시도 모두 0건 → 최종 0건 확정")
+                return events
+        except Exception as e:
+            await context.close()
+            last_error = e
+            if attempt < max_retries:
+                print(f"[{name}] 시도 {attempt+1} 실패: {e} → 재시도 {attempt+1}/{max_retries}")
+                await asyncio.sleep(2)
+            else:
+                print(f"[{name}] {max_retries+1}회 시도 모두 실패: {e}")
+                return []
+    return []
+
+
+async def scrape_all() -> tuple[list[dict], dict[str, int]]:
+    """모든 운용사의 이벤트를 수집합니다.
+    Returns:
+        tuple: (전체 이벤트 리스트, provider별 수집 건수 dict)
+    """
+    from playwright.async_api import async_playwright
+
+    all_events = []
+    provider_results = {}  # {"TIGER": 3, "KODEX": 2, ...}
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
 
         scrapers = [
             ("TIGER", scrape_tiger),
@@ -797,18 +886,25 @@ async def scrape_all() -> list[dict]:
         ]
 
         for name, scraper in scrapers:
+            print(f"\n{'='*50}")
             print(f"[{name}] 스크래핑 시작...")
-            try:
-                events = await scraper(page)
-                print(f"[{name}] {len(events)}건 수집 완료")
-                all_events.extend(events)
-            except Exception as e:
-                print(f"[{name}] 스크래핑 중 오류: {e}")
+            print(f"{'='*50}")
+            events = await _run_scraper_with_retry(name, scraper, browser)
+            provider_results[name] = len(events)
+            print(f"[{name}] 최종 수집: {len(events)}건")
+            all_events.extend(events)
 
         await browser.close()
 
-    print(f"\n총 {len(all_events)}건 수집 완료")
-    return all_events
+    # 수집 결과 요약 출력
+    print(f"\n{'='*50}")
+    print(f"수집 결과 요약 (총 {len(all_events)}건)")
+    print(f"{'='*50}")
+    for name, count in provider_results.items():
+        status = "✓" if count > 0 else "✗ (0건 — 기존 DB 데이터 보존됨)"
+        print(f"  {name}: {count}건 {status}")
+    
+    return all_events, provider_results
 
 
 async def run_scrape_and_save():
@@ -834,12 +930,20 @@ async def run_scrape_and_save():
         # 1. 상태 기록: 진행 중
         await log_status(supabase, "진행중")
 
-        # 2. 모든 이벤트 수집 (중복 호출 제거)
-        events = await scrape_all()
-        if not events:
-            print("[Warn] 수집된 이벤트가 없습니다.")
-            await log_status(supabase, "실패", "수집된 데이터가 0건입니다.")
+        # 2. 모든 이벤트 수집 (재시도 래퍼 포함, provider별 결과 추적)
+        events, provider_results = await scrape_all()
+        
+        # 전체 0건이어도 일부 provider는 성공했을 수 있으므로 바로 exit하지 않음
+        total_success_providers = sum(1 for v in provider_results.values() if v > 0)
+        if total_success_providers == 0:
+            print("[Warn] 모든 provider에서 수집된 이벤트가 0건입니다.")
+            await log_status(supabase, "실패", "전체 provider 수집 실패 (0건)")
             sys.exit(1)
+        
+        # 수집 실패한 provider 목록 (0건)
+        failed_providers = {name for name, count in provider_results.items() if count == 0}
+        if failed_providers:
+            print(f"[보호] 다음 provider는 0건 수집 → 기존 DB 이벤트를 보존합니다: {failed_providers}")
         
         # 3. 현재 DB에 있는 모든 '진행중' 이벤트 가져오기 (기존 이벤트 정리용)
         active_in_db = supabase.table("events").select("*").eq("status", "진행중").execute().data
@@ -849,7 +953,7 @@ async def run_scrape_and_save():
         seen_ids = set()
         today = datetime.now().date()
         
-        # 2. 이번에 새로 수집된 이벤트 처리
+        # 이번에 새로 수집된 이벤트 처리
         for e in events:
             if e["id"] in seen_ids:
                 continue
@@ -871,12 +975,24 @@ async def run_scrape_and_save():
             if e["id"] in active_map:
                 del active_map[e["id"]]
 
-        # 3. 이번 수집에 없었으나 DB에는 '진행중'인 것들 처리 (종료 처리)
+        # 이번 수집에 없었으나 DB에는 '진행중'인 것들 처리
+        # ★ 핵심: 수집 실패(0건)한 provider의 이벤트는 종료 처리하지 않고 보존
+        protected_count = 0
+        terminated_count = 0
         for old_id, old_evt in active_map.items():
-            # 수동으로 종료 상태로 변경
-            old_evt["status"] = "종료"
-            old_evt["d_day"] = -1
-            # upsert 명단에 추가
+            provider = old_evt.get("provider", "")
+            
+            if provider in failed_providers:
+                # 이 provider는 수집 실패 → 기존 데이터 보존 (종료 처리 안함)
+                protected_count += 1
+                try:
+                    print(f"[보호] {provider} 이벤트 보존: {old_evt['title'][:30]}")
+                except UnicodeEncodeError:
+                    print(f"[보호] {provider} 이벤트 보존: (제목 출력 불가)")
+                continue  # records에 추가하지 않음 → DB 변경 없음
+            
+            # 수집 성공한 provider인데 이번에 안 잡힌 이벤트 → 실제 종료
+            terminated_count += 1
             records.append({
                 "id": old_evt["id"],
                 "provider": old_evt["provider"],
@@ -888,6 +1004,8 @@ async def run_scrape_and_save():
                 "link": old_evt.get("link"),
                 "scraped_at": old_evt.get("scraped_at")
             })
+        
+        print(f"\n[DB 동기화] 보존: {protected_count}건, 종료 처리: {terminated_count}건")
 
         # 4. 전체 DB 점검: 날짜가 지난 것이 있다면 최종적으로 종료 처리 (강제 보정)
         for r in records:
