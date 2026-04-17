@@ -91,10 +91,27 @@ function EventCard({ event, aliases, onToggle }) {
       </div>
       <div className="mt-auto pt-3 md:pt-4 border-t border-outline-variant/20 flex flex-wrap gap-x-3 md:gap-x-4 gap-y-2">
         {!isActive ? (
-          <p className="text-[10px] text-outline w-full flex items-center gap-1">
-            <span className="material-symbols-outlined text-[12px]">lock</span>
-            종료된 이벤트입니다. 참여 기록은 {30 - (daysAfterEnd ?? 0)}일간 보관됩니다.
-          </p>
+          <div className="w-full flex flex-col gap-2">
+            <p className="text-[10px] text-outline w-full flex items-center gap-1">
+              <span className="material-symbols-outlined text-[12px]">lock</span>
+              종료된 이벤트입니다. 참여 기록은 {30 - (daysAfterEnd ?? 0)}일간 보관됩니다.
+            </p>
+            {hasAnyCheck && (
+              <div className="flex flex-wrap gap-1.5 mt-0.5">
+                {aliases.map((alias) => {
+                  if (event.checkedAliases?.[alias.id]) {
+                    return (
+                      <span key={alias.id} className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20 font-bold flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[10px]">check</span>
+                        {alias.name}
+                      </span>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            )}
+          </div>
         ) : aliases.length === 0 ? (
           <p className="text-[10px] text-outline text-center w-full">계좌를 추가해야 참여 여부를 체크할 수 있습니다.</p>
         ) : (
@@ -449,7 +466,27 @@ export default function App() {
       <div className="flex items-center justify-center min-h-screen p-6">
         <div className="bg-surface-container rounded-3xl p-8 w-full max-w-sm shadow-2xl">
           <h1 className="text-2xl font-bold font-headline mb-6 text-center text-primary">ETF Event Tracker</h1>
-          <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} providers={[]} />
+          <Auth 
+            supabaseClient={supabase} 
+            appearance={{ 
+              theme: ThemeSupa,
+              variables: {
+                default: {
+                  colors: {
+                    brand: '#73ffba',
+                    brandAccent: '#64f0ac',
+                    inputText: '#ebedfb',
+                    inputPlaceholder: '#727581',
+                    inputLabelText: '#a7abb7',
+                    inputBackground: '#202633',
+                    inputBorder: '#444852',
+                  }
+                }
+              }
+            }} 
+            theme="dark"
+            providers={[]} 
+          />
         </div>
       </div>
     );
