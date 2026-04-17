@@ -1,32 +1,37 @@
 import json
 import os
 import datetime
+import httpx
 from pywebpush import webpush, WebPushException
-from supabase import create_client, Client, ClientOptions
 
-# GitHub Actions 환경변수에서 직접 로드
+# 환경 변수 로드
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "").strip()
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "").strip()
 VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:admin@local.com").strip()
 
-# [필살기] 라이브러리의 엄격한 검사를 우회하여 직접 클라이언트 생성
-try:
-    # ClientOptions를 사용하여 헤더를 직접 제어하거나 엄격한 검사를 피함
-    options = ClientOptions(
-        postgrest_client_timeout=10,
-        storage_client_timeout=10
-    )
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY, options=options)
-    print("✅ Supabase에 성공적으로 연결되었습니다.")
-except Exception as e:
-    # 만약 위 방식도 실패하면, 라이브러리를 통하지 않고 키만 출력해봅니다 (앞부분만)
-    print(f"❌ 연결 실패 원인: {str(e)}")
-    if SUPABASE_SERVICE_KEY:
-        print(f"DEBUG: 사용 중인 키의 앞부분: {SUPABASE_SERVICE_KEY[:10]}...")
-        print(f"DEBUG: 사용 중인 키의 길이: {len(SUPABASE_SERVICE_KEY)}")
-    raise e
+# [직착 라이브러리 우회] httpx를 사용하여 Supabase REST API에 직접 통신
+def supabase_request(method, path, params=None, json_data=None):
+    headers = {
+        "apikey": SUPABASE_SERVICE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    }
+    url = f"{SUPABASE_URL}/rest/v1/{path}"
+    with httpx.Client() as client:
+        if method == "GET":
+            resp = client.get(url, headers=headers, params=params)
+        elif method == "POST":
+            resp = client.post(url, headers=headers, json=json_data)
+        elif method == "DELETE":
+            resp = client.delete(url, headers=headers, params=params)
+        
+        if resp.status_code >= 400:
+            print(f"❌ API 오류 ({resp.status_code}): {resp.text}")
+            return None
+        return resp.json()
 
 def send_push(subscription, title, body):
     payload = json.dumps({"title": title, "body": body})
@@ -46,69 +51,71 @@ def send_push(subscription, title, body):
         return True
     except WebPushException as ex:
         if ex.response and ex.response.status_code == 410:
-            supabase.table('push_subscriptions').delete().match({'id': subscription['id']}).execute()
+            # 구독 만료 시 삭제
+            supabase_request("DELETE", "push_subscriptions", params={"id": f"eq.{subscription['id']}"})
         return False
     except Exception:
         return False
 
 def process_notifications():
+    print("🚀 직접 통신 모드로 알림 스캔 시작...")
     today = str(datetime.date.today())
     yesterday_dt = datetime.datetime.now() - datetime.timedelta(days=1)
     
-    # 데이터 조회
-    try:
-        subs_resp = supabase.table('push_subscriptions').select('*').execute()
-        subscriptions = subs_resp.data
-        if not subscriptions:
-            print("🔔 진행 가능한 구독 정보가 없습니다.")
-            return
+    # 1. 구독 정보 조회
+    subscriptions = supabase_request("GET", "push_subscriptions")
+    if not subscriptions:
+        print("🔔 진행할 구독 정보가 없습니다.")
+        return
 
-        # ... 이하 로직 동일 ...
-        user_devices = {}
-        for s in subscriptions:
-            uid = s['user_id']
-            if uid not in user_devices: user_devices[uid] = []
-            user_devices[uid].append(s)
+    # 2. 이벤트 데이터 조회
+    etf_events = supabase_request("GET", "events", params={"status": "eq.진행중"}) or []
+    ipo_events = supabase_request("GET", "ipo_events") or []
 
-        events_resp = supabase.table('events').select('*').eq('status', '진행중').execute()
-        etf_events = events_resp.data
+    # 유저별 기기 분류
+    user_devices = {}
+    for s in subscriptions:
+        uid = s['user_id']
+        if uid not in user_devices: user_devices[uid] = []
+        user_devices[uid].append(s)
+
+    for user_id, devices in user_devices.items():
+        # 로그 확인
+        logs = supabase_request("GET", "notification_logs", params={"user_id": f"eq.{user_id}"}) or []
+        sent_logs = {(l['target_id'], l['category']) for l in logs}
         
-        ipo_resp = supabase.table('ipo_events').select('*').execute()
-        ipo_events = ipo_resp.data
-
-        for user_id, devices in user_devices.items():
-            logs_resp = supabase.table('notification_logs').select('target_id, category').eq('user_id', user_id).execute()
-            sent_logs = {(l['target_id'], l['category']) for l in logs_resp.data}
-            
-            to_notify = []
-            for ev in etf_events:
-                created_at_dt = datetime.datetime.fromisoformat(ev['created_at'].replace('Z', '+00:00'))
-                if created_at_dt.replace(tzinfo=None) >= yesterday_dt.replace(tzinfo=None):
-                    if (str(ev['id']), 'new') not in sent_logs:
-                        to_notify.append(("🆕 신류 ETF", ev['title'], str(ev['id']), 'etf_event', 'new'))
-                
+        to_notify = []
+        # --- ETF & IPO 로직 (동일) ---
+        for ev in etf_events:
+            if (str(ev['id']), 'new') not in sent_logs:
+                # 간단한 신규 체크 (오늘/어제 생성)
+                c_at = datetime.datetime.fromisoformat(ev['created_at'].replace('Z', '+00:00')).replace(tzinfo=None)
+                if c_at >= yesterday_dt.replace(tzinfo=None):
+                    to_notify.append(("🆕 신규 ETF", ev['title'], str(ev['id']), 'etf_event', 'new'))
+            if (str(ev['id']), 'deadline') not in sent_logs:
                 if ev.get('d_day') is not None and 0 <= ev['d_day'] <= 3:
-                    if (str(ev['id']), 'deadline') not in sent_logs:
-                        to_notify.append(("⏰ 마감 임박", ev['title'], str(ev['id']), 'etf_event', 'deadline'))
+                    to_notify.append(("⏰ 마감 임박", ev['title'], str(ev['id']), 'etf_event', 'deadline'))
 
-            for ipo in ipo_events:
-                if str(ipo.get('subscription_start')) == today:
-                    if (str(ipo['id']), 'start') not in sent_logs:
-                        to_notify.append(("📅 청약 시작", ipo['company_name'], str(ipo['id']), 'ipo_event', 'start'))
-                if str(ipo.get('listing_date')) == today:
-                    if (str(ipo['id']), 'listing') not in sent_logs:
-                        to_notify.append(("🚀 상장일", ipo['company_name'], str(ipo['id']), 'ipo_event', 'listing'))
+        for ipo in ipo_events:
+            if str(ipo.get('subscription_start')) == today:
+                if (str(ipo['id']), 'start') not in sent_logs:
+                    to_notify.append(("📅 청약 시작", ipo['company_name'], str(ipo['id']), 'ipo_event', 'start'))
+            if str(ipo.get('listing_date')) == today:
+                if (str(ipo['id']), 'listing') not in sent_logs:
+                    to_notify.append(("🚀 상장일", ipo['company_name'], str(ipo['id']), 'ipo_event', 'listing'))
 
-            for title, body, t_id, t_type, cat in to_notify:
-                sent_any = False
-                for dev in devices:
-                    if send_push(dev, title, body): sent_any = True
-                if sent_any:
-                    supabase.table('notification_logs').insert({'user_id': user_id, 'target_id': t_id, 'target_type': t_type, 'category': cat}).execute()
+        # 실제 발송
+        for title, body, t_id, t_type, cat in to_notify:
+            sent_any = False
+            for dev in devices:
+                if send_push(dev, title, body): sent_any = True
+            
+            if sent_any:
+                supabase_request("POST", "notification_logs", json_data={
+                    "user_id": user_id, "target_id": t_id, "target_type": t_type, "category": cat
+                })
 
-        print("🎉 모든 알림 작업이 완료되었습니다.")
-    except Exception as e:
-        print(f"❌ 데이터 처리 중 오류: {str(e)}")
+    print("🎉 모든 알림 발송 프로세스가 완료되었습니다.")
 
 if __name__ == "__main__":
     process_notifications()
