@@ -85,36 +85,47 @@ def process_notifications():
         sent_logs = {(l['target_id'], l['category']) for l in logs}
         
         to_notify = []
-        # --- ETF & IPO 로직 (동일) ---
+        # --- ETF & IPO 로직 ---
         for ev in etf_events:
-            if (str(ev['id']), 'new') not in sent_logs:
-                # scraped_at 필드 사용
-                scraped_at_val = ev.get('scraped_at') or ev.get('created_at')
-                if scraped_at_val:
-                    try:
-                        c_at = datetime.datetime.fromisoformat(scraped_at_val.replace('Z', '+00:00')).replace(tzinfo=None)
-                        if c_at >= yesterday_dt.replace(tzinfo=None):
-                            to_notify.append(("🆕 신규 ETF", ev['title'], str(ev['id']), 'etf_event', 'new'))
-                    except Exception:
-                        pass # 날짜 형식 오류 시 스킵
+            # 1. 신규 알림
+            scraped_at_val = ev.get('scraped_at') or ev.get('created_at')
+            if scraped_at_val and (str(ev['id']), 'new') not in sent_logs:
+                try:
+                    c_at = datetime.datetime.fromisoformat(scraped_at_val.replace('Z', '+00:00')).replace(tzinfo=None)
+                    # 48시간 이내 수집된 건 '신규'로 간주 (테스트를 위해 좀 더 넒힘)
+                    if (datetime.datetime.now() - c_at).total_seconds() < 172800:
+                        to_notify.append(("🆕 신규 ETF", ev['title'], str(ev['id']), 'etf_event', 'new'))
+                except Exception: pass
             
+            # 2. 마감 임박 알림
             if (str(ev['id']), 'deadline') not in sent_logs:
                 if ev.get('d_day') is not None and 0 <= ev['d_day'] <= 3:
                     to_notify.append(("⏰ 마감 임박", ev['title'], str(ev['id']), 'etf_event', 'deadline'))
 
         for ipo in ipo_events:
+            # 3. 청약 시작
             if str(ipo.get('subscription_start')) == today:
                 if (str(ipo['id']), 'start') not in sent_logs:
                     to_notify.append(("📅 청약 시작", ipo['company_name'], str(ipo['id']), 'ipo_event', 'start'))
+            # 4. 상장일
             if str(ipo.get('listing_date')) == today:
                 if (str(ipo['id']), 'listing') not in sent_logs:
                     to_notify.append(("🚀 상장일", ipo['company_name'], str(ipo['id']), 'ipo_event', 'listing'))
 
+        if not to_notify:
+            print(f"👤 유저 {user_id}: 오늘 보낼 새로운 알림이 없습니다.")
+            continue
+
         # 실제 발송
         for title, body, t_id, t_type, cat in to_notify:
+            print(f"💌 발송 시도: {title} - {body[:20]}... (대상: {user_id})")
             sent_any = False
             for dev in devices:
-                if send_push(dev, title, body): sent_any = True
+                if send_push(dev, title, body):
+                    sent_any = True
+                    print(f"   ✅ 기기({dev['endpoint'][:20]}...) 전송 성공")
+                else:
+                    print(f"   ❌ 기기({dev['endpoint'][:20]}...) 전송 실패")
             
             if sent_any:
                 supabase_request("POST", "notification_logs", json_data={
