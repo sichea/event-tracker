@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription } from "./api";
+import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription } from "./api";
 import { supabase } from "./supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -479,6 +479,72 @@ export default function App() {
   const [ipoEvents, setIpoEvents] = useState([]);
   const [ipoLoading, setIpoLoading] = useState(false);
   const [selectedIpo, setSelectedIpo] = useState(null);
+  const [isPushEnabled, setIsPushEnabled] = useState(false);
+
+  const VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+  const getPushSubscription = useCallback(async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+    const registration = await navigator.serviceWorker.ready;
+    return registration.pushManager.getSubscription();
+  }, []);
+
+  useEffect(() => {
+    if (session && showSettings) {
+      const checkPushStatus = async () => {
+        try {
+          const sub = await getPushSubscription();
+          if (sub) {
+            const isSubscribedInDb = await checkPushSubscription(session.user.id, sub.endpoint);
+            setIsPushEnabled(isSubscribedInDb);
+          } else {
+            setIsPushEnabled(false);
+          }
+        } catch (err) {
+          console.error("Push status check error", err);
+        }
+      };
+      checkPushStatus();
+    }
+  }, [session, showSettings, getPushSubscription]);
+
+  const togglePush = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      showToastMsg("이 브라우저에서는 푸시 알림을 지원하지 않습니다.", "error");
+      return;
+    }
+
+    try {
+      if (isPushEnabled) {
+        const sub = await getPushSubscription();
+        if (sub) {
+          await removePushSubscription(session.user.id, sub.endpoint);
+          await sub.unsubscribe();
+        }
+        setIsPushEnabled(false);
+        showToastMsg("알림이 해제되었습니다.");
+      } else {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          showToastMsg("푸시 알림 허용이 필요합니다. 브라우저 주소창 설정에서 권한을 허용해주세요.", "error");
+          return;
+        }
+
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        const sub = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: VAPID_KEY
+        });
+        
+        await savePushSubscription(session.user.id, sub);
+        setIsPushEnabled(true);
+        showToastMsg("해당 기기에서 알림을 설정했습니다.");
+      }
+    } catch (err) {
+      console.error(err);
+      showToastMsg("알림 설정 중 오류가 발생했습니다.", "error");
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -726,9 +792,22 @@ export default function App() {
         {/* Settings Panel */}
         {showSettings && (
           <div className="mb-8 p-6 bg-surface-container rounded-3xl border border-outline-variant/30 animate-in fade-in slide-in-from-top-4">
-            <h3 className="text-lg font-bold font-headline mb-4 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">group</span> 내 계좌 관리
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold font-headline flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">group</span> 내 계좌 관리
+              </h3>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-on-surface-variant flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">notifications_active</span> 알림 받기
+                </span>
+                <button 
+                  onClick={togglePush}
+                  className={`w-10 h-5 md:w-11 md:h-6 rounded-full transition-colors relative flex items-center shrink-0 ${isPushEnabled ? 'bg-primary border-primary' : 'bg-surface-container-highest border border-white/20'}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 bg-white w-4 h-4 md:w-5 md:h-5 rounded-full transition-transform ${isPushEnabled ? 'translate-x-[20px] shadow-sm' : 'bg-outline-variant/60'}`} style={{width: 'calc(100% / 2 - 2px)', height: 'calc(100% - 4px)'}}></span>
+                </button>
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <ul className="space-y-2 mb-4">

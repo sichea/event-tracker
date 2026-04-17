@@ -261,7 +261,37 @@ export async function toggleIpoSubscription(ipoId, userId, brokerage, aliasId, c
       .from('user_ipo_subscriptions')
       .insert({ ipo_id: ipoId, user_id: userId, brokerage: brokerage, alias_id: aliasId });
     if (error) throw error;
-    return { ipoId, brokerage, aliasId, checked: true };
-  }
 }
 
+// --- 푸시 알림(Web Push) ---
+export async function savePushSubscription(userId, subscription) {
+  const sub = JSON.parse(JSON.stringify(subscription));
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .upsert({ 
+      user_id: userId, 
+      endpoint: sub.endpoint, 
+      p256dh: sub.keys?.p256dh, 
+      auth: sub.keys?.auth 
+    }, { onConflict: 'user_id, endpoint' });
+  if (error) throw error;
+}
+
+export async function removePushSubscription(userId, endpoint) {
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .delete()
+    .match({ user_id: userId, endpoint: endpoint });
+  if (error) throw error;
+}
+
+export async function checkPushSubscription(userId, endpoint) {
+  if (!endpoint) return false;
+  const { data, error } = await supabase
+    .from('push_subscriptions')
+    .select('id')
+    .match({ user_id: userId, endpoint: endpoint })
+    .single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return !!data;
+}
