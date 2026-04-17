@@ -7,13 +7,20 @@ from supabase import create_client, Client
 
 load_dotenv()
 
-# 환경 변수에서 공백 제거 (복사/붙여넣기 시 공백이 포함될 수 있음)
+# 환경 변수에서 공백 제거
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
-SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
+raw_key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
+
+# [중요] 41자로 인식되는 문제 해결: 만약 뒤에 보이지 않는 문자가 있다면 40자로 강제 조정
+if len(raw_key) == 41:
+    print("DEBUG: Detected 41 chars, trimming last character...")
+    SUPABASE_SERVICE_KEY = raw_key[:40]
+else:
+    SUPABASE_SERVICE_KEY = raw_key
 
 # 디버깅: 설정값 확인
 print(f"DEBUG: SUPABASE_URL length: {len(SUPABASE_URL)}")
-print(f"DEBUG: SERVICE_KEY length: {len(SUPABASE_SERVICE_KEY)}")
+print(f"DEBUG: SERVICE_KEY final length: {len(SUPABASE_SERVICE_KEY)}")
 
 if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
     raise ValueError("환경 변수 로드 실패")
