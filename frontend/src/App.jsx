@@ -327,17 +327,17 @@ function IpoCalendar({ ipoEvents }) {
                         <span>상장일: {ipo.listing_date?.replace(/-/g,'.')}</span>
                       </div>
                     )}
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="flex flex-col gap-1.5 pt-1">
                       {ipo.confirmed_price && (
                         <div className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-[14px]">price_check</span>
-                          <span className="truncate">{ipo.confirmed_price}</span>
+                          <span>{ipo.confirmed_price}</span>
                         </div>
                       )}
                       {ipo.lead_manager && (
-                        <div className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px]">business</span>
-                          <span className="truncate">{ipo.lead_manager}</span>
+                        <div className="flex items-start gap-1">
+                          <span className="material-symbols-outlined text-[14px] mt-0.5 shrink-0">business</span>
+                          <span className="break-words whitespace-normal">{ipo.lead_manager}</span>
                         </div>
                       )}
                     </div>
