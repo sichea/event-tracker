@@ -88,10 +88,16 @@ def process_notifications():
         # --- ETF & IPO 로직 (동일) ---
         for ev in etf_events:
             if (str(ev['id']), 'new') not in sent_logs:
-                # 간단한 신규 체크 (오늘/어제 생성)
-                c_at = datetime.datetime.fromisoformat(ev['created_at'].replace('Z', '+00:00')).replace(tzinfo=None)
-                if c_at >= yesterday_dt.replace(tzinfo=None):
-                    to_notify.append(("🆕 신규 ETF", ev['title'], str(ev['id']), 'etf_event', 'new'))
+                # scraped_at 필드 사용
+                scraped_at_val = ev.get('scraped_at') or ev.get('created_at')
+                if scraped_at_val:
+                    try:
+                        c_at = datetime.datetime.fromisoformat(scraped_at_val.replace('Z', '+00:00')).replace(tzinfo=None)
+                        if c_at >= yesterday_dt.replace(tzinfo=None):
+                            to_notify.append(("🆕 신규 ETF", ev['title'], str(ev['id']), 'etf_event', 'new'))
+                    except Exception:
+                        pass # 날짜 형식 오류 시 스킵
+            
             if (str(ev['id']), 'deadline') not in sent_logs:
                 if ev.get('d_day') is not None and 0 <= ev['d_day'] <= 3:
                     to_notify.append(("⏰ 마감 임박", ev['title'], str(ev['id']), 'etf_event', 'deadline'))
