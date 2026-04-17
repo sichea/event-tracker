@@ -2,19 +2,20 @@ import json
 import os
 import datetime
 from pywebpush import webpush, WebPushException
-from dotenv import load_dotenv
 from supabase import create_client, Client
 
-# 환경 변수 로드
-load_dotenv()
-
+# GitHub Actions 환경변수에서 직접 로드
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY")
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
 VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:admin@local.com")
 
-# 기존 코드와 동일한 방식의 클라이언트 생성
+# 디버깅: 값이 비어있는지 체크 (값 자체는 출력하지 않음)
+if not SUPABASE_URL: print("ERROR: SUPABASE_URL is missing in environment!")
+if not SUPABASE_SERVICE_KEY: print("ERROR: SUPABASE_SERVICE_KEY is missing in environment!")
+
+# 클라이언트 생성
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 def send_push(subscription, title, body):
