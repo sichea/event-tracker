@@ -642,7 +642,7 @@ function InvestmentInsights() {
       )}
 
       {/* Scenario Tabs */}
-      <div className="flex gap-2 md:gap-3 overflow-x-auto pb-4 mb-6 md:mb-8 scrollbar-hide">
+      <div className="flex gap-2 md:gap-3 overflow-x-auto pt-2 pb-4 mb-6 md:mb-8 scrollbar-hide">
         {INSIGHTS_DATA.map(s => (
           <button
             key={s.id}
