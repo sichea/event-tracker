@@ -461,6 +461,199 @@ function IpoCalendar({ ipoEvents, onSelectIpo }) {
   );
 }
 
+// ─── 투자 인사이트 대시보드 ───
+const INSIGHTS_DATA = [
+  {
+    id: 'war',
+    label: '전쟁/위기',
+    icon: 'local_fire_department',
+    color: '#ef4444',
+    bgGrad: 'from-red-500/20 to-orange-500/10',
+    summary: '불확실성 극대화로 실물 자산과 절대적 안전 자산으로 돈이 대피합니다.',
+    up: [
+      { name: '방산주', desc: '록히드마틴, 한화에어로스페이스 등', icon: 'shield' },
+      { name: '금/은', desc: '실물 안전자산 수요 폭발', icon: 'diamond' },
+      { name: '에너지 ETF', desc: '원유·천연가스 공급 불안', icon: 'local_gas_station' },
+    ],
+    down: [
+      { name: '글로벌 증시 전반', desc: '리스크 회피 심리 확산', icon: 'public' },
+      { name: '항공/여행주', desc: '이동 제한 및 수요 위축', icon: 'flight' },
+    ],
+  },
+  {
+    id: 'rate_cut',
+    label: '금리 인하',
+    icon: 'trending_down',
+    color: '#22c55e',
+    bgGrad: 'from-green-500/20 to-emerald-500/10',
+    summary: '중앙은행이 금리를 인하해 돈줄을 풀어 시중에 돈이 흔해지고, 기업 성장이 가속됩니다.',
+    up: [
+      { name: '기술주/성장주', desc: '저금리 수혜, 밸류에이션 확장', icon: 'memory' },
+      { name: '바이오', desc: '미래 성장 기대감 상승', icon: 'biotech' },
+      { name: '장기 채권', desc: '금리 하락 시 채권 가격 상승', icon: 'account_balance' },
+    ],
+    down: [
+      { name: '은행/금융주', desc: '예대금리차 축소로 수익 감소', icon: 'account_balance_wallet' },
+      { name: '예적금', desc: '금리 하락으로 이자 매력 급감', icon: 'savings' },
+    ],
+  },
+  {
+    id: 'inflation',
+    label: '인플레이션',
+    icon: 'local_fire_department',
+    color: '#f59e0b',
+    bgGrad: 'from-amber-500/20 to-yellow-500/10',
+    summary: '수요 폭발로 물건값이 오르고 화폐 가치가 떨어지며, 실물 자산의 몸값이 오릅니다.',
+    up: [
+      { name: '원자재 (금, 은, 원유)', desc: '실물 자산 가치 급등', icon: 'diamond' },
+      { name: '필수소비재', desc: '물가와 함께 매출·이익 동반 상승', icon: 'shopping_cart' },
+    ],
+    down: [
+      { name: '기술주/성장주', desc: '할인율 상승으로 밸류에이션 하락', icon: 'memory' },
+      { name: '채권', desc: '금리 상승 기대에 채권 가격 하락', icon: 'account_balance' },
+    ],
+  },
+  {
+    id: 'rate_hike',
+    label: '금리 인상',
+    icon: 'trending_up',
+    color: '#6366f1',
+    bgGrad: 'from-indigo-500/20 to-violet-500/10',
+    summary: '물가를 잡기 위해 금리를 올려 돈줄을 조이며, 현금성 자산을 쥐고 관망하는 것이 최선입니다.',
+    up: [
+      { name: '은행/금융주', desc: '예대금리차 확대로 수익 증가', icon: 'account_balance_wallet' },
+      { name: '현금 및 단기채권', desc: '높은 이자 수익 확보', icon: 'payments' },
+    ],
+    down: [
+      { name: '기술주/성장주', desc: '자금 조달 비용 급등', icon: 'memory' },
+      { name: '부동산 및 리츠', desc: '대출이자 부담 증가', icon: 'apartment' },
+    ],
+  },
+  {
+    id: 'recession',
+    label: '경기 침체',
+    icon: 'ac_unit',
+    color: '#3b82f6',
+    bgGrad: 'from-blue-500/20 to-cyan-500/10',
+    summary: '경제가 얼어붙어 주식시장 붕괴 우려가 있으므로, 돈 떼일 염려 없는 안전자산으로 피난합니다.',
+    up: [
+      { name: '달러, 스위스 프랑', desc: '기축 통화로 자금 집중', icon: 'currency_exchange' },
+      { name: '금', desc: '최후의 안전자산', icon: 'diamond' },
+      { name: '방어주 (통신/제약)', desc: '경기와 무관한 안정적 매출', icon: 'health_and_safety' },
+    ],
+    down: [
+      { name: '경기 민감주 (자동차, 반도체)', desc: '수요 급감에 실적 악화', icon: 'directions_car' },
+      { name: '사치재', desc: '소비 위축으로 매출 급감', icon: 'watch' },
+    ],
+  },
+];
+
+function InvestmentInsights() {
+  const [selectedScenario, setSelectedScenario] = useState(INSIGHTS_DATA[0].id);
+  const scenario = INSIGHTS_DATA.find(s => s.id === selectedScenario);
+
+  return (
+    <div className="py-6 md:py-12">
+      {/* Header */}
+      <div className="mb-8 md:mb-12">
+        <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">투자 인사이트</h1>
+        <p className="text-on-surface-variant text-sm md:text-base">거시경제 상황에 따른 자산 흐름을 한눈에 파악하세요.</p>
+      </div>
+
+      {/* Scenario Tabs */}
+      <div className="flex gap-2 md:gap-3 overflow-x-auto pb-4 mb-6 md:mb-8 scrollbar-hide">
+        {INSIGHTS_DATA.map(s => (
+          <button
+            key={s.id}
+            onClick={() => setSelectedScenario(s.id)}
+            className={`flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-2xl text-xs md:text-sm font-bold whitespace-nowrap transition-all duration-300 border
+              ${selectedScenario === s.id
+                ? 'bg-white/10 border-white/20 text-on-surface shadow-lg scale-[1.02]'
+                : 'bg-surface-container border-transparent text-on-surface-variant hover:bg-white/5 hover:border-white/10'
+              }`}
+            style={selectedScenario === s.id ? { borderColor: s.color + '60', boxShadow: `0 4px 20px ${s.color}15` } : {}}
+          >
+            <span className="material-symbols-outlined text-lg" style={selectedScenario === s.id ? { color: s.color } : {}}>{s.icon}</span>
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Scenario Content */}
+      {scenario && (
+        <div key={scenario.id} className="animate-[fadeIn_0.3s_ease-out]">
+          {/* Summary Banner */}
+          <div className={`bg-gradient-to-r ${scenario.bgGrad} rounded-3xl p-5 md:p-8 mb-8 border border-white/5`}>
+            <div className="flex items-start gap-3 md:gap-4">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: scenario.color + '20' }}>
+                <span className="material-symbols-outlined text-2xl md:text-3xl" style={{ color: scenario.color }}>{scenario.icon}</span>
+              </div>
+              <div>
+                <h2 className="text-lg md:text-xl font-extrabold font-headline mb-1.5" style={{ color: scenario.color }}>{scenario.label}</h2>
+                <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">{scenario.summary}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Split View: UP & DOWN */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            {/* UP Card */}
+            <div className="bg-surface-container border border-white/5 rounded-3xl p-5 md:p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="w-8 h-8 rounded-xl bg-red-500/15 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-lg text-red-400">trending_up</span>
+                </div>
+                <h3 className="text-base md:text-lg font-extrabold font-headline text-red-400">상승 예상 자산</h3>
+              </div>
+              <div className="space-y-3">
+                {scenario.up.map((asset, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 md:p-4 rounded-2xl bg-red-500/5 border border-red-500/10 hover:border-red-500/25 transition-all duration-200 group">
+                    <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 group-hover:bg-red-500/20 transition-colors">
+                      <span className="material-symbols-outlined text-red-400">{asset.icon}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm md:text-base font-bold text-on-surface">{asset.name}</p>
+                      <p className="text-[11px] md:text-xs text-on-surface-variant truncate">{asset.desc}</p>
+                    </div>
+                    <span className="material-symbols-outlined text-red-400 text-xl shrink-0">arrow_upward</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* DOWN Card */}
+            <div className="bg-surface-container border border-white/5 rounded-3xl p-5 md:p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-lg text-blue-400">trending_down</span>
+                </div>
+                <h3 className="text-base md:text-lg font-extrabold font-headline text-blue-400">하락 예상 자산</h3>
+              </div>
+              <div className="space-y-3">
+                {scenario.down.map((asset, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 md:p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 hover:border-blue-500/25 transition-all duration-200 group">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                      <span className="material-symbols-outlined text-blue-400">{asset.icon}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm md:text-base font-bold text-on-surface">{asset.name}</p>
+                      <p className="text-[11px] md:text-xs text-on-surface-variant truncate">{asset.desc}</p>
+                    </div>
+                    <span className="material-symbols-outlined text-blue-400 text-xl shrink-0">arrow_downward</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Disclaimer */}
+          <p className="mt-6 md:mt-8 text-[10px] md:text-xs text-on-surface-variant/50 text-center">※ 위 정보는 일반적인 거시경제 흐름에 기반한 참고 자료이며, 투자 권유가 아닙니다.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [events, setEvents] = useState([]);
@@ -833,15 +1026,7 @@ export default function App() {
 
         {/* Tab Content Switch */}
         {activeTab === "insights" ? (
-          <div className="py-12 md:py-20">
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-surface-container border border-white/5 rounded-3xl p-8 md:p-12 text-center">
-                <span className="material-symbols-outlined text-6xl text-primary mb-6 block">insights</span>
-                <h2 className="text-2xl md:text-3xl font-extrabold font-headline mb-4">투자 인사이트</h2>
-                <p className="text-on-surface-variant text-sm md:text-base">곧 유용한 투자 인사이트가 이 자리를 채울 예정입니다.</p>
-              </div>
-            </div>
-          </div>
+          <InvestmentInsights />
         ) : activeTab === "ipo" ? (
           ipoLoading ? (
             <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
