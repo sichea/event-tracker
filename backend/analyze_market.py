@@ -39,44 +39,68 @@ def supabase_upsert(data):
 
 
 def fetch_ecos_rate():
-    """한국은행 기준금리 조회 (최근 1년)"""
+    """한국은행 기준금리 조회 (ECOS 서버 점검 시간 대비 fallback 포함)"""
     today = datetime.date.today()
     start = (today - datetime.timedelta(days=365)).strftime("%Y%m")
     end = today.strftime("%Y%m")
-    # ECOS API: 통계표코드 722Y001 (한국은행 기준금리), 항목코드 0101000
-    url = f"https://ecos.bok.or.kr/api/{ECOS_API_KEY}/json/StatisticSearch/1/100/722Y001/M/{start}/{end}/0101000"
 
-    try:
-        with httpx.Client() as client:
-            resp = client.get(url, timeout=15)
-            text = resp.text
-            if not text or text.startswith('<'):
-                # HTML 에러 페이지가 반환된 경우
-                print(f"⚠️ ECOS: 비정상 응답 (길이: {len(text)})")
-                # 대안: 다른 통계표코드 시도
-                url2 = f"https://ecos.bok.or.kr/api/{ECOS_API_KEY}/json/StatisticSearch/1/100/060Y001/M/{start}/{end}/010101000"
-                resp = client.get(url2, timeout=15)
-                text = resp.text
+    # 여러 통계표코드 조합 시도
+    urls = [
+        f"https://ecos.bok.or.kr/api/{ECOS_API_KEY}/json/StatisticSearch/1/100/722Y001/M/{start}/{end}/0101000",
+        f"https://ecos.bok.or.kr/api/{ECOS_API_KEY}/json/StatisticSearch/1/100/060Y001/M/{start}/{end}/010101000",
+    ]
+
+    for url in urls:
+        try:
+            with httpx.Client() as client:
+                resp = client.get(url, timeout=15)
+
+            if resp.status_code >= 500:
+                print(f"⚠️ ECOS 서버 점검 중 (HTTP {resp.status_code})")
+                continue
+
+            if not resp.text or resp.text.startswith('<'):
+                continue
 
             data = resp.json()
 
-        # 에러 응답 확인
-        if "RESULT" in data:
-            print(f"⚠️ ECOS 응답: {data['RESULT'].get('MESSAGE', 'Unknown error')}")
-            return None, None
+            if "RESULT" in data:
+                msg = data['RESULT'].get('MESSAGE', '')
+                print(f"⚠️ ECOS: {msg}")
+                continue
 
-        rows = data.get("StatisticSearch", {}).get("row", [])
-        if not rows:
-            print("⚠️ ECOS: 데이터 없음")
-            return None, None
+            rows = data.get("StatisticSearch", {}).get("row", [])
+            if rows:
+                latest = float(rows[-1]["DATA_VALUE"])
+                prev = float(rows[-2]["DATA_VALUE"]) if len(rows) >= 2 else latest
+                print(f"📊 한국 기준금리: {latest}% (이전: {prev}%)")
+                return latest, prev
+        except Exception as e:
+            print(f"⚠️ ECOS 시도 실패: {e}")
+            continue
 
-        latest = float(rows[-1]["DATA_VALUE"])
-        prev = float(rows[-2]["DATA_VALUE"]) if len(rows) >= 2 else latest
-        print(f"📊 한국 기준금리: {latest}% (이전: {prev}%)")
-        return latest, prev
-    except Exception as e:
-        print(f"❌ ECOS 오류: {e}")
-        return None, None
+    # Fallback: Supabase에서 이전 저장값 가져오기
+    print("⚠️ ECOS 접속 불가 → 이전 저장값 사용")
+    try:
+        headers = {
+            "apikey": SUPABASE_SERVICE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+        }
+        with httpx.Client() as client:
+            resp = client.get(
+                f"{SUPABASE_URL}/rest/v1/market_insights?id=eq.current",
+                headers=headers, timeout=10
+            )
+            rows = resp.json()
+            if rows and rows[0].get("kr_rate") is not None:
+                kr = float(rows[0]["kr_rate"])
+                kr_prev = float(rows[0].get("kr_rate_prev") or kr)
+                print(f"📊 한국 기준금리 (캐시): {kr}% (이전: {kr_prev}%)")
+                return kr, kr_prev
+    except Exception:
+        pass
+
+    return None, None
 
 
 def fetch_fred_series(series_id):
