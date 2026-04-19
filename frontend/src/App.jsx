@@ -475,7 +475,7 @@ export default function App() {
   const [scrapingStatus, setScrapingStatus] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
-  const [activeTab, setActiveTab] = useState("dashboard"); // "dashboard" | "ipo"
+  const [activeTab, setActiveTab] = useState("insights"); // "insights" | "dashboard" | "ipo"
   const [ipoEvents, setIpoEvents] = useState([]);
   const [ipoLoading, setIpoLoading] = useState(false);
   const [selectedIpo, setSelectedIpo] = useState(null);
@@ -736,6 +736,7 @@ export default function App() {
             <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>RE:MEMBER</span>
             {/* Desktop Tabs */}
             <div className="hidden md:flex items-center gap-8 text-sm font-medium">
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'insights' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => setActiveTab("insights")}>투자 인사이트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>ETF 이벤트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'ipo' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents(session?.user?.id).then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>공모주 캘린더</button>
             </div>
@@ -831,7 +832,17 @@ export default function App() {
         )}
 
         {/* Tab Content Switch */}
-        {activeTab === "ipo" ? (
+        {activeTab === "insights" ? (
+          <div className="py-12 md:py-20">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-surface-container border border-white/5 rounded-3xl p-8 md:p-12 text-center">
+                <span className="material-symbols-outlined text-6xl text-primary mb-6 block">insights</span>
+                <h2 className="text-2xl md:text-3xl font-extrabold font-headline mb-4">투자 인사이트</h2>
+                <p className="text-on-surface-variant text-sm md:text-base">곧 유용한 투자 인사이트가 이 자리를 채울 예정입니다.</p>
+              </div>
+            </div>
+          </div>
+        ) : activeTab === "ipo" ? (
           ipoLoading ? (
             <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
           ) : (
@@ -1023,6 +1034,10 @@ export default function App() {
 
       {/* Mobile Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-[#0a0e17]/90 backdrop-blur-xl border-t border-white/10 flex items-center justify-around z-50 px-6 pb-safe">
+        <button onClick={() => { setActiveTab("insights"); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 ${activeTab === 'insights' ? 'text-primary' : 'text-on-surface-variant'}`}>
+          <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'insights' ? 'fill' : 'normal'}>insights</span>
+          <span className="text-[10px] font-bold">인사이트</span>
+        </button>
         <button onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기"); window.scrollTo(0,0);}} className={`flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-primary' : 'text-on-surface-variant'}`}>
           <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'dashboard' ? 'fill' : 'normal'}>layers</span>
           <span className="text-[10px] font-bold">ETF 이벤트</span>
