@@ -39,23 +39,37 @@ def supabase_upsert(data):
 
 
 def fetch_ecos_rate():
-    """한국은행 기준금리 조회 (최근 6개월)"""
+    """한국은행 기준금리 조회 (최근 1년)"""
     today = datetime.date.today()
-    start = (today - datetime.timedelta(days=365)).strftime("%Y%m%d")
-    end = today.strftime("%Y%m%d")
-    url = f"https://ecos.bok.or.kr/api/{ECOS_API_KEY}/json/StatisticSearch/1/100/060Y001/M/{start}/{end}/"
+    start = (today - datetime.timedelta(days=365)).strftime("%Y%m")
+    end = today.strftime("%Y%m")
+    # ECOS API: 통계표코드 722Y001 (한국은행 기준금리), 항목코드 0101000
+    url = f"https://ecos.bok.or.kr/api/{ECOS_API_KEY}/json/StatisticSearch/1/100/722Y001/M/{start}/{end}/0101000"
 
     try:
         with httpx.Client() as client:
             resp = client.get(url, timeout=15)
+            text = resp.text
+            if not text or text.startswith('<'):
+                # HTML 에러 페이지가 반환된 경우
+                print(f"⚠️ ECOS: 비정상 응답 (길이: {len(text)})")
+                # 대안: 다른 통계표코드 시도
+                url2 = f"https://ecos.bok.or.kr/api/{ECOS_API_KEY}/json/StatisticSearch/1/100/060Y001/M/{start}/{end}/010101000"
+                resp = client.get(url2, timeout=15)
+                text = resp.text
+
             data = resp.json()
+
+        # 에러 응답 확인
+        if "RESULT" in data:
+            print(f"⚠️ ECOS 응답: {data['RESULT'].get('MESSAGE', 'Unknown error')}")
+            return None, None
 
         rows = data.get("StatisticSearch", {}).get("row", [])
         if not rows:
             print("⚠️ ECOS: 데이터 없음")
             return None, None
 
-        # 최신 2개 데이터 (현재, 이전)
         latest = float(rows[-1]["DATA_VALUE"])
         prev = float(rows[-2]["DATA_VALUE"]) if len(rows) >= 2 else latest
         print(f"📊 한국 기준금리: {latest}% (이전: {prev}%)")
@@ -100,18 +114,18 @@ def fetch_fred_data():
     us_rate, us_rate_prev = fetch_fred_series("FEDFUNDS")
     print(f"📊 미국 기준금리: {us_rate}% (이전: {us_rate_prev}%)")
 
-    # CPI 전년비 변화율
-    cpi, _ = fetch_fred_series("CPIAUCSL")
-    # CPI는 지수값이므로, 전년비 변화율을 계산하기 위해 12개월 전 값도 필요
-    # 간소화: FRED에서 전년비를 직접 제공하는 시리즈 사용
+    # CPI 전년비 변화율 (FRED에서 전년비 직접 제공 시리즈)
     cpi_yoy, _ = fetch_fred_series("CPALTT01USM657N")
     if cpi_yoy is None:
-        # fallback: 일반 CPI 인덱스 사용 시 대략적 계산
         cpi_yoy = 3.0  # 기본값
+    else:
+        cpi_yoy = round(cpi_yoy, 1)  # 소수점 1자리로 반올림
     print(f"📊 미국 CPI 전년비: {cpi_yoy}%")
 
     # GDP 성장률 (분기)
     gdp, _ = fetch_fred_series("A191RL1Q225SBEA")
+    if gdp is not None:
+        gdp = round(gdp, 1)
     print(f"📊 미국 GDP 성장률: {gdp}%")
 
     return us_rate, us_rate_prev, cpi_yoy, gdp
