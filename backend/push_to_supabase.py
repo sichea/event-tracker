@@ -7,8 +7,10 @@ load_dotenv()
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
 
-import string
-SUPABASE_SERVICE_KEY = ''.join(c for c in SUPABASE_SERVICE_KEY if c in string.printable and c not in '\t\n\r\x0b\x0c')
+# supabase 2.x JWT 검증 우회
+import supabase._sync.client as _sc
+if hasattr(_sc, '_is_valid_jwt'):
+    _sc._is_valid_jwt = lambda *a, **kw: True
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
