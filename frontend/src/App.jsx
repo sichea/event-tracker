@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription } from "./api";
+import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription, fetchMarketInsights } from "./api";
 import { supabase } from "./supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -550,7 +550,28 @@ const INSIGHTS_DATA = [
 
 function InvestmentInsights() {
   const [selectedScenario, setSelectedScenario] = useState(INSIGHTS_DATA[0].id);
+  const [marketData, setMarketData] = useState(null);
+  const [mdLoading, setMdLoading] = useState(true);
   const scenario = INSIGHTS_DATA.find(s => s.id === selectedScenario);
+
+  useEffect(() => {
+    fetchMarketInsights().then(d => {
+      if (d) {
+        setMarketData(d);
+        setSelectedScenario(d.scenario);
+      }
+      setMdLoading(false);
+    }).catch(() => setMdLoading(false));
+  }, []);
+
+  const indicators = marketData ? [
+    { label: '한국 기준금리', value: marketData.kr_rate != null ? `${marketData.kr_rate}%` : '-', icon: 'flag', prev: marketData.kr_rate_prev },
+    { label: '미국 기준금리', value: marketData.us_rate != null ? `${marketData.us_rate}%` : '-', icon: 'public', prev: marketData.us_rate_prev },
+    { label: '미국 CPI (전년비)', value: marketData.us_cpi != null ? `${marketData.us_cpi}%` : '-', icon: 'shopping_cart' },
+    { label: '미국 GDP 성장률', value: marketData.us_gdp != null ? `${marketData.us_gdp}%` : '-', icon: 'bar_chart' },
+  ] : [];
+
+  const news = marketData?.news || [];
 
   return (
     <div className="py-6 md:py-12">
@@ -558,7 +579,35 @@ function InvestmentInsights() {
       <div className="mb-8 md:mb-12">
         <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">투자 인사이트</h1>
         <p className="text-on-surface-variant text-sm md:text-base">거시경제 상황에 따른 자산 흐름을 한눈에 파악하세요.</p>
+        {marketData?.updated_at && (
+          <p className="text-[10px] text-on-surface-variant/40 mt-1">마지막 업데이트: {new Date(marketData.updated_at).toLocaleString('ko-KR')}</p>
+        )}
       </div>
+
+      {/* Indicator Cards */}
+      {indicators.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
+          {indicators.map((ind, i) => {
+            const diff = ind.prev != null && ind.value !== '-' ? (parseFloat(ind.value) - ind.prev) : null;
+            return (
+              <div key={i} className="bg-surface-container border border-white/5 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="material-symbols-outlined text-base text-on-surface-variant">{ind.icon}</span>
+                  <span className="text-[10px] md:text-xs text-on-surface-variant font-medium">{ind.label}</span>
+                </div>
+                <div className="flex items-end gap-2">
+                  <span className="text-xl md:text-2xl font-extrabold font-headline">{ind.value}</span>
+                  {diff != null && diff !== 0 && (
+                    <span className={`text-[10px] font-bold mb-0.5 ${diff > 0 ? 'text-red-400' : 'text-blue-400'}`}>
+                      {diff > 0 ? '▲' : '▼'} {Math.abs(diff).toFixed(2)}%p
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Scenario Tabs */}
       <div className="flex gap-2 md:gap-3 overflow-x-auto pb-4 mb-6 md:mb-8 scrollbar-hide">
@@ -566,7 +615,7 @@ function InvestmentInsights() {
           <button
             key={s.id}
             onClick={() => setSelectedScenario(s.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-2xl text-xs md:text-sm font-bold whitespace-nowrap transition-all duration-300 border
+            className={`relative flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-2xl text-xs md:text-sm font-bold whitespace-nowrap transition-all duration-300 border
               ${selectedScenario === s.id
                 ? 'bg-white/10 border-white/20 text-on-surface shadow-lg scale-[1.02]'
                 : 'bg-surface-container border-transparent text-on-surface-variant hover:bg-white/5 hover:border-white/10'
@@ -575,6 +624,9 @@ function InvestmentInsights() {
           >
             <span className="material-symbols-outlined text-lg" style={selectedScenario === s.id ? { color: s.color } : {}}>{s.icon}</span>
             {s.label}
+            {marketData?.scenario === s.id && (
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[8px] font-black text-white animate-pulse shadow-lg shadow-red-500/30">now</span>
+            )}
           </button>
         ))}
       </div>
@@ -589,7 +641,12 @@ function InvestmentInsights() {
                 <span className="material-symbols-outlined text-2xl md:text-3xl" style={{ color: scenario.color }}>{scenario.icon}</span>
               </div>
               <div>
-                <h2 className="text-lg md:text-xl font-extrabold font-headline mb-1.5" style={{ color: scenario.color }}>{scenario.label}</h2>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <h2 className="text-lg md:text-xl font-extrabold font-headline" style={{ color: scenario.color }}>{scenario.label}</h2>
+                  {marketData?.scenario === scenario.id && (
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">현재 상황</span>
+                  )}
+                </div>
                 <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">{scenario.summary}</p>
               </div>
             </div>
@@ -645,6 +702,25 @@ function InvestmentInsights() {
               </div>
             </div>
           </div>
+
+          {/* News Section */}
+          {news.length > 0 && (
+            <div className="mt-8">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-symbols-outlined text-primary">newspaper</span>
+                <h3 className="text-base md:text-lg font-extrabold font-headline">오늘의 경제 뉴스</h3>
+              </div>
+              <div className="space-y-3">
+                {news.map((n, i) => (
+                  <a key={i} href={n.link} target="_blank" rel="noopener noreferrer"
+                    className="block bg-surface-container border border-white/5 rounded-2xl p-4 hover:border-primary/20 transition-all group">
+                    <h4 className="text-sm font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1 mb-1">{n.title}</h4>
+                    <p className="text-[11px] md:text-xs text-on-surface-variant line-clamp-2">{n.description}</p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Disclaimer */}
           <p className="mt-6 md:mt-8 text-[10px] md:text-xs text-on-surface-variant/50 text-center">※ 위 정보는 일반적인 거시경제 흐름에 기반한 참고 자료이며, 투자 권유가 아닙니다.</p>

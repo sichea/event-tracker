@@ -296,3 +296,14 @@ export async function checkPushSubscription(userId, endpoint) {
   if (error && error.code !== 'PGRST116') throw error;
   return !!data;
 }
+
+// --- 시장 인사이트 ---
+export async function fetchMarketInsights() {
+  const { data, error } = await supabase
+    .from('market_insights')
+    .select('*')
+    .eq('id', 'current')
+    .single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+}

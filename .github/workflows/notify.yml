@@ -25,6 +25,18 @@ jobs:
           pip install -r requirements.txt
           pip install supabase pywebpush
 
+      - name: 시장 인사이트 분석 실행
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+        run: |
+          cd backend
+          python analyze_market.py
+
       - name: 푸시 알림 발송 실행
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
