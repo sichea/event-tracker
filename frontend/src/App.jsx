@@ -752,6 +752,7 @@ export default function App() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   const VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
@@ -850,9 +851,10 @@ export default function App() {
     if (error) {
       showToastMsg(`비밀번호 변경 실패: ${error.message}`, "error");
     } else {
-      showToastMsg("비밀번호가성공적으로 변경되었습니다.");
+      showToastMsg("비밀번호가 성공적으로 변경되었습니다.");
       setNewPassword("");
       setConfirmPassword("");
+      setShowPasswordForm(false);
     }
     setUpdateLoading(false);
   };
@@ -1089,7 +1091,7 @@ export default function App() {
           <div className="mb-8 p-6 bg-surface-container rounded-3xl border border-outline-variant/30 animate-in fade-in slide-in-from-top-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold font-headline flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">group</span> 내 계좌 관리
+                <span className="material-symbols-outlined text-primary">person</span> 내 정보
               </h3>
               <div className="flex items-center gap-3">
                 <span className="text-xs font-bold text-on-surface-variant flex items-center gap-1">
@@ -1124,38 +1126,62 @@ export default function App() {
               </div>
               
               <div className="md:border-l md:border-white/5 md:pl-8">
-                <h4 className="text-sm font-bold mb-3 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-xs">lock_reset</span>비밀번호 변경
-                </h4>
-                <form onSubmit={handleUpdatePassword} className="space-y-3">
-                  <input 
-                    type="password" 
-                    value={newPassword} 
-                    onChange={e => setNewPassword(e.target.value)} 
-                    placeholder="새 비밀번호 (6자 이상)" 
-                    className="w-full bg-surface-container-highest rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none border border-transparent focus:border-primary/50 text-on-surface"
-                    required
-                  />
-                  <input 
-                    type="password" 
-                    value={confirmPassword} 
-                    onChange={e => setConfirmPassword(e.target.value)} 
-                    placeholder="새 비밀번호 확인" 
-                    className="w-full bg-surface-container-highest rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none border border-transparent focus:border-primary/50 text-on-surface"
-                    required
-                  />
-                  <button 
-                    type="submit" 
-                    disabled={updateLoading}
-                    className="w-full bg-outline-variant/30 text-on-surface font-bold py-3 rounded-xl hover:bg-outline-variant/50 transition-all flex items-center justify-center gap-2"
-                  >
-                    {updateLoading ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    ) : (
-                      <>비밀번호 업데이트</>
-                    )}
-                  </button>
-                </form>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-bold flex items-center gap-2">
+                    <span className="material-symbols-outlined text-xs">lock_reset</span>비밀번호 변경
+                  </h4>
+                  {!showPasswordForm && (
+                    <button 
+                      onClick={() => setShowPasswordForm(true)}
+                      className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-lg border border-primary/20 hover:bg-primary/20 transition-colors"
+                    >
+                      변경하기
+                    </button>
+                  )}
+                </div>
+
+                {showPasswordForm ? (
+                  <form onSubmit={handleUpdatePassword} className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                    <input 
+                      type="password" 
+                      value={newPassword} 
+                      onChange={e => setNewPassword(e.target.value)} 
+                      placeholder="새 비밀번호 (6자 이상)" 
+                      className="w-full bg-surface-container-highest rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none border border-transparent focus:border-primary/50 text-on-surface"
+                      required
+                    />
+                    <input 
+                      type="password" 
+                      value={confirmPassword} 
+                      onChange={e => setConfirmPassword(e.target.value)} 
+                      placeholder="새 비밀번호 확인" 
+                      className="w-full bg-surface-container-highest rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none border border-transparent focus:border-primary/50 text-on-surface"
+                      required
+                    />
+                    <div className="flex gap-2">
+                      <button 
+                        type="button"
+                        onClick={() => setShowPasswordForm(false)}
+                        className="flex-1 bg-surface-container-highest text-on-surface-variant font-bold py-3 rounded-xl hover:bg-white/5 transition-all"
+                      >
+                        취소
+                      </button>
+                      <button 
+                        type="submit" 
+                        disabled={updateLoading}
+                        className="flex-[2] bg-primary text-on-primary font-bold py-3 rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                      >
+                        {updateLoading ? (
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        ) : (
+                          <>비밀번호 업데이트</>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <p className="text-xs text-on-surface-variant py-4">계정 보안을 위해 정기적으로 비밀번호를 변경해주세요.</p>
+                )}
               </div>
             </div>
           </div>
@@ -1370,7 +1396,7 @@ export default function App() {
         </button>
         <button onClick={() => setShowSettings(!showSettings)} className={`flex flex-col items-center gap-1 ${showSettings ? 'text-primary' : 'text-on-surface-variant'}`}>
           <span className="material-symbols-outlined text-2xl" data-weight={showSettings ? 'fill' : 'normal'}>person</span>
-          <span className="text-[10px] font-bold">계좌관리</span>
+          <span className="text-[10px] font-bold">내 정보</span>
         </button>
         <button onClick={() => supabase.auth.signOut()} className="flex flex-col items-center gap-1 text-on-surface-variant">
           <span className="material-symbols-outlined text-2xl">logout</span>

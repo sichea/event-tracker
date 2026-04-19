@@ -910,7 +910,6 @@ async def scrape_all() -> tuple[list[dict], dict[str, int]]:
 async def run_scrape_and_save():
     """스크래핑 후 결과를 Supabase 저장소로 푸시합니다."""
     import os
-    from supabase import create_client, Client
     
     url = os.environ.get("SUPABASE_URL", "").strip()
     key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
@@ -924,7 +923,17 @@ async def run_scrape_and_save():
     if not url or not key:
         raise ValueError("Supabase 환경 변수가 설정되지 않았습니다.")
 
-    supabase: Client = create_client(url, key)
+    from postgrest import SyncPostgrestClient
+    class MinimalSupabase:
+        def __init__(self, u, k):
+            self.postgrest = SyncPostgrestClient(
+                f"{u}/rest/v1", 
+                headers={"apikey": k, "Authorization": f"Bearer {k}", "Content-Type": "application/json", "Prefer": "return=representation"}
+            )
+        def table(self, n):
+            return self.postgrest.from_(n)
+            
+    supabase = MinimalSupabase(url, key)
 
     try:
         # 1. 상태 기록: 진행 중

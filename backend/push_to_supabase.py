@@ -1,13 +1,21 @@
 import json
 import os
-from supabase import create_client, Client
-
 from dotenv import load_dotenv
 load_dotenv()
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+from postgrest import SyncPostgrestClient
+class MinimalSupabase:
+    def __init__(self, u, k):
+        self.postgrest = SyncPostgrestClient(
+            f"{u}/rest/v1", 
+            headers={"apikey": k, "Authorization": f"Bearer {k}", "Content-Type": "application/json", "Prefer": "return=representation"}
+        )
+    def table(self, n):
+        return self.postgrest.from_(n)
+        
+supabase = MinimalSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 def upload_events():
     with open("events.json", "r", encoding="utf-8") as f:
