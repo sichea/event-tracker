@@ -537,7 +537,7 @@ const INSIGHTS_DATA = [
     bgGrad: 'from-blue-500/20 to-cyan-500/10',
     summary: '경제가 얼어붙어 주식시장 붕괴 우려가 있으므로, 돈 떼일 염려 없는 안전자산으로 피난합니다.',
     up: [
-      { name: '달러, 스위스 프랑', desc: '기축 통화로 자금 집중', icon: 'currency_exchange' },
+      { name: '달러', desc: '기축 통화로 자금 집중', icon: 'currency_exchange' },
       { name: '금', desc: '최후의 안전자산', icon: 'diamond' },
       { name: '방어주 (통신/제약)', desc: '경기와 무관한 안정적 매출', icon: 'health_and_safety' },
     ],
