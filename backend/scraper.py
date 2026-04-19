@@ -918,11 +918,15 @@ async def run_scrape_and_save():
     if not url or not key:
         from dotenv import load_dotenv
         load_dotenv()
-        url = os.environ.get("SUPABASE_URL")
-        key = os.environ.get("SUPABASE_SERVICE_KEY")
+        url = os.environ.get("SUPABASE_URL", "").strip()
+        key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
 
     if not url or not key:
         raise ValueError("Supabase 환경 변수가 설정되지 않았습니다.")
+
+    # supabase 라이브러리의 엄격한 키 검증 우회: 비가시 문자 제거
+    import string
+    key = ''.join(c for c in key if c in string.printable and c not in '\t\n\r\x0b\x0c')
 
     supabase: Client = create_client(url, key)
 

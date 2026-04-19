@@ -209,18 +209,21 @@ async def run_ipo_scrape_and_save():
     import os
     from supabase import create_client, Client
     
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_KEY")
+    url = os.environ.get("SUPABASE_URL", "").strip()
+    key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
     
     if not url or not key:
         from dotenv import load_dotenv
         load_dotenv()
-        url = os.environ.get("SUPABASE_URL")
-        key = os.environ.get("SUPABASE_SERVICE_KEY")
+        url = os.environ.get("SUPABASE_URL", "").strip()
+        key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
     
     if not url or not key:
         raise ValueError("Supabase 환경 변수가 설정되지 않았습니다.")
     
+    import string
+    key = ''.join(c for c in key if c in string.printable and c not in '\t\n\r\x0b\x0c')
+
     supabase: Client = create_client(url, key)
     
     events = await scrape_ipo()
