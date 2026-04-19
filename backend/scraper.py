@@ -924,44 +924,7 @@ async def run_scrape_and_save():
     if not url or not key:
         raise ValueError("Supabase 환경 변수가 설정되지 않았습니다.")
 
-    # supabase 2.x 라이브러리의 엄격한 JWT 검증 우회
-    import supabase._sync.client as _sc
-    _original_init = _sc.SyncClient.__init__
-    def _patched_init(self, supabase_url, supabase_key, options=None):
-        try:
-            _original_init(self, supabase_url, supabase_key, options)
-        except Exception:
-            # 검증 실패 시 강제로 초기화
-            from supabase.lib.client_options import SyncClientOptions
-            if options is None:
-                options = SyncClientOptions()
-            self.supabase_url = supabase_url
-            self.supabase_key = supabase_key
-            self.options = options
-            from supabase._sync.client import SyncClient
-            SyncClient.create.__func__(type(self))  # trigger lazy init
-    
-    # 더 간단한 방법: 검증 함수 자체를 무력화
-    if hasattr(_sc, '_is_valid_jwt'):
-        _sc._is_valid_jwt = lambda *a, **kw: True
-    # SupabaseException을 잡아서 우회
-    try:
-        supabase: Client = create_client(url, key)
-    except Exception:
-        # 최후의 수단: postgrest-py로 직접 연결
-        from postgrest import SyncPostgrestClient
-        print("⚠️ supabase 라이브러리 우회: postgrest 직접 연결")
-        
-        class MinimalSupabase:
-            def __init__(self, url, key):
-                self.url = url
-                self.key = key
-                self._headers = {"apikey": key, "Authorization": f"Bearer {key}"}
-                self._rest = SyncPostgrestClient(f"{url}/rest/v1", headers=self._headers)
-            def table(self, name):
-                return self._rest.from_(name)
-        
-        supabase = MinimalSupabase(url, key)
+    supabase: Client = create_client(url, key)
 
     try:
         # 1. 상태 기록: 진행 중

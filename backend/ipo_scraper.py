@@ -220,11 +220,6 @@ async def run_ipo_scrape_and_save():
     
     if not url or not key:
         raise ValueError("Supabase 환경 변수가 설정되지 않았습니다.")
-    
-    # supabase 2.x JWT 검증 우회
-    import supabase._sync.client as _sc
-    if hasattr(_sc, '_is_valid_jwt'):
-        _sc._is_valid_jwt = lambda *a, **kw: True
 
     supabase: Client = create_client(url, key)
     
