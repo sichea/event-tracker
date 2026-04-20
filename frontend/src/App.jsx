@@ -182,6 +182,16 @@ function IpoModal({ ipo, aliases, onClose, onToggleIpo }) {
               <p className="text-[10px] text-on-surface-variant font-bold mb-1">확정/희망공모가</p>
               <p className="font-medium text-on-surface">{ipo.confirmed_price || ipo.desired_price || '-'}</p>
             </div>
+            {ipo.min_subscription_amount && (
+              <div className="col-span-2 border-t border-white/5 pt-3">
+                <p className="text-[10px] text-primary font-bold mb-1 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">payments</span> 균등 청약 최소 증거금 (10주 기준)
+                </p>
+                <p className="text-lg font-black text-primary font-headline">
+                  {new Intl.NumberFormat('ko-KR').format(ipo.min_subscription_amount)}원
+                </p>
+              </div>
+            )}
             {ipo.competition_rate && ipo.competition_rate !== '-' && (
               <div className="col-span-2 border-t border-white/5 pt-3 mt-1">
                 <p className="text-[10px] text-on-surface-variant font-bold mb-1">기관경쟁률</p>
@@ -398,7 +408,12 @@ function IpoCalendar({ ipoEvents, onSelectIpo }) {
                   dateEventMap[selectedDate].map((ev, i) => (
                     <div key={i} onClick={() => onSelectIpo(ev)} className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5 animate-in fade-in slide-in-from-bottom-2 cursor-pointer hover:bg-white/10 transition-colors">
                       <div className="flex flex-col gap-1">
-                        <span className="text-sm font-bold text-on-surface">{ev.company_name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-on-surface">{ev.company_name}</span>
+                          {ev.min_subscription_amount && ev.type === '청약' && (
+                            <span className="text-[9px] text-primary font-bold">약 {new Intl.NumberFormat('ko-KR').format(ev.min_subscription_amount)}원</span>
+                          )}
+                        </div>
                         {ev.type !== '상장' && ev.lead_manager && <span className="text-[9px] text-on-surface-variant truncate max-w-[150px]">{ev.lead_manager}</span>}
                       </div>
                       <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border shrink-0 ${getTagStyle(ev.type)}`}>{ev.type}</span>
@@ -440,7 +455,13 @@ function IpoCalendar({ ipoEvents, onSelectIpo }) {
                       {ipo.confirmed_price && (
                         <div className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-[14px]">price_check</span>
-                          <span>{ipo.confirmed_price}</span>
+                          <span>공모가: {ipo.confirmed_price}</span>
+                        </div>
+                      )}
+                      {ipo.min_subscription_amount && (
+                        <div className="flex items-center gap-1 text-primary font-bold">
+                          <span className="material-symbols-outlined text-[14px]">payments</span>
+                          <span>균등 최소: {new Intl.NumberFormat('ko-KR').format(ipo.min_subscription_amount)}원</span>
                         </div>
                       )}
                       {ipo.lead_manager && (

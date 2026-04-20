@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.ipo_events (
     desired_price TEXT,
     competition_rate TEXT,
     lead_manager TEXT,
+    min_subscription_amount BIGINT,
     status TEXT DEFAULT '청약예정',
     scraped_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

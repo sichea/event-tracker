@@ -77,6 +77,27 @@ def determine_ipo_status(sub_start: str, sub_end: str) -> str:
         return "일정미정"
 
 
+def calculate_min_amount(confirmed: str, desired: str) -> int:
+    """최소 청약 증거금을 계산합니다 (10주, 50% 기준)."""
+    price = 0
+    # 확정 공모가가 있으면 우선 사용
+    if confirmed and confirmed != '-':
+        nums = re.findall(r'\d+', confirmed.replace(',', ''))
+        if nums:
+            price = int(nums[0])
+    # 없으면 희망 공모가 상단 사용
+    elif desired and desired != '-':
+        nums = re.findall(r'\d+', desired.replace(',', ''))
+        if nums:
+            # 2,000~3,000 형태이므로 마지막 숫자(상단)를 가져옴
+            price = int(nums[-1])
+            
+    if price > 0:
+        # 최소 10주, 증거금 50% 기준
+        return int(price * 10 * 0.5)
+    return None
+
+
 async def scrape_ipo() -> list[dict]:
     """38커뮤니케이션에서 공모주 청약 일정을 수집합니다."""
     events = []
@@ -155,8 +176,6 @@ async def scrape_ipo() -> list[dict]:
             # 상장 일정을 맵으로 변환 (이름 -> 날짜)
             listing_map = {}
             for l in listing_rows:
-                # 38커뮤니케이션의 상장 일정은 MM/DD 형식이며 연도가 없음. 현재 연도 부여.
-                # 만약 현재 달이 12월이고 상장달이 1월이면 다음 연도로 처리하는 로직 등이 필요할 수 있으나 단순화.
                 listing_map[l["name"]] = f"{current_year}-{l['date']}"
 
             for row in subscription_rows:
@@ -164,7 +183,7 @@ async def scrape_ipo() -> list[dict]:
                 dates = parse_subscription_dates(row["dates"])
                 status = determine_ipo_status(dates["start"], dates["end"])
                 
-                # 상장일 찾기 (완전 일치 또는 포함 관계)
+                # 상장일 찾기
                 listing_date = None
                 for l_name, l_date in listing_map.items():
                     if l_name in name or name in l_name:
@@ -180,6 +199,8 @@ async def scrape_ipo() -> list[dict]:
                             continue
                     except: pass
                 
+                min_amt = calculate_min_amount(row["confirmed_price"], row["desired_price"])
+
                 event = {
                     "id": generate_ipo_id(name, dates["start"]),
                     "company_name": name,
@@ -190,11 +211,12 @@ async def scrape_ipo() -> list[dict]:
                     "desired_price": row["desired_price"] if row["desired_price"] != '-' else None,
                     "competition_rate": row["competition"] if row["competition"] else None,
                     "lead_manager": row["lead_manager"],
+                    "min_subscription_amount": min_amt,
                     "status": status,
                     "scraped_at": datetime.now().isoformat(),
                 }
                 events.append(event)
-                print(f"  [IPO] {name} | 청약: {dates['start']}~{dates['end']} | 상장: {listing_date} | {status}")
+                print(f"  [IPO] {name} | 청약: {dates['start']}~{dates['end']} | 최소증거금: {min_amt:,}원 | {status}")
             
         except Exception as e:
             print(f"[IPO] 스크래핑 오류: {e}")
@@ -250,6 +272,7 @@ async def run_ipo_scrape_and_save():
             "desired_price": e["desired_price"],
             "competition_rate": e["competition_rate"],
             "lead_manager": e["lead_manager"],
+            "min_subscription_amount": e["min_subscription_amount"],
             "status": e["status"],
             "scraped_at": e["scraped_at"],
         })
