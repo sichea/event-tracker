@@ -5,11 +5,20 @@
 - 네이버 뉴스 API: 경제 뉴스 수집
 - 규칙 기반 시나리오 판단 → Supabase 저장
 """
+import io
+import sys
 import os
 import json
 import datetime
 import httpx
 import re
+
+# Windows 터미널 한글/이모지 출력 문제 해결
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # 환경 변수
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
@@ -39,48 +48,28 @@ def supabase_upsert(data):
 
 
 def fetch_ecos_rate():
-    """한국은행 기준금리 조회 (ECOS 서버 점검 시간 대비 fallback 포함)"""
-    today = datetime.date.today()
-    start = (today - datetime.timedelta(days=365)).strftime("%Y%m")
-    end = today.strftime("%Y%m")
-
-    # 여러 통계표코드 조합 시도
-    urls = [
-        f"https://ecos.bok.or.kr/api/{ECOS_API_KEY}/json/StatisticSearch/1/100/722Y001/M/{start}/{end}/0101000",
-        f"https://ecos.bok.or.kr/api/{ECOS_API_KEY}/json/StatisticSearch/1/100/060Y001/M/{start}/{end}/010101000",
-    ]
-
-    for url in urls:
-        try:
-            with httpx.Client() as client:
-                resp = client.get(url, timeout=15)
-
-            if resp.status_code >= 500:
-                print(f"⚠️ ECOS 서버 점검 중 (HTTP {resp.status_code})")
-                continue
-
-            if not resp.text or resp.text.startswith('<'):
-                continue
-
-            data = resp.json()
-
-            if "RESULT" in data:
-                msg = data['RESULT'].get('MESSAGE', '')
-                print(f"⚠️ ECOS: {msg}")
-                continue
-
-            rows = data.get("StatisticSearch", {}).get("row", [])
-            if rows:
-                latest = float(rows[-1]["DATA_VALUE"])
-                prev = float(rows[-2]["DATA_VALUE"]) if len(rows) >= 2 else latest
-                print(f"📊 한국 기준금리: {latest}% (이전: {prev}%)")
+    """한국은행 기준금리 조회 (BOK 웹사이트 크롤링 - ECOS API 장애 대비)"""
+    try:
+        url = "https://www.bok.or.kr/portal/singl/baseRate/list.do?dataSeCd=01&menuNo=200643"
+        with httpx.Client() as client:
+            resp = client.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+        
+        if resp.status_code == 200:
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(resp.text, 'html.parser')
+            tds = [td.text.strip() for td in soup.select('tbody tr td')]
+            
+            # 구조: [년도, 월일, 금리, 년도, 월일, 금리, ...] -> 인덱스 2가 최신 금리, 5가 이전 금리
+            if len(tds) >= 6:
+                latest = float(tds[2])
+                prev = float(tds[5])
+                print(f"📊 한국 기준금리 (BOK Web): {latest}% (이전: {prev}%)")
                 return latest, prev
-        except Exception as e:
-            print(f"⚠️ ECOS 시도 실패: {e}")
-            continue
+    except Exception as e:
+        print(f"⚠️ BOK 웹사이트 크롤링 실패: {e}")
 
     # Fallback: Supabase에서 이전 저장값 가져오기
-    print("⚠️ ECOS 접속 불가 → 이전 저장값 사용")
+    print("⚠️ BOK 접속 불가 → 이전 저장값 사용")
     try:
         headers = {
             "apikey": SUPABASE_SERVICE_KEY,
@@ -101,6 +90,7 @@ def fetch_ecos_rate():
         pass
 
     return None, None
+
 
 
 def fetch_fred_series(series_id):
