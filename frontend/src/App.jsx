@@ -240,6 +240,24 @@ function IpoModal({ ipo, aliases, onClose, onToggleIpo }) {
   );
 }
 
+const PUBLIC_HOLIDAYS_2026 = {
+  "2026-01-01": "신정",
+  "2026-02-16": "설연휴", "2026-02-17": "설날", "2026-02-18": "설연휴",
+  "2026-03-01": "삼일절",
+  "2026-03-02": "대체공휴일",
+  "2026-05-05": "어린이날",
+  "2026-05-24": "부처님오신날",
+  "2026-05-25": "대체공휴일",
+  "2026-06-06": "현충일",
+  "2026-08-15": "광복절",
+  "2026-08-17": "대체공휴일",
+  "2026-09-24": "추석연휴", "2026-09-25": "추석", "2026-09-26": "추석연휴",
+  "2026-10-03": "개천절",
+  "2026-10-05": "대체공휴일",
+  "2026-10-09": "한글날",
+  "2026-12-25": "성탄절"
+};
+
 // ============ IPO Calendar Component ============
 function IpoCalendar({ ipoEvents, onSelectIpo }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -343,9 +361,12 @@ function IpoCalendar({ ipoEvents, onSelectIpo }) {
                 const eventsForDay = dateEventMap[dateStr] || [];
                 const isToday = dateStr === todayStr;
                 const dayOfWeek = new Date(year, month, day).getDay();
+                const holiday = PUBLIC_HOLIDAYS_2026[dateStr];
+                
                 return (
                   <div key={day} className={`aspect-square rounded-xl p-1 relative group transition-colors ${isToday ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-surface-container-highest'}`}>
-                    <span className={`text-xs font-bold block text-center ${isToday ? 'text-primary' : dayOfWeek === 0 ? 'text-error/70' : dayOfWeek === 6 ? 'text-tertiary/70' : 'text-on-surface-variant'}`}>{day}</span>
+                    <span className={`text-xs font-bold block text-center ${isToday ? 'text-primary' : (dayOfWeek === 0 || holiday) ? 'text-error font-extrabold' : dayOfWeek === 6 ? 'text-tertiary/70' : 'text-on-surface-variant'}`}>{day}</span>
+                    {holiday && <div className="text-[7px] text-error font-black text-center -mt-0.5 truncate uppercase">{holiday}</div>}
                     <div className="mt-0.5 space-y-0.5 overflow-hidden">
                       {eventsForDay.slice(0, 3).map((ev, ei) => (
                         <div key={ei} onClick={() => onSelectIpo(ev)} title={`${ev.company_name} (${ev.type})`} className={`text-[8px] leading-tight px-1 py-0.5 rounded truncate border cursor-pointer hover:opacity-80 transition-opacity ${getTagStyle(ev.type)}`}>
@@ -372,14 +393,17 @@ function IpoCalendar({ ipoEvents, onSelectIpo }) {
                 const eventsForDay = dateEventMap[dateStr] || [];
                 const isToday = dateStr === todayStr;
                 const isSelected = dateStr === selectedDate;
+                const dayOfWeek = new Date(year, month, day).getDay();
+                const holiday = PUBLIC_HOLIDAYS_2026[dateStr];
                 
                 return (
                   <div 
                     key={dateStr} 
                     onClick={() => setSelectedDate(dateStr)}
-                    className={`aspect-square relative flex flex-col items-center justify-center gap-1 transition-all ${isSelected ? 'ring-2 ring-primary bg-primary/10 rounded-lg z-10' : ''}`}
+                    className={`aspect-square relative flex flex-col items-center justify-center gap-0.5 transition-all ${isSelected ? 'ring-2 ring-primary bg-primary/10 rounded-lg z-10' : ''}`}
                   >
-                    <span className={`text-sm font-bold ${isToday ? 'text-primary underline underline-offset-4 decoration-2' : isSelected ? 'text-on-surface' : 'text-on-surface/80'}`}>{day}</span>
+                    <span className={`text-sm font-bold ${isToday ? 'text-primary underline underline-offset-4 decoration-2' : (dayOfWeek === 0 || holiday) ? 'text-error' : isSelected ? 'text-on-surface' : 'text-on-surface/80'}`}>{day}</span>
+                    {holiday && <span className="text-[6px] text-error font-black truncate px-0.5 text-center leading-none">{holiday}</span>}
                     <div className="flex gap-0.5 flex-wrap justify-center px-1 h-1">
                       {eventsForDay.slice(0,3).map((ev,i) => (
                         <div key={i} className={`w-1 h-1 rounded-full ${getDotStyle(ev.type)}`} />
