@@ -178,22 +178,28 @@ async def scrape_ipo() -> list[dict]:
             for l in listing_rows:
                 listing_map[l["name"]] = f"{current_year}-{l['date']}"
 
+            def clean_company_name(n):
+                # (주), (유가), (구.xxx) 등 괄호 내용 제거 및 공백 정리
+                n = re.sub(r'\(.*?\)', '', n)
+                return n.strip().replace(' ', '')
+
             for row in subscription_rows:
                 name = row["name"]
                 dates = parse_subscription_dates(row["dates"])
                 status = determine_ipo_status(dates["start"], dates["end"])
                 
-                # 상장일 찾기 (정확한 매칭 시도 및 날짜 유효성 검사)
+                # 상장일 찾기 (엄격한 매칭 및 날짜 유효성 검사)
                 listing_date = None
+                target_name_clean = clean_company_name(name)
+                
                 for l_name, l_date in listing_map.items():
-                    # 이름이 포함되어 있고, 상장일이 청약 시작일 이후인 경우만 매칭
-                    if l_name in name or name in l_name:
-                        if dates["start"]:
+                    if clean_company_name(l_name) == target_name_clean:
+                        if dates["end"]:
                             try:
-                                s_dt = datetime.strptime(dates["start"], "%Y-%m-%d").date()
+                                e_dt = datetime.strptime(dates["end"], "%Y-%m-%d").date()
                                 l_dt = datetime.strptime(l_date, "%Y-%m-%d").date()
-                                # 상장일이 청약시작일보다 앞선 경우는 잘못된 매칭(이전 기수 스팩 등)일 가능성이 높으므로 제외
-                                if l_dt >= s_dt:
+                                # 상장일은 반드시 청약 종료일보다 늦어야 함 (보통 최소 5~10일 뒤)
+                                if l_dt > e_dt:
                                     listing_date = l_date
                                     break
                             except:
