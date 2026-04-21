@@ -83,6 +83,7 @@ def process_notifications():
         # 2. 이벤트 데이터 조회
         etf_events = supabase_request("GET", "events", params={"status": "eq.진행중"}) or []
         ipo_events = supabase_request("GET", "ipo_events") or []
+        apt_events = supabase_request("GET", "apt_subscriptions", params={"is_lotto": "eq.true"}) or []
 
         # 유저별 기기 분류
         user_devices = {}
@@ -129,6 +130,13 @@ def process_notifications():
                 if listing_date == today:
                     if (str(ipo['id']), 'listing') not in sent_logs:
                         to_notify.append(("🚀 오늘은 상장일!", f"'{ipo['company_name']}' 상장일입니다. 매도 전략을 체크하세요!", str(ipo['id']), 'ipo_event', 'listing'))
+
+            # 3. 아파트 로또 로직
+            for apt in apt_events:
+                apt_start = str(apt.get('subscription_start'))
+                if apt_start == today:
+                    if (str(apt['id']), 'lotto_start') not in sent_logs:
+                        to_notify.append(("🎰 로또 청약 시작!", f"'{apt['name']}' 청약이 오늘 시작됩니다. 잭팟 기회를 잡으세요!", str(apt['id']), 'apt_event', 'lotto_start'))
 
             # 발송 실행
             for title, body, t_id, t_type, cat in to_notify:
