@@ -160,15 +160,12 @@ function AptCard({ apt }) {
             <span className={`text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusColors[apt.status] || ''}`}>{apt.status}</span>
           </div>
           {apt.is_lotto && (
-            <div className="flex items-center gap-1.5 text-red-400">
+            <div className="flex items-center gap-1.5 animate-rainbow">
               <span className="material-symbols-outlined text-sm" data-weight="fill">casino</span>
-              <span className="text-[10px] font-black uppercase tracking-tight">잭팟! 로또 청약 ({apt.lotto_reason})</span>
+              <span className="text-[10px] uppercase tracking-tight">잭팟! 로또 청약 ({apt.lotto_reason})</span>
             </div>
           )}
         </div>
-        <a href="https://www.applyhome.co.kr/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-surface-container-highest hover:bg-primary hover:text-on-primary flex items-center justify-center transition-all">
-          <span className="material-symbols-outlined text-lg">home_work</span>
-        </a>
       </div>
 
       <h4 className="text-base md:text-lg font-bold font-headline mb-3 line-clamp-2 leading-snug">{apt.name}</h4>
@@ -1362,8 +1359,8 @@ export default function App() {
           ) : (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                <div className="mb-10">
-                <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline mb-2 flex items-center gap-4">
-                  아파트 청약 <span className="text-lg bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20">청약홈 연동</span>
+                <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline mb-2">
+                  아파트 청약
                 </h1>
                 <p className="text-on-surface-variant max-w-xl italic">당신의 첫 번째 보금자리를 위한 로또 청약 시그널을 확인하세요.</p>
               </div>

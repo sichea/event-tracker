@@ -9,3 +9,15 @@
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes rainbow {
+  0% { color: #ff4d4d; text-shadow: 0 0 8px rgba(255,77,77,0.4); }
+  33% { color: #ffff4d; text-shadow: 0 0 8px rgba(255,255,77,0.4); }
+  66% { color: #4dffff; text-shadow: 0 0 8px rgba(77,255,255,0.4); }
+  100% { color: #ff4d4d; text-shadow: 0 0 8px rgba(255,77,77,0.4); }
+}
+
+.animate-rainbow {
+  animation: rainbow 4s linear infinite;
+  font-weight: 900 !important;
+}
