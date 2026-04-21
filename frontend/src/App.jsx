@@ -725,6 +725,14 @@ function InvestmentInsights() {
                   )}
                 </div>
                 <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">{scenario.summary}</p>
+                {marketData?.scenario === scenario.id && marketData?.analysis && (
+                  <div className="mt-4 p-4 rounded-xl bg-surface-container/50 border border-white/5 backdrop-blur-sm">
+                    <div className="flex items-start gap-2 text-xs md:text-sm text-on-surface leading-relaxed">
+                      <span className="material-symbols-outlined text-sm md:text-base shrink-0 text-primary mt-0.5">verified</span>
+                      <span className="opacity-90">{marketData.analysis}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

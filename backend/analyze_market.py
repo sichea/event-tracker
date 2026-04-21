@@ -13,12 +13,17 @@ import datetime
 import httpx
 import re
 
+from dotenv import load_dotenv
+
 # Windows 터미널 한글/이모지 출력 문제 해결
 if sys.platform == 'win32':
     try:
         sys.stdout.reconfigure(encoding='utf-8')
     except AttributeError:
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
+# 환경 변수 로드
+load_dotenv()
 
 # 환경 변수
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
@@ -195,40 +200,52 @@ def fetch_naver_news():
 
 
 def determine_scenario(kr_rate, kr_rate_prev, us_rate, us_rate_prev, cpi, gdp):
-    """규칙 기반으로 현재 경제 시나리오 판단"""
-
-    # 우선순위 1: 경기 침체 (GDP 마이너스)
+    """지표를 분석하여 현재 시장 상황과 그 이유를 판단합니다."""
+    
+    # 1. 경기 침체 판단 (GDP 마이너스)
     if gdp is not None and gdp < 0:
-        print("🧊 판정: 경기 침체 (GDP < 0)")
-        return "recession"
+        reason = f"미국 GDP 성장률이 {gdp}%로 마이너스를 기록하며 경기 침체 신호가 포착되었습니다. 안전 자산 선호가 강해질 수 있습니다."
+        return "recession", reason
 
-    # 우선순위 2: 인플레이션 심화 (CPI 3.5% 이상)
+    # 2. 인플레이션 심화 판단 (CPI 3.5% 이상)
     if cpi is not None and cpi >= 3.5:
-        print("🔥 판정: 인플레이션 (CPI >= 3.5%)")
-        return "inflation"
+        reason = f"미국 CPI가 {cpi}%로 고물가 상태가 지속되면서 연준의 긴축 기조가 강화될 우려가 있습니다."
+        return "inflation", reason
 
-    # 우선순위 3: 금리 방향 판단
+    # 3. 금리 방향 판단
     rate_direction = 0
+    kr_desc = ""
+    us_desc = ""
+    
     if kr_rate is not None and kr_rate_prev is not None:
-        rate_direction += (kr_rate - kr_rate_prev)
+        diff = kr_rate - kr_rate_prev
+        rate_direction += diff
+        if diff < 0: kr_desc = f"한국 금리 인하({kr_rate_prev}%→{kr_rate}%)"
+        elif diff > 0: kr_desc = f"한국 금리 인상({kr_rate_prev}%→{kr_rate}%)"
+        
     if us_rate is not None and us_rate_prev is not None:
-        rate_direction += (us_rate - us_rate_prev)
+        diff = us_rate - us_rate_prev
+        rate_direction += diff
+        if diff < 0: us_desc = f"미국 금리 인하({us_rate_prev}%→{us_rate}%)"
+        elif diff > 0: us_desc = f"미국 금리 인상({us_rate_prev}%→{us_rate}%)"
 
-    if rate_direction > 0:
-        print("📈 판정: 금리 인상 (금리 상승 추세)")
-        return "rate_hike"
-    elif rate_direction < 0:
-        print("📉 판정: 금리 인하 (금리 하락 추세)")
-        return "rate_cut"
+    if rate_direction < 0:
+        reason = f"{kr_desc} {us_desc} 추세에 따라 시장 유동성 확대가 기대되는 '금리 인하' 상황으로 판정했습니다."
+        return "rate_cut", reason
+    elif rate_direction > 0:
+        reason = f"{kr_desc} {us_desc} 기조가 뚜렷하여 투자 심리 위축이 우려되는 '금리 인상' 상황으로 판정했습니다."
+        return "rate_hike", reason
 
-    # 금리 변동 없음 → CPI로 2차 판단
-    if cpi is not None and cpi >= 2.5:
-        print("🔥 판정: 인플레이션 (CPI >= 2.5%, 금리 동결)")
-        return "inflation"
+    # 4. 금리 변동 없음 → CPI로 2차 판단
+    if cpi is not None:
+        if cpi >= 2.5:
+            reason = f"금리는 동결되었으나 CPI가 {cpi}%로 다소 높아 '인플레이션 경계' 상황으로 판정했습니다."
+            return "inflation", reason
+        else:
+            reason = f"금리가 안정적이고 물가({cpi}%)도 낮아 투자에 우호적인 환경이 지속되고 있습니다."
+            return "rate_cut", reason
 
-    # 기본값
-    print("📉 판정: 금리 인하 (기본값)")
-    return "rate_cut"
+    return "rate_cut", "현재 주요 지표들이 안정적인 흐름을 보이고 있어 금리 인하(완화) 기조를 유지합니다."
 
 
 def main():
@@ -240,7 +257,7 @@ def main():
     us_rate, us_rate_prev, cpi, gdp = fetch_fred_data()
 
     # 2. 시나리오 자동 판단
-    scenario = determine_scenario(kr_rate, kr_rate_prev, us_rate, us_rate_prev, cpi, gdp)
+    scenario, analysis = determine_scenario(kr_rate, kr_rate_prev, us_rate, us_rate_prev, cpi, gdp)
 
     # 3. 뉴스 수집
     news = fetch_naver_news()
@@ -249,6 +266,7 @@ def main():
     insight_data = {
         "id": "current",
         "scenario": scenario,
+        "analysis": analysis,
         "kr_rate": kr_rate,
         "us_rate": us_rate,
         "us_cpi": cpi,
@@ -261,6 +279,7 @@ def main():
 
     supabase_upsert(insight_data)
     print(f"\n🎯 최종 판정: {scenario}")
+    print(f"📝 분석 근거: {analysis}")
     print("🎉 시장 인사이트 분석이 완료되었습니다.")
 
 
