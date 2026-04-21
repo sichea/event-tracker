@@ -185,15 +185,6 @@ function AptCard({ apt }) {
         </div>
       </div>
 
-      <div className="mt-auto pt-4 border-t border-outline-variant/10">
-        <button 
-          onClick={() => window.open('https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancListView.do', '_blank')}
-          className="w-full py-3 bg-surface-container-highest hover:bg-primary hover:text-on-primary rounded-xl md:rounded-2xl transition-all font-bold text-xs flex items-center justify-center gap-2"
-        >
-          청약홈에서 공고 보기
-          <span className="material-symbols-outlined text-sm">open_in_new</span>
-        </button>
-      </div>
     </div>
   );
 }
@@ -1359,9 +1350,20 @@ export default function App() {
           ) : (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                <div className="mb-10">
-                <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline mb-2">
-                  아파트 청약
-                </h1>
+                <div className="flex items-center gap-4">
+                  <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline mb-2">
+                    아파트 청약
+                  </h1>
+                  <a 
+                    href="https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancListView.do" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="mb-1 w-12 h-12 rounded-2xl bg-surface-container border border-white/10 flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all shadow-xl group"
+                    title="청약홈 전체 공고 보기"
+                  >
+                    <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">home_work</span>
+                  </a>
+                </div>
                 <p className="text-on-surface-variant max-w-xl italic">당신의 첫 번째 보금자리를 위한 로또 청약 시그널을 확인하세요.</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
