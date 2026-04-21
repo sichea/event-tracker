@@ -77,8 +77,8 @@ def determine_ipo_status(sub_start: str, sub_end: str) -> str:
         return "일정미정"
 
 
-def calculate_min_amount(confirmed: str, desired: str) -> int:
-    """최소 청약 증거금을 계산합니다 (10주, 50% 기준)."""
+def calculate_min_amount(name: str, confirmed: str, desired: str) -> int:
+    """최소 청약 증거금을 계산합니다 (스팩 20주, 일반 10주, 증거금 50% 기준)."""
     price = 0
     # 확정 공모가가 있으면 우선 사용
     if confirmed and confirmed != '-':
@@ -93,8 +93,10 @@ def calculate_min_amount(confirmed: str, desired: str) -> int:
             price = int(nums[-1])
             
     if price > 0:
-        # 최소 10주, 증거금 50% 기준
-        return int(price * 10 * 0.5)
+        # 스팩(SPAC)은 보통 최소 청약 단위가 20주, 일반 기업은 10주인 경우가 많음
+        min_shares = 20 if "스팩" in name else 10
+        # 증거금 50% 기준
+        return int(price * min_shares * 0.5)
     return None
 
 
@@ -217,7 +219,7 @@ async def scrape_ipo() -> list[dict]:
                             continue
                     except: pass
                 
-                min_amt = calculate_min_amount(row["confirmed_price"], row["desired_price"])
+                min_amt = calculate_min_amount(name, row["confirmed_price"], row["desired_price"])
 
                 event = {
                     "id": generate_ipo_id(name, dates["start"]),
