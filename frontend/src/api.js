@@ -307,3 +307,17 @@ export async function fetchMarketInsights() {
   if (error && error.code !== 'PGRST116') throw error;
   return data;
 }
+
+// --- 부동산 청약 API ---
+export async function fetchAptSubscriptions() {
+  const { data, error } = await supabase
+    .from('apt_subscriptions')
+    .select('*')
+    .order('subscription_start', { ascending: true, nullsFirst: false });
+    
+  if (error) {
+    console.error("APT fetch error:", error);
+    return [];
+  }
+  return data || [];
+}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription, fetchMarketInsights } from "./api";
+import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription, fetchMarketInsights, fetchAptSubscriptions } from "./api";
 import { supabase } from "./supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -136,6 +136,66 @@ function EventCard({ event, aliases, onToggle }) {
             );
           })
         )}
+      </div>
+    </div>
+  );
+}
+
+// ============ Apt Card Component ============
+function AptCard({ apt }) {
+  const statusColors = {
+    '청약중': 'text-primary bg-primary/10 border-primary/20',
+    '청약예정': 'text-orange-400 bg-orange-400/10 border-orange-400/20',
+    '청약마감': 'text-outline border-outline/20 opacity-60'
+  };
+
+  return (
+    <div className={`bg-surface-container rounded-3xl p-5 md:p-6 transition-all duration-300 border flex flex-col h-full
+      ${apt.status === '청약마감' ? 'border-outline-variant/10 opacity-70 grayscale-[30%]' : 'border-transparent hover:border-outline-variant/30'}
+    `}>
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] md:text-xs font-bold text-on-surface-variant uppercase tracking-wider">{apt.region} | {apt.housing_type}</span>
+            <span className={`text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusColors[apt.status] || ''}`}>{apt.status}</span>
+          </div>
+          {apt.is_lotto && (
+            <div className="flex items-center gap-1.5 text-red-400">
+              <span className="material-symbols-outlined text-sm" data-weight="fill">casino</span>
+              <span className="text-[10px] font-black uppercase tracking-tight">잭팟! 로또 청약 ({apt.lotto_reason})</span>
+            </div>
+          )}
+        </div>
+        <a href="https://www.applyhome.co.kr/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-surface-container-highest hover:bg-primary hover:text-on-primary flex items-center justify-center transition-all">
+          <span className="material-symbols-outlined text-lg">home_work</span>
+        </a>
+      </div>
+
+      <h4 className="text-base md:text-lg font-bold font-headline mb-3 line-clamp-2 leading-snug">{apt.name}</h4>
+      
+      <div className="space-y-2 mb-6">
+        <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+          <span className="material-symbols-outlined text-sm opacity-60">calendar_today</span>
+          <span className="font-medium">청약: {formatDateRange(apt.subscription_start, apt.subscription_end)}</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+          <span className="material-symbols-outlined text-sm opacity-60">campaign</span>
+          <span className="font-medium">당첨자 발표: {apt.winner_date?.replace(/-/g, '.') || '미정'}</span>
+        </div>
+        <div className="flex items-center gap-2 text-[11px] text-on-surface-variant/70">
+          <span className="material-symbols-outlined text-sm opacity-50">apartment</span>
+          <span>{apt.constructor} | {apt.sale_type}</span>
+        </div>
+      </div>
+
+      <div className="mt-auto pt-4 border-t border-outline-variant/10">
+        <button 
+          onClick={() => window.open('https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancListView.do', '_blank')}
+          className="w-full py-3 bg-surface-container-highest hover:bg-primary hover:text-on-primary rounded-xl md:rounded-2xl transition-all font-bold text-xs flex items-center justify-center gap-2"
+        >
+          청약홈에서 공고 보기
+          <span className="material-symbols-outlined text-sm">open_in_new</span>
+        </button>
       </div>
     </div>
   );
@@ -829,10 +889,12 @@ export default function App() {
   const [scrapingStatus, setScrapingStatus] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
-  const [activeTab, setActiveTab] = useState("insights"); // "insights" | "dashboard" | "ipo"
+  const [activeTab, setActiveTab] = useState("insights"); // "insights" | "dashboard" | "ipo" | "apt"
   const [ipoEvents, setIpoEvents] = useState([]);
   const [ipoLoading, setIpoLoading] = useState(false);
   const [selectedIpo, setSelectedIpo] = useState(null);
+  const [aptEvents, setAptEvents] = useState([]);
+  const [aptLoading, setAptLoading] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -1120,6 +1182,7 @@ export default function App() {
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'insights' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => setActiveTab("insights")}>투자 인사이트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>ETF 이벤트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'ipo' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents(session?.user?.id).then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>공모주 캘린더</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'apt' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("apt"); if (aptEvents.length === 0) { setAptLoading(true); fetchAptSubscriptions().then(d => { setAptEvents(d); setAptLoading(false); }).catch(() => setAptLoading(false)); } }}>아파트 청약</button>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-6">
@@ -1210,7 +1273,7 @@ export default function App() {
                 </form>
               </div>
               
-              <div className="md:border-l md:border-white/5 md:pl-8">
+              <div className="md:border-l md:border-white/5 md:pl-8 flex flex-col h-full">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-sm font-bold flex items-center gap-2">
                     <span className="material-symbols-outlined text-xs">lock_reset</span>비밀번호 변경
@@ -1226,7 +1289,7 @@ export default function App() {
                 </div>
 
                 {showPasswordForm ? (
-                  <form onSubmit={handleUpdatePassword} className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                   <form onSubmit={handleUpdatePassword} className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
                     <input 
                       type="password" 
                       value={newPassword} 
@@ -1265,8 +1328,20 @@ export default function App() {
                     </div>
                   </form>
                 ) : (
-                  <p className="text-xs text-on-surface-variant py-4">계정 보안을 위해 정기적으로 비밀번호를 변경해주세요.</p>
+                  <div className="flex-1">
+                    <p className="text-xs text-on-surface-variant py-4">계정 보안을 위해 정기적으로 비밀번호를 변경해주세요.</p>
+                  </div>
                 )}
+                
+                <div className="mt-auto pt-6">
+                  <button 
+                    onClick={() => supabase.auth.signOut()}
+                    className="w-full py-4 border border-error/30 text-error font-bold rounded-2xl bg-error/5 hover:bg-error/10 transition-all flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">logout</span>
+                    로그아웃
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1280,6 +1355,30 @@ export default function App() {
             <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
           ) : (
             <IpoCalendar ipoEvents={ipoEvents} onSelectIpo={setSelectedIpo} />
+          )
+        ) : activeTab === "apt" ? (
+          aptLoading ? (
+            <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
+          ) : (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+               <div className="mb-10">
+                <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline mb-2 flex items-center gap-4">
+                  아파트 청약 <span className="text-lg bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20">청약홈 연동</span>
+                </h1>
+                <p className="text-on-surface-variant max-w-xl italic">당신의 첫 번째 보금자리를 위한 로또 청약 시그널을 확인하세요.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {aptEvents.map(apt => (
+                  <AptCard key={apt.id} apt={apt} />
+                ))}
+              </div>
+              {aptEvents.length === 0 && (
+                <div className="py-20 text-center">
+                  <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">home_work</span>
+                  <p className="text-on-surface-variant">현재 예정된 아파트 청약 일정이 없습니다.</p>
+                </div>
+              )}
+            </div>
           )
         ) : (
         <>
@@ -1479,13 +1578,13 @@ export default function App() {
           <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'ipo' ? 'fill' : 'normal'}>calendar_month</span>
           <span className="text-[10px] font-bold">공모주</span>
         </button>
+        <button onClick={() => { setActiveTab("apt"); window.scrollTo(0,0); if (aptEvents.length === 0) { setAptLoading(true); fetchAptSubscriptions().then(d => { setAptEvents(d); setAptLoading(false); }).catch(() => setAptLoading(false)); } }} className={`flex flex-col items-center gap-1 ${activeTab === 'apt' ? 'text-primary' : 'text-on-surface-variant'}`}>
+          <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'apt' ? 'fill' : 'normal'}>home_work</span>
+          <span className="text-[10px] font-bold">아파트</span>
+        </button>
         <button onClick={() => setShowSettings(!showSettings)} className={`flex flex-col items-center gap-1 ${showSettings ? 'text-primary' : 'text-on-surface-variant'}`}>
           <span className="material-symbols-outlined text-2xl" data-weight={showSettings ? 'fill' : 'normal'}>person</span>
           <span className="text-[10px] font-bold">내 정보</span>
-        </button>
-        <button onClick={() => supabase.auth.signOut()} className="flex flex-col items-center gap-1 text-on-surface-variant">
-          <span className="material-symbols-outlined text-2xl">logout</span>
-          <span className="text-[10px] font-bold">로그아웃</span>
         </button>
       </div>
 

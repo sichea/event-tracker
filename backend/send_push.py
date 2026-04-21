@@ -2,9 +2,20 @@ import json
 import os
 import datetime
 import httpx
+import sys
+import io
 from pywebpush import webpush, WebPushException
+from dotenv import load_dotenv
+
+# Windows 터미널 한글/이모지 출력 문제 해결
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # 환경 변수 로드
+load_dotenv()
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "").strip()
@@ -103,18 +114,33 @@ def process_notifications():
 
             # 2. 공모주 로직
             for ipo in ipo_events:
-                if str(ipo.get('subscription_start')) == today:
+                sub_start = str(ipo.get('subscription_start'))
+                sub_end = str(ipo.get('subscription_end'))
+                listing_date = str(ipo.get('listing_date'))
+
+                if sub_start == today:
                     if (str(ipo['id']), 'start') not in sent_logs:
                         to_notify.append(("📅 청약 시작!", f"'{ipo['company_name']}' 청약이 오늘 시작됩니다.", str(ipo['id']), 'ipo_event', 'start'))
-                if str(ipo.get('listing_date')) == today:
+                
+                if sub_end == today:
+                    if (str(ipo['id']), 'end') not in sent_logs:
+                        to_notify.append(("⏰ 청약 마감일!", f"'{ipo['company_name']}' 청약이 오늘 마감됩니다. 늦지 않게 신청하세요!", str(ipo['id']), 'ipo_event', 'end'))
+
+                if listing_date == today:
                     if (str(ipo['id']), 'listing') not in sent_logs:
-                        to_notify.append(("🚀 오늘은 상장일!", f"'{ipo['company_name']}' 상장일입니다.", str(ipo['id']), 'ipo_event', 'listing'))
+                        to_notify.append(("🚀 오늘은 상장일!", f"'{ipo['company_name']}' 상장일입니다. 매도 전략을 체크하세요!", str(ipo['id']), 'ipo_event', 'listing'))
 
             # 발송 실행
             for title, body, t_id, t_type, cat in to_notify:
+                print(f"📦 발송 준비: {title} - {body}")
                 sent_any = False
                 for dev in devices:
-                    if send_push(dev, title, body): sent_any = True
+                    if send_push(dev, title, body): 
+                        sent_any = True
+                        print(f"  ✅ 발송 성공: User {user_id[-6:]}, Device {dev['id']}")
+                    else:
+                        print(f"  ❌ 발송 실패: User {user_id[-6:]}, Device {dev['id']}")
+                
                 if sent_any:
                     supabase_request("POST", "notification_logs", json_data={
                         "user_id": user_id, "target_id": t_id, "target_type": t_type, "category": cat
