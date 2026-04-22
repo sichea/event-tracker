@@ -1050,27 +1050,33 @@ function InvestmentInsights() {
                 <h3 className="text-base md:text-lg font-extrabold font-headline text-red-400">상승 예상 자산</h3>
               </div>
               <div className="space-y-3">
-                {(marketData?.scenario === scenario.id && marketData?.recommended_assets?.length > 0 
-                  ? marketData.recommended_assets 
+                {(marketData?.all_scenarios_data?.[scenario.id]?.recommended?.length > 0 
+                  ? marketData.all_scenarios_data[scenario.id].recommended 
                   : scenario.up
-                ).map((asset, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 md:p-4 rounded-2xl bg-red-500/5 border border-red-500/10 hover:border-red-500/25 transition-all duration-200 group">
-                    <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 group-hover:bg-red-500/20 transition-colors">
-                      <span className="material-symbols-outlined text-red-400">{asset.icon || 'diamond'}</span>
+                ).map((asset, i) => {
+                  // 하드코딩된 데이터에서 아이콘 찾기
+                  const fallbackAsset = scenario.up.find(a => a.name === (asset.category || asset.name));
+                  const icon = asset.icon || fallbackAsset?.icon || 'diamond';
+                  
+                  return (
+                    <div key={i} className="flex items-center gap-3 p-3 md:p-4 rounded-2xl bg-red-500/5 border border-red-500/10 hover:border-red-500/25 transition-all duration-200 group">
+                      <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 group-hover:bg-red-500/20 transition-colors">
+                        <span className="material-symbols-outlined text-red-400">{icon}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm md:text-base font-bold text-on-surface">{asset.category || asset.name}</p>
+                        <p className="text-[11px] md:text-xs text-on-surface-variant truncate mb-2">{asset.desc || asset.strategy}</p>
+                        <button 
+                          onClick={() => setDetailAsset({ asset, type: 'up' })}
+                          className="px-3 py-1 bg-white/5 hover:bg-red-500/20 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/20 transition-colors"
+                        >
+                          종목보기
+                        </button>
+                      </div>
+                      <span className="material-symbols-outlined text-red-400 text-xl shrink-0">arrow_upward</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm md:text-base font-bold text-on-surface">{asset.category || asset.name}</p>
-                      <p className="text-[11px] md:text-xs text-on-surface-variant truncate mb-2">{asset.strategy || asset.desc}</p>
-                      <button 
-                        onClick={() => setDetailAsset({ asset, type: 'up' })}
-                        className="px-3 py-1 bg-white/5 hover:bg-red-500/20 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/20 transition-colors"
-                      >
-                        종목보기
-                      </button>
-                    </div>
-                    <span className="material-symbols-outlined text-red-400 text-xl shrink-0">arrow_upward</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -1083,27 +1089,32 @@ function InvestmentInsights() {
                 <h3 className="text-base md:text-lg font-extrabold font-headline text-blue-400">하락 예상 자산</h3>
               </div>
               <div className="space-y-3">
-                {(marketData?.scenario === scenario.id && marketData?.caution_assets?.length > 0 
-                  ? marketData.caution_assets 
+                {(marketData?.all_scenarios_data?.[scenario.id]?.caution?.length > 0 
+                  ? marketData.all_scenarios_data[scenario.id].caution 
                   : scenario.down
-                ).map((asset, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 md:p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 hover:border-blue-500/25 transition-all duration-200 group">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0 group-hover:bg-blue-500/20 transition-colors">
-                      <span className="material-symbols-outlined text-blue-400">{asset.icon || 'trending_down'}</span>
+                ).map((asset, i) => {
+                  const fallbackAsset = scenario.down.find(a => a.name === (asset.category || asset.name));
+                  const icon = asset.icon || fallbackAsset?.icon || 'trending_down';
+
+                  return (
+                    <div key={i} className="flex items-center gap-3 p-3 md:p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 hover:border-blue-500/25 transition-all duration-200 group">
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                        <span className="material-symbols-outlined text-blue-400">{icon}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm md:text-base font-bold text-on-surface">{asset.category || asset.name}</p>
+                        <p className="text-[11px] md:text-xs text-on-surface-variant truncate mb-2">{asset.desc || asset.strategy}</p>
+                        <button 
+                          onClick={() => setDetailAsset({ asset, type: 'down' })}
+                          className="px-3 py-1 bg-white/5 hover:bg-blue-500/20 text-blue-400 text-[10px] font-bold rounded-lg border border-blue-500/20 transition-colors"
+                        >
+                          종목보기
+                        </button>
+                      </div>
+                      <span className="material-symbols-outlined text-blue-400 text-xl shrink-0">arrow_downward</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm md:text-base font-bold text-on-surface">{asset.category || asset.name}</p>
-                      <p className="text-[11px] md:text-xs text-on-surface-variant truncate mb-2">{asset.strategy || asset.desc}</p>
-                      <button 
-                        onClick={() => setDetailAsset({ asset, type: 'down' })}
-                        className="px-3 py-1 bg-white/5 hover:bg-blue-500/20 text-blue-400 text-[10px] font-bold rounded-lg border border-blue-500/20 transition-colors"
-                      >
-                        종목보기
-                      </button>
-                    </div>
-                    <span className="material-symbols-outlined text-blue-400 text-xl shrink-0">arrow_downward</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
