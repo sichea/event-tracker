@@ -513,20 +513,28 @@ def get_dynamic_assets(scenario, all_etfs):
     CAUTION_CONFIG = {
         "rate_cut": [
             {
-                "category": "은행주", 
+                "category": "은행주/금융주", 
                 "keywords": ["은행", "금융지주"], 
                 "exclude": ["인버스"],
                 "desc": "금리 하락 시 예대마진 축소로 인한 수익성 악화 우려",
-                "strategy": "시장 금리가 낮아짐에 따라 핵심 이익 지표가 둔화될 가능성이 높은 섹터입니다."
+                "unique_strategies": [
+                    "시장 금리 하락 시 핵심 수익 지표인 순이자마진(NIM)이 본격적으로 축소되어 금융사 전반의 이익 동력이 약화됩니다.",
+                    "저금리 기조에서는 예대금리차를 통한 수익 창출이 어려워지며, 전통적인 은행 핵심 비즈니스의 수익성이 정체될 위험이 큽니다.",
+                    "금리 인하로 인한 시장 유동성 확대가 은행권 자산의 질을 낮출 수 있으며, 금융 섹터 내 자본 유출 압력이 커지는 시기입니다."
+                ]
             }
         ],
         "rate_hike": [
             {
-                "category": "성장주", 
+                "category": "성장주/테크", 
                 "keywords": ["나스닥", "반도체", "테크"], 
                 "exclude": ["인버스", "2X"],
                 "desc": "고금리 환경에서 미래 이익에 대한 밸류에이션 하락 압박",
-                "strategy": "자금 조달 비용 상승으로 인해 성장 가치가 할인될 수 있는 변동성 위험 섹터입니다."
+                "unique_strategies": [
+                    "고금리 상황에서는 미래 현금 흐름에 적용되는 할인율이 높아져, 기술주를 포함한 고성장 종목의 밸류에이션 하락이 불가피합니다.",
+                    "자금 조달 비용 상승으로 재투자가 중요한 테크 기업들의 실적 하방 압력이 커지며 성장성에 대한 시장의 의구심이 깊어질 수 있습니다.",
+                    "유동성 긴축 국면에서 자산 가치 평가가 보수적으로 변함에 따라 기술 섹터 내 변동성이 극대화될 수 있어 주의가 필요합니다."
+                ]
             }
         ]
     }
@@ -543,15 +551,21 @@ def get_dynamic_assets(scenario, all_etfs):
             if any(k in name for k in keywords) and not any(x in name for x in exclude):
                 filtered_c.append(etf)
         
-        # 주의 종목도 TOP 3 추출
+        # 주의 종목도 TOP 3 추출 (수익률 높은 순으로 정렬 - 역설적으로 변동성이 큼)
         filtered_c.sort(key=lambda x: float(x.get("threeMonthEarnRate") or -999), reverse=True)
         
         c_top_3 = []
+        strategies = entry.get("unique_strategies", [])
+
         for i, item in enumerate(filtered_c[:3]):
-            base = entry.get("strategy", "현재 시장 상황에서 변동성이 우려되는 종목입니다.")
+            if i < len(strategies):
+                final_strategy = strategies[i]
+            else:
+                final_strategy = entry.get("strategy", "현재 시장 상황에서 변동성이 우려되는 대표적인 종목입니다.")
+
             c_top_3.append({
                 "name": f"{item['itemname']} ({item['itemcode']})",
-                "strategy": base + " 리스크 관리가 필요합니다.",
+                "strategy": final_strategy,
             })
             
         if c_top_3:
