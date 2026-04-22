@@ -3,6 +3,7 @@
 - ECOS API: 한국 기준금리
 - FRED API: 미국 연방기금금리, CPI, GDP
 - 네이버 뉴스 API: 경제 뉴스 수집
+- 네이버 ETF API: 실시간 수익률 기반 종목 추천
 - 규칙 기반 시나리오 판단 → Supabase 저장
 """
 import io
@@ -95,7 +96,6 @@ def fetch_ecos_rate():
         pass
 
     return None, None
-
 
 
 def fetch_fred_series(series_id):
@@ -248,133 +248,99 @@ def determine_scenario(kr_rate, kr_rate_prev, us_rate, us_rate_prev, cpi, gdp):
     return "rate_cut", "현재 주요 지표들이 안정적인 흐름을 보이고 있어 금리 인하(완화) 기조를 유지합니다."
 
 
-# 시나리오별 상세 종목 매핑 (종목번호 추가 및 3개씩 추천)
-ASSET_MAPPING = {
-    "rate_cut": {
-        "recommended": [
-            {
-                "category": "미국 성장주", 
-                "products": [
-                    {"name": "TIGER 미국나스닥100 (133690)", "strategy": "저금리 환경에서 밸류에이션 매력이 높아지는 빅테크 중심 투자"},
-                    {"name": "ACE 미국S&P500 (360200)", "strategy": "시장 전반의 완만한 상승세에 투자하는 가장 안정적인 선택"},
-                    {"name": "KODEX 미국나스닥100선물(H) (304660)", "strategy": "환헤지형 상품으로 환율 변동 위험 없이 주수익에 집중"}
-                ]
-            },
-            {
-                "category": "장기 국채", 
-                "products": [
-                    {"name": "KODEX 미국채울트라30년선물(H) (304660)", "strategy": "금리 하락 시 채권 가격 상승폭이 가장 큰 장기물 타겟"},
-                    {"name": "TIGER 미국채30년스트립액티브(합성H) (458730)", "strategy": "금리 하락에 따른 자본 차익을 극대화한 전략"},
-                    {"name": "ACE 미국채20년이상 (451240)", "strategy": "미국 장기 국채에 직접 투자하는 대표적인 안전자산"}
-                ]
-            },
-            {
-                "category": "리츠(부동산)", 
-                "products": [
-                    {"name": "TIGER 리츠부동산인프라 (329200)", "strategy": "조달 비용 감소로 배당 수익률 및 자산 가치 상승 기대"},
-                    {"name": "KODEX 미국부동산리츠(합성H) (225060)", "strategy": "전 세계 부동산 시장의 핵심인 미국 리츠에 투자"},
-                    {"name": "TIGER 미국MSCI리츠(합성H) (182480)", "strategy": "글로벌 상업용 부동산 투자의 정석적인 선택"}
-                ]
-            }
+def fetch_naver_etf_data():
+    """네이버 금융에서 전 종목 ETF 데이터를 가져옵니다."""
+    url = "https://finance.naver.com/api/sise/etfItemList.nhn"
+    try:
+        with httpx.Client() as client:
+            resp = client.get(url, timeout=15)
+            # 네이버 API는 EUC-KR 인코딩을 사용함
+            content = resp.content.decode('euc-kr', errors='ignore')
+            data = json.loads(content)
+        return data.get("result", {}).get("etfItemList", [])
+    except Exception as e:
+        print(f"❌ 네이버 ETF API 오류: {e}")
+        return []
+
+
+def get_dynamic_assets(scenario, all_etfs):
+    """현재 시나리오와 연관된 카테고리별 수익률 TOP 3 종목을 추출합니다."""
+    
+    # 시나리오별 키워드 정의
+    SCENARIO_CONFIG = {
+        "rate_cut": [
+            {"category": "미국 성장주", "keywords": ["나스닥", "테크", "반도체"], "exclude": ["인버스", "2X"]},
+            {"category": "장기 국채", "keywords": ["미국채", "30년"], "exclude": ["인버스"]},
+            {"category": "리츠(부동산)", "keywords": ["리츠"], "exclude": []}
         ],
-        "caution": [
-            {
-                "category": "은행주",
-                "products": [
-                    {"name": "TIGER 은행 (091170)", "strategy": "예대마진 축소로 인한 수익성 악화 우려"},
-                    {"name": "KODEX 보험 (091180)", "strategy": "금리 하락으로 인한 운용 수익률 저하 우려"}
-                ]
-            }
-        ]
-    },
-    "rate_hike": {
-        "recommended": [
-            {
-                "category": "은행주",
-                "products": [
-                    {"name": "KODEX 은행 (091170)", "strategy": "금리 상승에 따른 순이자마진(NIM) 개선 및 배당 확대"},
-                    {"name": "TIGER 금융지주 (145670)", "strategy": "대형 지주사의 안정적인 배당 성향과 금리 수혜"},
-                    {"name": "KODEX 보험 (091180)", "strategy": "금리 인상기에 자산 운용 수익률이 개선되는 보험 섹터"}
-                ]
-            },
-            {
-                "category": "단기 채권",
-                "products": [
-                    {"name": "KODEX 1년국고채액티브 (395160)", "strategy": "금리 변동 리스크를 최소화하며 고금리 이자 수익 확보"},
-                    {"name": "TIGER KOFR금리액티브(합성) (430690)", "strategy": "매일 이자가 쌓이는 무위험 지표금리 투자 상품"},
-                    {"name": "KODEX CD금리액티브(합성) (459580)", "strategy": "하루만 맡겨도 CD금리 수준의 수익을 제공하는 파킹형"}
-                ]
-            }
+        "rate_hike": [
+            {"category": "은행주", "keywords": ["은행"], "exclude": ["인버스"]},
+            {"category": "금융주", "keywords": ["금융지주", "증권"], "exclude": ["인버스"]},
+            {"category": "단기 채권", "keywords": ["단기", "KOFR", "CD"], "exclude": []}
         ],
-        "caution": [
-            {
-                "category": "성장주/기술주",
-                "products": [
-                    {"name": "TIGER 미국나스닥100 (133690)", "strategy": "유동성 축소 및 할인율 상승으로 인한 주가 하방 압력"},
-                    {"name": "KODEX 미국채울트라30년선물(H) (304660)", "strategy": "시장 금리 상승 시 채권 가격이 급락할 위험"}
-                ]
-            }
-        ]
-    },
-    "inflation": {
-        "recommended": [
-            {
-                "category": "실물 자산(금)",
-                "products": [
-                    {"name": "ACE KRX금현물 (411060)", "strategy": "화폐 가치 하락 시 실물 자산으로의 가치 저장 수단 활용"},
-                    {"name": "TIGER 금은선물(H) (139310)", "strategy": "금뿐만 아니라 산업 수요가 있는 은까지 동시에 투자"},
-                    {"name": "KODEX 골드선물(H) (132030)", "strategy": "장내 선물을 통해 비용 효율적으로 금에 투자"}
-                ]
-            },
-            {
-                "category": "원자재/에너지",
-                "products": [
-                    {"name": "TIGER 미국S&P500에너지 (414210)", "strategy": "유가 상승 등 원자재 가격 상승분을 직접 반영하는 섹터"},
-                    {"name": "KODEX 미국S&P500에너지 (414260)", "strategy": "글로벌 에너지 대기업 엑손모빌, 쉐브론 등 비중 높음"},
-                    {"name": "TIGER 원유선물인버스(H) (217770)", "strategy": "인플레이션 정점 통과를 기대할 때 고려할 수 있는 상품"}
-                ]
-            }
+        "inflation": [
+            {"category": "실물 자산(금/은)", "keywords": ["금현물", "골드", "은선물"], "exclude": ["인버스"]},
+            {"category": "원자재/에너지", "keywords": ["에너지", "원유", "구리"], "exclude": ["인버스"]},
+            {"category": "고배당주", "keywords": ["고배당", "배당성장"], "exclude": []}
         ],
-        "caution": [
-            {
-                "category": "일반 채권",
-                "products": [
-                    {"name": "KODEX 국고채30년액티브 (403990)", "strategy": "물가 상승에 따른 금리 폭등 시 큰 손실 위험"},
-                    {"name": "TIGER 미국채30년선물 (305080)", "strategy": "인플레 장기화 시 채권 가치 방어 불리"}
-                ]
-            }
-        ]
-    },
-    "recession": {
-        "recommended": [
-            {
-                "category": "안전 자산(달러)",
-                "products": [
-                    {"name": "KODEX 미국달러선물 (261220)", "strategy": "금융 시장 불안 시 글로벌 안전 자산인 달러 수요 급증"},
-                    {"name": "TIGER 미국달러단기채권액티브 (329750)", "strategy": "달러 가치 상승과 짧은 만기 기간의 이자 수익 동시 확보"},
-                    {"name": "KODEX 미국달러선물레버리지 (261240)", "strategy": "금융 위기 수준의 침체 시 달러 강세에 베팅"}
-                ]
-            },
-            {
-                "category": "필수 소비재",
-                "products": [
-                    {"name": "KODEX 필수소비재 (211210)", "strategy": "경기와 관계없이 수요가 일정한 음식물, 생필품 위주 방어"},
-                    {"name": "TIGER 필수소비재 (143860)", "strategy": "국내 주요 경기 방어 성격의 소비재 기업 투자"},
-                    {"name": "KODEX 배당성장 (139280)", "strategy": "경기 침체기에도 배당을 늘리는 우량 배당주 중심 전략"}
-                ]
-            }
-        ],
-        "caution": [
-            {
-                "category": "경기 민감주",
-                "products": [
-                    {"name": "TIGER 현대차그룹+ (138540)", "strategy": "경기 둔화에 따른 자동차 수요 감소 우려"},
-                    {"name": "KODEX 반도체 (091160)", "strategy": "글로벌 IT 수요 위축에 따른 업황 사이클 둔화 위험"}
-                ]
-            }
+        "recession": [
+            {"category": "안전 자산(달러)", "keywords": ["달러선물"], "exclude": ["인버스"]},
+            {"category": "필수 소비재", "keywords": ["필수소비재", "음식료"], "exclude": []},
+            {"category": "안전 채권", "keywords": ["미국채", "국고채"], "exclude": ["30년", "인버스"]}
         ]
     }
-}
+    
+    config = SCENARIO_CONFIG.get(scenario, [])
+    recommended = []
+    
+    for entry in config:
+        category = entry["category"]
+        keywords = entry["keywords"]
+        exclude = entry["exclude"]
+        
+        # 조건에 맞는 종목 필터링
+        filtered = []
+        for etf in all_etfs:
+            name = etf.get("itemname", "")
+            # 키워드 포함 확인
+            if any(k in name for k in keywords):
+                # 제외 키워드 확인
+                if not any(x in name for x in exclude):
+                    filtered.append(etf)
+        
+        # 수익률(threeMonthEarnRate) 기준 정렬
+        filtered.sort(key=lambda x: float(x.get("threeMonthEarnRate") or -999), reverse=True)
+        
+        # TOP 3 선별
+        top_3 = []
+        for item in filtered[:3]:
+            # 수익률 포맷팅
+            try:
+                raw_yield = float(item.get('threeMonthEarnRate') or 0)
+                yield_val = f"+{raw_yield}%" if raw_yield > 0 else f"{raw_yield}%"
+            except:
+                yield_val = "0.0%"
+                
+            top_3.append({
+                "name": f"{item['itemname']} ({item['itemcode']})",
+                "strategy": f"3개월 수익률 {yield_val}을 기록 중인 해당 분야 대표 상품입니다.",
+                "yield": yield_val
+            })
+            
+        if top_3:
+            recommended.append({
+                "category": category,
+                "products": top_3
+            })
+            
+    # 주의 종목은 시나리오별로 고정된 로직 적용
+    caution = []
+    if scenario == "rate_cut":
+        caution.append({"category": "은행주", "products": [{"name": "KODEX 은행 (091170)", "strategy": "금리 하락 시 수익성 악화 우려"}]})
+    elif scenario == "rate_hike":
+        caution.append({"category": "성장주", "products": [{"name": "TIGER 미국나스닥100 (133690)", "strategy": "금리 상승에 따른 밸류에이션 하락 압력"}]})
+
+    return recommended, caution
 
 
 def main():
@@ -391,8 +357,12 @@ def main():
     # 3. 뉴스 수집
     news = fetch_naver_news()
 
-    # 4. 시나리오별 자산 매핑
-    assets = ASSET_MAPPING.get(scenario, {"recommended": [], "caution": []})
+    # 4. 실시간 ETF 데이터 수집 및 다이나믹 매핑
+    print("📊 실시간 ETF 수익률 데이터 분석 중...")
+    all_etfs = fetch_naver_etf_data()
+    recommended, caution = get_dynamic_assets(scenario, all_etfs)
+    
+    yield_date = datetime.datetime.now().strftime("%Y.%m.%d")
 
     # 5. Supabase 저장
     insight_data = {
@@ -405,14 +375,16 @@ def main():
         "us_gdp": gdp,
         "kr_rate_prev": kr_rate_prev,
         "us_rate_prev": us_rate_prev,
-        "recommended_assets": assets["recommended"],
-        "caution_assets": assets["caution"],
+        "recommended_assets": recommended,
+        "caution_assets": caution,
+        "yield_date": yield_date,
         "news": news,
         "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
     }
 
     supabase_upsert(insight_data)
     print(f"\n🎯 최종 판정: {scenario}")
+    print(f"🕒 수익률 기준일: {yield_date}")
     print(f"📝 분석 근거: {analysis}")
     print("🎉 시장 인사이트 분석이 완료되었습니다.")
 

@@ -737,7 +737,7 @@ const INSIGHTS_DATA = [
 const INVESTMENT_DISCLAIMER = "본 정보는 시장 상황 분석에 따른 참고용 예시일 뿐, 특정 종목에 대한 투자 권고나 추천이 아닙니다. 모든 투자의 결과와 책임은 투자자 본인에게 귀속됩니다.";
 
 // ============ Asset Details Modal ============
-function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type }) {
+function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type, yieldDate }) {
   if (!isOpen || !asset) return null;
 
   return (
@@ -754,7 +754,12 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type }) {
              </div>
              <span className="text-sm font-bold text-on-surface/90 uppercase tracking-tight">{scenarioLabel} 시나리오</span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">{asset.category || asset.name}</h2>
+          <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface mb-2">{asset.category || asset.name}</h2>
+          {yieldDate && (
+            <p className="text-[10px] md:text-xs text-primary font-bold bg-primary/10 px-3 py-1 rounded-full w-fit">
+              📅 {yieldDate} 기준 수익률 TOP 3
+            </p>
+          )}
           <button onClick={onClose} className="absolute top-6 right-6 md:top-8 md:right-8 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
             <span className="material-symbols-outlined text-sm">close</span>
           </button>
@@ -767,7 +772,14 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type }) {
           {(asset.products || [asset]).map((p, idx) => (
             <div key={idx} className="p-4 md:p-5 rounded-2xl bg-surface-container-highest border border-primary/20 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12"></div>
-              <h3 className="text-sm md:text-base font-extrabold text-primary mb-1 relative z-10">{p.name || p.product_name || asset.name}</h3>
+              <div className="flex justify-between items-start mb-1 relative z-10">
+                <h3 className="text-sm md:text-base font-extrabold text-primary flex-1">{p.name || p.product_name || asset.name}</h3>
+                {p.yield && (
+                  <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${p.yield.startsWith('+') ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                    {p.yield}
+                  </span>
+                )}
+              </div>
               <p className="text-[11px] md:text-xs text-on-surface-variant leading-relaxed relative z-10">
                 {p.strategy || p.desc || "해당 시장 상황에서 유리한 성과를 기대할 수 있는 대표적인 상품입니다."}
               </p>
@@ -1045,6 +1057,7 @@ function InvestmentInsights() {
             asset={detailAsset?.asset} 
             scenarioLabel={scenario.label}
             type={detailAsset?.type}
+            yieldDate={marketData?.yield_date}
           />
         </div>
       )}
