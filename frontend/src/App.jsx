@@ -641,10 +641,71 @@ const INSIGHTS_DATA = [
   },
 ];
 
+const INVESTMENT_DISCLAIMER = "본 정보는 시장 상황 분석에 따른 참고용 예시일 뿐, 특정 종목에 대한 투자 권고나 추천이 아닙니다. 모든 투자의 결과와 책임은 투자자 본인에게 귀속됩니다.";
+
+// ============ Asset Details Modal ============
+function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type }) {
+  if (!isOpen || !asset) return null;
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in" onClick={onClose}>
+      <div 
+        className="bg-surface-container rounded-[2.5rem] w-full max-w-md border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-8 border-b border-white/5 relative">
+          <div className="flex items-center gap-3 mb-2">
+             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${type === 'up' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                <span className="material-symbols-outlined">{type === 'up' ? 'trending_up' : 'trending_down'}</span>
+             </div>
+             <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">{scenarioLabel} 시나리오</span>
+          </div>
+          <h2 className="text-2xl font-black font-headline text-on-surface">{asset.category || asset.name}</h2>
+          <button onClick={onClose} className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+            <span className="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-8 overflow-y-auto custom-scrollbar space-y-8">
+          <div>
+            <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-4 opacity-50">추천 종목 예시</p>
+            <div className="p-6 rounded-3xl bg-surface-container-highest border border-primary/20 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+              <h3 className="text-xl font-bold text-primary mb-2 relative z-10">{asset.product_name || asset.name}</h3>
+              <p className="text-sm text-on-surface-variant leading-relaxed relative z-10">
+                {asset.strategy || asset.desc || "해당 시장 상황에서 유리한 성과를 기대할 수 있는 대표적인 ETF 상품입니다."}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-surface-container-low p-5 rounded-2xl border border-white/5">
+            <p className="text-[11px] text-on-surface-variant leading-relaxed italic text-center">
+              📌 {INVESTMENT_DISCLAIMER}
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-8 pt-0">
+          <button 
+            onClick={onClose}
+            className="w-full py-4 bg-primary text-on-primary font-black rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all"
+          >
+            확인 하였습니다
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function InvestmentInsights() {
   const [selectedScenario, setSelectedScenario] = useState(INSIGHTS_DATA[0].id);
   const [marketData, setMarketData] = useState(null);
   const [mdLoading, setMdLoading] = useState(true);
+  const [detailAsset, setDetailAsset] = useState(null); // { asset, type }
   const scenario = INSIGHTS_DATA.find(s => s.id === selectedScenario);
 
   useEffect(() => {
@@ -796,14 +857,23 @@ function InvestmentInsights() {
                 <h3 className="text-base md:text-lg font-extrabold font-headline text-red-400">상승 예상 자산</h3>
               </div>
               <div className="space-y-3">
-                {scenario.up.map((asset, i) => (
+                {(marketData?.scenario === scenario.id && marketData?.recommended_assets?.length > 0 
+                  ? marketData.recommended_assets 
+                  : scenario.up
+                ).map((asset, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 md:p-4 rounded-2xl bg-red-500/5 border border-red-500/10 hover:border-red-500/25 transition-all duration-200 group">
                     <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 group-hover:bg-red-500/20 transition-colors">
-                      <span className="material-symbols-outlined text-red-400">{asset.icon}</span>
+                      <span className="material-symbols-outlined text-red-400">{asset.icon || 'diamond'}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm md:text-base font-bold text-on-surface">{asset.name}</p>
-                      <p className="text-[11px] md:text-xs text-on-surface-variant truncate">{asset.desc}</p>
+                      <p className="text-sm md:text-base font-bold text-on-surface">{asset.category || asset.name}</p>
+                      <p className="text-[11px] md:text-xs text-on-surface-variant truncate mb-2">{asset.strategy || asset.desc}</p>
+                      <button 
+                        onClick={() => setDetailAsset({ asset, type: 'up' })}
+                        className="px-3 py-1 bg-white/5 hover:bg-red-500/20 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/20 transition-colors"
+                      >
+                        종목보기
+                      </button>
                     </div>
                     <span className="material-symbols-outlined text-red-400 text-xl shrink-0">arrow_upward</span>
                   </div>
@@ -820,20 +890,36 @@ function InvestmentInsights() {
                 <h3 className="text-base md:text-lg font-extrabold font-headline text-blue-400">하락 예상 자산</h3>
               </div>
               <div className="space-y-3">
-                {scenario.down.map((asset, i) => (
+                {(marketData?.scenario === scenario.id && marketData?.caution_assets?.length > 0 
+                  ? marketData.caution_assets 
+                  : scenario.down
+                ).map((asset, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 md:p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 hover:border-blue-500/25 transition-all duration-200 group">
                     <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0 group-hover:bg-blue-500/20 transition-colors">
-                      <span className="material-symbols-outlined text-blue-400">{asset.icon}</span>
+                      <span className="material-symbols-outlined text-blue-400">{asset.icon || 'trending_down'}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm md:text-base font-bold text-on-surface">{asset.name}</p>
-                      <p className="text-[11px] md:text-xs text-on-surface-variant truncate">{asset.desc}</p>
+                      <p className="text-sm md:text-base font-bold text-on-surface">{asset.category || asset.name}</p>
+                      <p className="text-[11px] md:text-xs text-on-surface-variant truncate mb-2">{asset.strategy || asset.desc}</p>
+                      <button 
+                        onClick={() => setDetailAsset({ asset, type: 'down' })}
+                        className="px-3 py-1 bg-white/5 hover:bg-blue-500/20 text-blue-400 text-[10px] font-bold rounded-lg border border-blue-500/20 transition-colors"
+                      >
+                        종목보기
+                      </button>
                     </div>
                     <span className="material-symbols-outlined text-blue-400 text-xl shrink-0">arrow_downward</span>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Bottom Disclaimer */}
+          <div className="mt-8 p-4 bg-surface-container border border-white/5 rounded-2xl">
+            <p className="text-[10px] md:text-xs text-on-surface-variant/60 leading-relaxed text-center">
+              ⚠️ {INVESTMENT_DISCLAIMER}
+            </p>
           </div>
 
           {/* News Section */}
@@ -857,6 +943,15 @@ function InvestmentInsights() {
 
           {/* Disclaimer */}
           <p className="mt-6 md:mt-8 text-[10px] md:text-xs text-on-surface-variant/50 text-center">※ 위 정보는 일반적인 거시경제 흐름에 기반한 참고 자료이며, 투자 권유가 아닙니다.</p>
+
+          {/* Asset Detail Modal */}
+          <AssetDetailsModal 
+            isOpen={!!detailAsset} 
+            onClose={() => setDetailAsset(null)} 
+            asset={detailAsset?.asset} 
+            scenarioLabel={scenario.label}
+            type={detailAsset?.type}
+          />
         </div>
       )}
     </div>
