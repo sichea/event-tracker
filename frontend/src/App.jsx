@@ -670,7 +670,6 @@ const INSIGHTS_DATA = [
     ],
   },
   {
-  {
     id: 'inflation',
     label: '인플레이션',
     icon: 'local_fire_department',
