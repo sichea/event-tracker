@@ -656,44 +656,45 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type }) {
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-8 border-b border-white/5 relative">
-          <div className="flex items-center gap-3 mb-2">
-             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${type === 'up' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                <span className="material-symbols-outlined">{type === 'up' ? 'trending_up' : 'trending_down'}</span>
+        <div className="p-6 md:p-8 border-b border-white/5 relative">
+          <div className="flex items-center gap-3 mb-1">
+             <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${type === 'up' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                <span className="material-symbols-outlined text-sm">{type === 'up' ? 'trending_up' : 'trending_down'}</span>
              </div>
-             <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">{scenarioLabel} 시나리오</span>
+             <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{scenarioLabel}</span>
           </div>
-          <h2 className="text-2xl font-black font-headline text-on-surface">{asset.category || asset.name}</h2>
-          <button onClick={onClose} className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-            <span className="material-symbols-outlined text-lg">close</span>
+          <h2 className="text-xl md:text-2xl font-black font-headline text-on-surface">{asset.category || asset.name}</h2>
+          <button onClick={onClose} className="absolute top-6 right-6 md:top-8 md:right-8 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+            <span className="material-symbols-outlined text-sm">close</span>
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto custom-scrollbar space-y-8">
-          <div>
-            <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-4 opacity-50">추천 종목 예시</p>
-            <div className="p-6 rounded-3xl bg-surface-container-highest border border-primary/20 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-              <h3 className="text-xl font-bold text-primary mb-2 relative z-10">{asset.product_name || asset.name}</h3>
-              <p className="text-sm text-on-surface-variant leading-relaxed relative z-10">
-                {asset.strategy || asset.desc || "해당 시장 상황에서 유리한 성과를 기대할 수 있는 대표적인 ETF 상품입니다."}
+        <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar space-y-4">
+          <p className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest opacity-50">상세 추천 종목 예시 (TOP 3)</p>
+          
+          {(asset.products || [asset]).map((p, idx) => (
+            <div key={idx} className="p-4 md:p-5 rounded-2xl bg-surface-container-highest border border-primary/20 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12"></div>
+              <h3 className="text-sm md:text-base font-extrabold text-primary mb-1 relative z-10">{p.name || p.product_name || asset.name}</h3>
+              <p className="text-[11px] md:text-xs text-on-surface-variant leading-relaxed relative z-10">
+                {p.strategy || p.desc || "해당 시장 상황에서 유리한 성과를 기대할 수 있는 대표적인 상품입니다."}
               </p>
             </div>
-          </div>
+          ))}
 
-          <div className="bg-surface-container-low p-5 rounded-2xl border border-white/5">
-            <p className="text-[11px] text-on-surface-variant leading-relaxed italic text-center">
+          <div className="bg-surface-container-low p-4 rounded-xl border border-white/5 mt-4">
+            <p className="text-[10px] text-on-surface-variant/70 leading-relaxed text-center">
               📌 {INVESTMENT_DISCLAIMER}
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-8 pt-0">
+        <div className="p-6 md:p-8 pt-0">
           <button 
             onClick={onClose}
-            className="w-full py-4 bg-primary text-on-primary font-black rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all"
+            className="w-full py-3 md:py-4 bg-primary text-on-primary text-sm font-black rounded-xl hover:opacity-90 active:scale-[0.98] transition-all"
           >
             확인 하였습니다
           </button>
