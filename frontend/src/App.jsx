@@ -657,13 +657,13 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type }) {
       >
         {/* Header */}
         <div className="p-6 md:p-8 border-b border-white/5 relative">
-          <div className="flex items-center gap-3 mb-1">
+          <div className="flex items-center gap-3 mb-1.5">
              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${type === 'up' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
                 <span className="material-symbols-outlined text-sm">{type === 'up' ? 'trending_up' : 'trending_down'}</span>
              </div>
-             <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{scenarioLabel}</span>
+             <span className="text-sm font-bold text-on-surface/90 uppercase tracking-tight">{scenarioLabel} 시나리오</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-black font-headline text-on-surface">{asset.category || asset.name}</h2>
+          <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">{asset.category || asset.name}</h2>
           <button onClick={onClose} className="absolute top-6 right-6 md:top-8 md:right-8 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
             <span className="material-symbols-outlined text-sm">close</span>
           </button>
@@ -671,7 +671,7 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type }) {
 
         {/* Content */}
         <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar space-y-4">
-          <p className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest opacity-50">상세 추천 종목 예시 (TOP 3)</p>
+          <p className="text-xs font-black text-on-surface-variant uppercase tracking-wider opacity-70">🚀 상세 추천 종목 예시 (TOP 3)</p>
           
           {(asset.products || [asset]).map((p, idx) => (
             <div key={idx} className="p-4 md:p-5 rounded-2xl bg-surface-container-highest border border-primary/20 relative overflow-hidden group">
