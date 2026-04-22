@@ -564,32 +564,112 @@ const INSIGHTS_DATA = [
     bgGrad: 'from-red-500/20 to-orange-500/10',
     summary: '불확실성 극대화로 실물 자산과 절대적 안전 자산으로 돈이 대피합니다.',
     up: [
-      { name: '방산주', desc: '록히드마틴, 한화에어로스페이스 등', icon: 'shield' },
-      { name: '금/은', desc: '실물 안전자산 수요 폭발', icon: 'diamond' },
-      { name: '에너지 ETF', desc: '원유·천연가스 공급 불안', icon: 'local_gas_station' },
+      { 
+        name: '방산주', 
+        desc: '지정학적 리스크 확대로 인한 국방 수요 및 수출 증가',
+        products: [
+          {"name": "TIGER 현대로템 (064350)", "strategy": "지정학적 분쟁 상황에서 지상 무기 체계 수요 급증 수혜"},
+          {"name": "KODEX iSelect방산테마 (456310)", "strategy": "국내 주요 방산업체에 분산 투자하여 안보 위기 상황 대응"},
+          {"name": "TIGER 우주방산 (441900)", "strategy": "우주 항공 및 첨단 무기 체계 모멘텀을 동시에 보유한 기업군"}
+        ],
+        icon: 'shield' 
+      },
+      { 
+        name: '금/은', 
+        desc: '불확실성 속에서 가치가 오르는 최고의 안전 자산',
+        products: [
+          {"name": "ACE KRX금현물 (411060)", "strategy": "화폐 가치 하락 및 위기 상황에서 실물 금을 통한 가치 보존"},
+          {"name": "TIGER 금은선물(H) (139310)", "strategy": "장내 선물을 통해 비용 효율적으로 금과 은에 동시에 투자"},
+          {"name": "KODEX 골드선물(H) (132030)", "strategy": "환율 변동 위험 없이 국제 금 시세 수익을 추구하는 전략"}
+        ],
+        icon: 'diamond' 
+      },
+      { 
+        name: '에너지 ETF', 
+        desc: '전쟁으로 인한 공급망 차질 및 에너지 가격 폭등 수혜',
+        products: [
+          {"name": "TIGER 미국S&P500에너지 (414210)", "strategy": "글로벌 정유사 투자를 통해 원유 가격 상승분을 수익화"},
+          {"name": "KODEX 미국S&P500에너지 (414260)", "strategy": "엑손모빌 등 거대 에너지 기업 중심의 안정적인 에너지 섹터 투자"},
+          {"name": "TIGER 구리실물 (160580)", "strategy": "공급망 위축 상황에서 산업 전반의 기초가 되는 구리 가격 상승 수혜"}
+        ],
+        icon: 'local_gas_station' 
+      },
     ],
     down: [
-      { name: '글로벌 증시 전반', desc: '리스크 회피 심리 확산', icon: 'public' },
-      { name: '항공/여행주', desc: '이동 제한 및 수요 위축', icon: 'flight' },
+      { 
+        name: '글로벌 증시 전반', 
+        desc: '리스크 회피 심리 확산으로 인한 위험 자산 매도 압력',
+        products: [
+          {"name": "TIGER 나스닥100 (133690)", "strategy": "글로벌 유동성 위축 시 변동성이 커질 수 있는 대표 기술주 섹터"},
+          {"name": "KODEX 200 (069500)", "strategy": "지정학적 리스크로 인한 국내 코스피 지수의 단기 하락 압력"},
+          {"name": "SOL 미국S&P500 (433330)", "strategy": "전 세계적 위기 상황에서 주식형 자산의 전반적인 가치 하락 우려"}
+        ],
+        icon: 'public' 
+      },
+      { 
+        name: '금융/항공/여행', 
+        desc: '이동 제한 및 경기 위축으로 인한 실적 악화 직격탄',
+        products: [
+          {"name": "KODEX 은행 (091170)", "strategy": "경제 위기 시 대출 건전성 악화 및 금융 시장 경색 우려"},
+          {"name": "TIGER 현대차그룹+ (138540)", "strategy": "물류 마비 및 소비 심리 위축으로 인한 대형 내구재 수요 급감"},
+          {"name": "ACE 베트남VN30(합성) (245100)", "strategy": "지정학적 리스크에 민감한 신흥국 시장의 자금 유출 우려"}
+        ],
+        icon: 'flight' 
+      }
     ],
   },
   {
     id: 'rate_cut',
     label: '금리 인하',
-    icon: 'trending_down',
+    icon: 'south',
     color: '#22c55e',
     bgGrad: 'from-green-500/20 to-emerald-500/10',
     summary: '중앙은행이 금리를 인하해 돈줄을 풀어 시중에 돈이 흔해지고, 기업 성장이 가속됩니다.',
     up: [
-      { name: '기술주', product_name: 'TIGER 미국나스닥100', strategy: '저금리 환경에서 밸류에이션 매력이 높아지는 빅테크 중심 투자', icon: 'memory' },
-      { name: '장기 채권', product_name: 'KODEX 미국채울트라30년선물(H)', strategy: '금리 하락 시 채권 가격 상승폭이 가장 큰 장기물 타겟', icon: 'account_balance' },
-      { name: '리츠', product_name: 'TIGER 리츠부동산인프라', strategy: '조달 비용 감소로 인한 배당 수익률 및 자산 가치 상승', icon: 'apartment' },
+      { 
+        name: '기술주', 
+        desc: '저금리 수혜를 직접적으로 받는 나스닥 및 혁신 기술주',
+        products: [
+          {"name": "TIGER 미국나스닥100 (133690)", "strategy": "저금리 환경에서 밸류에이션 매력이 높아지는 빅테크 중심 투자"},
+          {"name": "ACE 미국S&P500 (360200)", "strategy": "시장 전반의 완만한 상승세에 투자하는 가장 안정적인 선택"},
+          {"name": "KODEX 미국나스닥100선물(H) (304660)", "strategy": "환율 변동 위험 없이 주수익에 집중하는 환헤지형 기술주"}
+        ],
+        icon: 'memory' 
+      },
+      { 
+        name: '장기 채권', 
+        desc: '금리 하락에 따른 자본 차익을 극대화하는 장기 국채',
+        products: [
+          {"name": "KODEX 미국채울트라30년선물(H) (304660)", "strategy": "금리 하락 시 채권 가격 상승폭이 가장 큰 장기물 타겟"},
+          {"name": "TIGER 미국채30년스트립액티브(합성H) (458730)", "strategy": "이표를 제거해 듀레이션을 늘림으로써 수익률 변동성 극대화"},
+          {"name": "ACE 미국채20년이상 (451240)", "strategy": "안정적인 미국 장기 국채에 직접 투자하는 대표 상품"}
+        ],
+        icon: 'account_balance' 
+      },
+      { 
+        name: '리츠(부동산)', 
+        desc: '금리 하락으로 조달 비용이 감소하는 수익형 부동산',
+        products: [
+          {"name": "TIGER 리츠부동산인프라 (329200)", "strategy": "조달 비용 감소로 인한 배당 수익률 및 자산 가치 상승"},
+          {"name": "KODEX 미국부동산리츠(합성H) (225060)", "strategy": "전 세계 부동산 시장의 핵심인 미국 리츠에 투자"},
+          {"name": "TIGER 미국MSCI리츠(합성H) (182480)", "strategy": "글로벌 상업용 부동산 투자의 정석적인 선택"}
+        ],
+        icon: 'apartment' 
+      },
     ],
     down: [
-      { name: '은행주', product_name: 'TIGER 은행', strategy: '예대금리차 축소로 인한 금융사 수익성 악화 우려', icon: 'account_balance_wallet' },
-      { name: '단기 예금', product_name: '정기예금/CMA', strategy: '금리 인하로 인한 이자 자산의 매력도 하락', icon: 'savings' },
+      { 
+        name: '은행/보험', 
+        desc: '금리 하락으로 예대마진 및 운용 수익성이 약화되는 섹터',
+        products: [
+          {"name": "TIGER 은행 (091170)", "strategy": "예대금리차 축소로 인한 금융사 수익성 악화 우려"},
+          {"name": "KODEX 보험 (091180)", "strategy": "금리 하락으로 인한 신규 자금 운용 수익률 저하"}
+        ],
+        icon: 'account_balance_wallet' 
+      }
     ],
   },
+  {
   {
     id: 'inflation',
     label: '인플레이션',
@@ -600,40 +680,45 @@ const INSIGHTS_DATA = [
     up: [
       { 
         name: '실물 자산(금)', 
+        desc: '화폐 가치 하락에 대비하는 영원한 안전 자산',
         products: [
           {"name": "ACE KRX금현물 (411060)", "strategy": "화폐 가치 하락 시 실물 자산으로의 가치 저장 수단 활용"},
           {"name": "TIGER 금은선물(H) (139310)", "strategy": "금과 함께 물가 상승기에 강세를 보이는 은에 분산 투자"},
-          {"name": "KODEX 골드선물(H) (132030)", "strategy": "가장 대중적인 금 선물 투자 상품으로 유동성이 풍부함"}
+          {"name": "KODEX 골드선물(H) (132030)", "strategy": "장내 선물을 통해 비용 효율적으로 금에 투자"}
         ],
         icon: 'diamond' 
       },
       { 
         name: '원자재/에너지', 
+        desc: '물가 상승을 직접적으로 견인하는 에너지 및 산업용 금속',
         products: [
           {"name": "TIGER 미국S&P500에너지 (414210)", "strategy": "에너지 가격 상승 수혜를 직접적으로 받는 글로벌 정유사 투자"},
           {"name": "KODEX 미국S&P500에너지 (414260)", "strategy": "엑손모빌, 쉐브론 등 글로벌 에너지 대기업 중심 포트폴리오"},
-          {"name": "TIGER 구리실물 (160580)", "strategy": "경기 회복과 인플레이션 상황에서 수요가 급증하는 구리 투자"}
+          {"name": "TIGER 구리실물 (160580)", "strategy": "실물 경기 회복과 인플레 상황에서 수요가 급증하는 구리 투자"}
         ],
         icon: 'local_gas_station' 
       },
       { 
         name: '고배당주', 
+        desc: '물가 상승분을 이익에 반영할 수 있는 방어적 고배당 섹터',
         products: [
           {"name": "KODEX 고배당 (211900)", "strategy": "물가 상승기에도 견고한 이익을 바탕으로 고배당을 유지하는 기업"},
           {"name": "TIGER 미국배당다우존스 (451150)", "strategy": "미국의 우량 배당 성장주에 투자하여 안정적인 현금 흐름 확보"},
-          {"name": "ARIRANG 고배당주 (161510)", "strategy": "전통적인 국내 고배당 섹터인 금융, 통신주 중심의 투자"}
+          {"name": "ARIRANG 고배당주 (161510)", "strategy": "국내 고배당 섹터인 금융, 통신주 중심의 분산 투자"}
         ],
         icon: 'payments' 
       },
     ],
     down: [
       { 
-        name: '장기 채권', 
+        name: '현금/장기채', 
+        desc: '물가 상승으로 인해 구매력과 상대적 가치가 급락하는 자산',
         products: [
           {"name": "KODEX 국고채30년액티브 (403990)", "strategy": "물가 상승에 따른 시장 금리 급등 시 채권 가격 폭락 위험"},
-          {"name": "TIGER 미국채30년선물 (305080)", "strategy": "인플레 장기화 시 장기 국채 가격 하락 압력 확대"}
+          {"name": "TIGER 미국채30년선물 (305080)", "strategy": "인플레 장기화 시 장기 국채 가격 하락 압력 확대"},
+          {"name": "KODEX 단기채권 (153130)", "strategy": "실질 금리 마이너스 구간에서 현금성 자산의 구매력 손실"}
         ],
-        icon: 'account_balance' 
+        icon: 'money_off' 
       }
     ],
   },
@@ -647,15 +732,17 @@ const INSIGHTS_DATA = [
     up: [
       { 
         name: '은행/금융', 
+        desc: '금리 상승에 따른 예대마진(NIM) 확대로 수익성이 직접 개선되는 섹터',
         products: [
-          {"name": "KODEX 은행 (091170)", "strategy": "금리 상승에 따른 순이자마진(NIM) 개선으로 수익성 직결"},
-          {"name": "TIGER 금융지주 (145670)", "strategy": "안정적인 영업이익과 높은 배당 성향을 보유한 대형 금융지주"},
+          {"name": "KODEX 은행 (091170)", "strategy": "금리 상승에 따른 순이자마진 개선으로 수익성 직결"},
+          {"name": "TIGER 금융지주 (145670)", "strategy": "우량 금융지주의 안정적인 이익 창출과 높은 배당 수익률"},
           {"name": "KODEX 보험 (091180)", "strategy": "금리 인상 시 자산 운용 수익률이 개선되어 실적 상승 기대"}
         ],
         icon: 'account_balance_wallet' 
       },
       { 
-        name: '단기 채권', 
+        name: '단기 채권/파킹', 
+        desc: '변동 리스크는 낮추고 오르는 시장 금리를 즉각 반영하는 현금성 자산',
         products: [
           {"name": "KODEX 1년국고채액티브 (395160)", "strategy": "금리 변동 리스크를 최소화하며 고금리 이자 수익 확보"},
           {"name": "TIGER KOFR금리액티브(합성) (430690)", "strategy": "매일 이자가 복리로 쌓이는 파킹형 투자의 정석"},
@@ -664,10 +751,11 @@ const INSIGHTS_DATA = [
         icon: 'payments' 
       },
       { 
-        name: '가치주', 
+        name: '가치주/배당주', 
+        desc: '고금리 환경에서도 견고한 현금 흐름을 증명하는 저평가 우량주',
         products: [
           {"name": "KODEX 가치성장 (211900)", "strategy": "현금 흐름이 풍부하고 저평가된 우량 가치주 중심 전략"},
-          {"name": "TIGER 미국배당프리미엄액티브 (445680)", "strategy": "주가 상승 수익과 함께 높은 배당 수익을 동시에 추구"},
+          {"name": "TIGER 미국배당프리미엄액티브 (445680)", "strategy": "커버드콜 전략으로 고금리 환경에서 인컴 수익 극대화"},
           {"name": "KBSTAR 고배당 (266550)", "strategy": "전통적인 고금리 수혜주인 고배당 종목 위주의 포트폴리오"}
         ],
         icon: 'auto_graph' 
@@ -676,9 +764,11 @@ const INSIGHTS_DATA = [
     down: [
       { 
         name: '기술/성장주', 
+        desc: '미래 이익에 대한 할인율 상승으로 주가 밸류에이션 압박을 받는 섹터',
         products: [
           {"name": "TIGER 미국나스닥100 (133690)", "strategy": "자금 조달 비용 상승 및 미래 이익에 대한 할인율 부담"},
-          {"name": "KODEX 미국팡플러스(H) (314220)", "strategy": "유동성 축소 시 변동성이 커질 수 있는 집중 투자형 성장주"}
+          {"name": "KODEX 미국팡플러스(H) (314220)", "strategy": "유동성 축소 시 변동성이 커질 수 있는 기술주 집중 투자"},
+          {"name": "SOL 미국테크TOP10 (451240)", "strategy": "금리에 민감한 대형 기술주 중심의 하락 압력 우려"}
         ],
         icon: 'memory' 
       }
@@ -694,28 +784,31 @@ const INSIGHTS_DATA = [
     up: [
       { 
         name: '안전 자산(달러)', 
+        desc: '전 세계적 위기 상황에서 가치가 상승하는 최후의 결제 수단',
         products: [
-          {"name": "KODEX 미국달러선물 (261220)", "strategy": "글로벌 금융 시장 위기 시 수요가 몰리는 최후의 안전 자산"},
-          {"name": "TIGER 미국달러단기채권액티브 (329750)", "strategy": "달러 가치 상승과 함께 단기 채권의 안정적 수익 추구"},
+          {"name": "KODEX 미국달러선물 (261220)", "strategy": "글로벌 금융 시장 위기 시 수요가 몰리는 안전 자산"},
+          {"name": "TIGER 미국달러단기채권액티브 (329750)", "strategy": "달러 가치 상승과 짧은 만기의 이자 수익 동시 확보"},
           {"name": "KODEX 미국달러선물레버리지 (261240)", "strategy": "급격한 경기 침체로 인한 달러 강세 가속화에 베팅"}
         ],
         icon: 'currency_exchange' 
       },
       { 
         name: '필수 소비재', 
+        desc: '경기가 어려워도 반드시 소비해야 하는 음식료 및 기초 생활 용품',
         products: [
-          {"name": "KODEX 필수소비재 (211210)", "strategy": "경기 둔화와 관계없이 수요가 일정한 음식료, 생필품 위주 방어"},
-          {"name": "TIGER 필수소비재 (143860)", "strategy": "불황에도 매출 타격이 적은 국내 대표 소비재 기업 포트폴리오"},
-          {"name": "KODEX 배당성장 (139280)", "strategy": "안정적인 실적을 바탕으로 꾸준히 배당을 지급하는 방어형"}
+          {"name": "KODEX 필수소비재 (211210)", "strategy": "경기 둔화와 관계없이 수요가 일정한 방어적 섹터"},
+          {"name": "TIGER 필수소비재 (143860)", "strategy": "불황에도 매출 타격이 적은 국내 대표 소비재 기업"},
+          {"name": "KODEX 배당성장 (139280)", "strategy": "안정적인 실적을 바탕으로 꾸준히 배당을 지급하는 전략"}
         ],
         icon: 'shopping_cart' 
       },
       { 
-        name: '안전 채권', 
+        name: '안전 국채', 
+        desc: '위험 회피 심리나 시장 금리 하락 가능성에 배팅하는 국채 투자',
         products: [
-          {"name": "TIGER 미국채10년선물 (305080)", "strategy": "위험 자산 회피 심리로 인해 국채 수요가 급증할 때 유리"},
-          {"name": "KODEX 국고채3년 (114820)", "strategy": "국가 부도 위험이 없는 국고채를 통한 자산 방어 전략"},
-          {"name": "ACE 미국S&P500채권혼합액티브 (445120)", "strategy": "지배적인 점유율을 가진 기업 주식과 채권을 함께 보유"}
+          {"name": "TIGER 미국채10년선물 (305080)", "strategy": "안전 자산 선호 심리로 국채 가격 상승 수혜 기대"},
+          {"name": "KODEX 국고채3년 (114820)", "strategy": "부도 위험이 없는 국고채를 통한 안정적 자산 운용"},
+          {"name": "ACE 미국채20년이상 (451240)", "strategy": "침체 시 금리 하락 가능성에 따른 자본 차익 추구"}
         ],
         icon: 'account_balance' 
       },
@@ -723,17 +816,17 @@ const INSIGHTS_DATA = [
     down: [
       { 
         name: '경기 민감주', 
+        desc: '소득 감소와 기업 실적 악화로 가장 먼저 타격을 입는 섹터',
         products: [
-          {"name": "TIGER 현대차그룹+ (138540)", "strategy": "구매력 저하로 인한 자동차, 기계 등 고가 내구재 수요 급감"},
-          {"name": "KODEX 반도체 (091160)", "strategy": "글로벌 IT 경기 위축에 따른 메모리 업황 둔화 직격탄"},
-          {"name": "TIGER 200철강커모디티 (139320)", "strategy": "산업 전반의 가동률 하락으로 인한 원자재 수요 부진 우려"}
+          {"name": "TIGER 현대차그룹+ (138540)", "strategy": "구매력 저하로 인한 자동차, 기계 등 고가 내구재 수요 급감 우려"},
+          {"name": "KODEX 반도체 (091160)", "strategy": "글로벌 IT 경기 위축에 따른 업황 사이클 둔화 직격탄"},
+          {"name": "TIGER 200철강커모디티 (139320)", "strategy": "산업 전반의 투자 위축으로 인한 원자재 수요 부진"}
         ],
         icon: 'directions_car' 
       }
     ],
   },
 ];
-
 const INVESTMENT_DISCLAIMER = "본 정보는 시장 상황 분석에 따른 참고용 예시일 뿐, 특정 종목에 대한 투자 권고나 추천이 아닙니다. 모든 투자의 결과와 책임은 투자자 본인에게 귀속됩니다.";
 
 // ============ Asset Details Modal ============
@@ -774,11 +867,6 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type, yieldD
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12"></div>
               <div className="flex justify-between items-start mb-1 relative z-10">
                 <h3 className="text-sm md:text-base font-extrabold text-primary flex-1">{p.name || p.product_name || asset.name}</h3>
-                {p.yield && (
-                  <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${p.yield.startsWith('+') ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                    {p.yield}
-                  </span>
-                )}
               </div>
               <p className="text-[11px] md:text-xs text-on-surface-variant leading-relaxed relative z-10">
                 {p.strategy || p.desc || "해당 시장 상황에서 유리한 성과를 기대할 수 있는 대표적인 상품입니다."}

@@ -266,27 +266,122 @@ def fetch_naver_etf_data():
 def get_dynamic_assets(scenario, all_etfs):
     """현재 시나리오와 연관된 카테고리별 수익률 TOP 3 종목을 추출합니다."""
     
-    # 시나리오별 키워드 정의
+    # 시나리오별 키워드 및 정성적 분석 정보 정의
     SCENARIO_CONFIG = {
         "rate_cut": [
-            {"category": "미국 성장주", "keywords": ["나스닥", "테크", "반도체"], "exclude": ["인버스", "2X"]},
-            {"category": "장기 국채", "keywords": ["미국채", "30년"], "exclude": ["인버스"]},
-            {"category": "리츠(부동산)", "keywords": ["리츠"], "exclude": []}
+            {
+                "category": "미국 성장주", 
+                "keywords": ["나스닥", "테크", "반도체"], 
+                "exclude": ["인버스", "2X"],
+                "desc": "저금리 수혜를 직접적으로 받는 나스닥 및 혁신 기술주",
+                "strategy": "금리 하락 시 자금 조달 비용 감소 및 미래 이익 할인율 하락으로 가치 상승 기대"
+            },
+            {
+                "category": "장기 국채", 
+                "keywords": ["미국채", "30년"], 
+                "exclude": ["인버스"],
+                "desc": "금리 하락 시 채권 가격 상승으로 인한 자본 차익 극대화",
+                "strategy": "시장 금리가 낮아질수록 장기 채권의 가격 탄력성이 높아져 안정적인 수익 확보 가능"
+            },
+            {
+                "category": "리츠(부동산)", 
+                "keywords": ["리츠"], 
+                "exclude": [],
+                "desc": "이자 부담 감소로 배당 매력이 높아지는 부동산 자산",
+                "strategy": "차입 비용 감소로 인한 수익성 개선 및 배당 성장 가능성이 높은 섹터"
+            }
         ],
         "rate_hike": [
-            {"category": "은행주", "keywords": ["은행"], "exclude": ["인버스"]},
-            {"category": "금융주", "keywords": ["금융지주", "증권"], "exclude": ["인버스"]},
-            {"category": "단기 채권", "keywords": ["단기", "KOFR", "CD"], "exclude": []}
+            {
+                "category": "은행주", 
+                "keywords": ["은행"], 
+                "exclude": ["인버스"],
+                "desc": "금리 상승에 따른 예대마진 확대로 수익성이 개선되는 금융 섹터",
+                "strategy": "이자 수익 증가로 실적이 직접적으로 반영되는 대표적인 금리 인상 수혜주"
+            },
+            {
+                "category": "금융주", 
+                "keywords": ["금융지주", "증권"], 
+                "exclude": ["인버스"],
+                "desc": "고금리 환경에서 견고한 현금 흐름을 보이는 대형 금융그룹",
+                "strategy": "안정적인 자본을 바탕으로 배당 및 이자 수익 비중이 높은 우량 섹터"
+            },
+            {
+                "category": "단기 채권", 
+                "keywords": ["단기", "KOFR", "CD"], 
+                "exclude": [],
+                "desc": "변동성 리스크를 피하고 오르는 시장 금리를 즉각 반영하는 현금성 자산",
+                "strategy": "금리 변동 리스크를 최소화하면서 매일 이자가 쌓이는 안전한 투자 전략"
+            }
         ],
         "inflation": [
-            {"category": "실물 자산(금/은)", "keywords": ["금현물", "골드", "은선물"], "exclude": ["인버스"]},
-            {"category": "원자재/에너지", "keywords": ["에너지", "원유", "구리"], "exclude": ["인버스"]},
-            {"category": "고배당주", "keywords": ["고배당", "배당성장"], "exclude": []}
+            {
+                "category": "실물 자산(금/은)", 
+                "keywords": ["금현물", "골드", "은선물"], 
+                "exclude": ["인버스"],
+                "desc": "화폐 가치 하락에 대비하는 영원한 안전 자산",
+                "strategy": "물가 상승 시 구매력 보전을 위한 최후의 가치 저장 수단"
+            },
+            {
+                "category": "원자재/에너지", 
+                "keywords": ["에너지", "원유", "구리"], 
+                "exclude": ["인버스"],
+                "desc": "인플레이션을 직접적으로 견인하는 에너지 및 산업용 재료",
+                "strategy": "수요 증가와 공급 부족으로 가격 상승이 예상되는 실물 경제 기반 섹터"
+            },
+            {
+                "category": "고배당주", 
+                "keywords": ["고배당", "배당성장"], 
+                "exclude": [],
+                "desc": "물가 상승분을 이익에 반영할 수 있는 방어적 섹터",
+                "strategy": "꾸준한 현금 흐름과 높은 배당 수익률로 인플레 압력을 상쇄하는 전략"
+            }
         ],
         "recession": [
-            {"category": "안전 자산(달러)", "keywords": ["달러선물"], "exclude": ["인버스"]},
-            {"category": "필수 소비재", "keywords": ["필수소비재", "음식료"], "exclude": []},
-            {"category": "안전 채권", "keywords": ["미국채", "국고채"], "exclude": ["30년", "인버스"]}
+            {
+                "category": "안전 자산(달러)", 
+                "keywords": ["달러선물"], 
+                "exclude": ["인버스"],
+                "desc": "전 세계적 위기 상황에서 가치가 상승하는 기축 통화",
+                "strategy": "경기 둔화 리스크가 커질수록 수요가 몰리는 안전 자산의 정석"
+            },
+            {
+                "category": "필수 소비재", 
+                "keywords": ["필수소비재", "음식료"], 
+                "exclude": [],
+                "desc": "경기가 어려워도 반드시 소비해야 하는 음식료 및 생필품",
+                "strategy": "불황에도 매출 타격이 적고 안정적인 주가 방어력을 보여주는 섹터"
+            },
+            {
+                "category": "안전 채권", 
+                "keywords": ["미국채", "국고채"], 
+                "exclude": ["30년", "인버스"],
+                "desc": "위험 회피 심리 강화로 수요가 집중되는 단기/중기 국채",
+                "strategy": "부도 위험이 없는 국고채를 통해 자산을 안전하게 보존하는 전략"
+            }
+        ],
+        "war": [
+            {
+                "category": "방산주", 
+                "keywords": ["방산", "현대로템", "에어로스페이스", "KAI", "LIG넥스원", "한화시스템", "현대위아"], 
+                "exclude": ["인버스"],
+                "desc": "지정학적 리스크 확대로 인한 국방 수요 및 수출 증가",
+                "strategy": "글로벌 군비 확장 및 안보 위협 상황에서 실적 성장이 가시화되는 섹터"
+            },
+            {
+                "category": "안전 자산(금/달러)", 
+                "keywords": ["금현물", "골드", "달러선물", "달러단기"], 
+                "exclude": ["인버스"],
+                "desc": "분쟁 및 위기 상황에서 가치가 폭등하는 대표 안전 자산",
+                "strategy": "글로벌 리스크 회피 심리 극대화 시 가장 선호되는 가치 저장 수단"
+            },
+            {
+                "category": "에너지/원자재", 
+                "keywords": ["원유", "에너지", "천연가스", "구리", "알루미늄"], 
+                "exclude": ["인버스"],
+                "desc": "전쟁으로 인한 공급망 차질 및 원자재 가격 변동성 확대 수혜",
+                "strategy": "생산 및 물류 마비 우려로 인한 에너지 및 산업 원자재 가격 상승 수혜"
+            }
         ]
     }
     
@@ -313,32 +408,55 @@ def get_dynamic_assets(scenario, all_etfs):
         
         # TOP 3 선별
         top_3 = []
-        for item in filtered[:3]:
+        # 종목별로 다른 투자 이유를 제공하기 위한 템플릿
+        strategy_templates = [
+            "{base_strategy} 또한 해당 테마 내 높은 수익성과 시장 지배력을 보유하고 있습니다.",
+            "{base_strategy} 우호적인 거시 지표를 바탕으로 안정적인 우상향 흐름이 기대됩니다.",
+            "{base_strategy} 섹터 내 대표 종목으로서 자산 배분 전략의 필수적인 도구로 활용됩니다."
+        ]
+        
+        for i, item in enumerate(filtered[:3]):
             # 수익률 포맷팅
             try:
                 raw_yield = float(item.get('threeMonthEarnRate') or 0)
                 yield_val = f"+{raw_yield}%" if raw_yield > 0 else f"{raw_yield}%"
             except:
                 yield_val = "0.0%"
-                
+            
+            # 종목별로 전략 문구 다양화
+            base = entry.get("strategy", "해당 시장 상황에서 유리한 성과를 기대할 수 있는 상품입니다.")
+            if i < len(strategy_templates):
+                final_strategy = strategy_templates[i].format(base_strategy=base)
+            else:
+                final_strategy = base
+
             top_3.append({
                 "name": f"{item['itemname']} ({item['itemcode']})",
-                "strategy": f"3개월 수익률 {yield_val}을 기록 중인 해당 분야 대표 상품입니다.",
+                "strategy": final_strategy,
                 "yield": yield_val
             })
             
         if top_3:
             recommended.append({
                 "category": category,
+                "desc": entry.get("desc", ""),
                 "products": top_3
             })
             
     # 주의 종목은 시나리오별로 고정된 로직 적용
     caution = []
     if scenario == "rate_cut":
-        caution.append({"category": "은행주", "products": [{"name": "KODEX 은행 (091170)", "strategy": "금리 하락 시 수익성 악화 우려"}]})
+        caution.append({
+            "category": "은행주", 
+            "desc": "금리 하락 시 예대마진 축소로 인한 수익성 악화 우려",
+            "products": [{"name": "KODEX 은행 (091170)", "strategy": "저금리 환경에서 수익성이 정체될 수 있는 금융 섹터 주의"}]
+        })
     elif scenario == "rate_hike":
-        caution.append({"category": "성장주", "products": [{"name": "TIGER 미국나스닥100 (133690)", "strategy": "금리 상승에 따른 밸류에이션 하락 압력"}]})
+        caution.append({
+            "category": "성장주", 
+            "desc": "고금리 환경에서 미래 이익에 대한 밸류에이션 하락 압박",
+            "products": [{"name": "TIGER 미국나스닥100 (133690)", "strategy": "자금 조달 비용 상승으로 인해 변동성이 커질 수 있는 기술주"}]
+        })
 
     return recommended, caution
 
