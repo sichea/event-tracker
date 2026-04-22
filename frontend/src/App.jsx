@@ -581,13 +581,13 @@ const INSIGHTS_DATA = [
     bgGrad: 'from-green-500/20 to-emerald-500/10',
     summary: '중앙은행이 금리를 인하해 돈줄을 풀어 시중에 돈이 흔해지고, 기업 성장이 가속됩니다.',
     up: [
-      { name: '기술주/성장주', desc: '저금리 수혜, 밸류에이션 확장', icon: 'memory' },
-      { name: '바이오', desc: '미래 성장 기대감 상승', icon: 'biotech' },
-      { name: '장기 채권', desc: '금리 하락 시 채권 가격 상승', icon: 'account_balance' },
+      { name: '기술주', product_name: 'TIGER 미국나스닥100', strategy: '저금리 환경에서 밸류에이션 매력이 높아지는 빅테크 중심 투자', icon: 'memory' },
+      { name: '장기 채권', product_name: 'KODEX 미국채울트라30년선물(H)', strategy: '금리 하락 시 채권 가격 상승폭이 가장 큰 장기물 타겟', icon: 'account_balance' },
+      { name: '리츠', product_name: 'TIGER 리츠부동산인프라', strategy: '조달 비용 감소로 인한 배당 수익률 및 자산 가치 상승', icon: 'apartment' },
     ],
     down: [
-      { name: '은행/금융주', desc: '예대금리차 축소로 수익 감소', icon: 'account_balance_wallet' },
-      { name: '예적금', desc: '금리 하락으로 이자 매력 급감', icon: 'savings' },
+      { name: '은행주', product_name: 'TIGER 은행', strategy: '예대금리차 축소로 인한 금융사 수익성 악화 우려', icon: 'account_balance_wallet' },
+      { name: '단기 예금', product_name: '정기예금/CMA', strategy: '금리 인하로 인한 이자 자산의 매력도 하락', icon: 'savings' },
     ],
   },
   {
@@ -598,12 +598,13 @@ const INSIGHTS_DATA = [
     bgGrad: 'from-amber-500/20 to-yellow-500/10',
     summary: '수요 폭발로 물건값이 오르고 화폐 가치가 떨어지며, 실물 자산의 몸값이 오릅니다.',
     up: [
-      { name: '원자재 (금, 은, 원유)', desc: '실물 자산 가치 급등', icon: 'diamond' },
-      { name: '필수소비재', desc: '물가와 함께 매출·이익 동반 상승', icon: 'shopping_cart' },
+      { name: '실물 금', product_name: 'ACE KRX금현물', strategy: '화폐 가치 하락 시 실물 자산으로의 가치 저장 수단', icon: 'diamond' },
+      { name: '원자재', product_name: 'TIGER 미국S&P500에너지', strategy: '유가 등 원자재 가격 상승분을 직접 반영하는 섹터', icon: 'local_gas_station' },
+      { name: '고배당주', product_name: 'KODEX 고배당', strategy: '물가 상승기에도 꾸준한 현금 흐름을 제공하는 방어주', icon: 'payments' },
     ],
     down: [
-      { name: '기술주/성장주', desc: '할인율 상승으로 밸류에이션 하락', icon: 'memory' },
-      { name: '채권', desc: '금리 상승 기대에 채권 가격 하락', icon: 'account_balance' },
+      { name: '기술주', product_name: 'TIGER 미국나스닥100', strategy: '할인율 상승에 따른 성장주 주가 하방 압력 증대', icon: 'memory' },
+      { name: '장기 채권', product_name: 'KODEX 국고채30년액티브', strategy: '금리 상승 기대에 따른 채권 가격 하락 우려', icon: 'account_balance' },
     ],
   },
   {
@@ -614,12 +615,13 @@ const INSIGHTS_DATA = [
     bgGrad: 'from-indigo-500/20 to-violet-500/10',
     summary: '물가를 잡기 위해 금리를 올려 돈줄을 조이며, 현금성 자산을 쥐고 관망하는 것이 최선입니다.',
     up: [
-      { name: '은행/금융주', desc: '예대금리차 확대로 수익 증가', icon: 'account_balance_wallet' },
-      { name: '현금 및 단기채권', desc: '높은 이자 수익 확보', icon: 'payments' },
+      { name: '은행주', product_name: 'KODEX 은행', strategy: '금리 상승에 따른 순이자마진(NIM) 개선 및 배당 확대', icon: 'account_balance_wallet' },
+      { name: '단기 채권', product_name: 'KODEX 1년국고채액티브', strategy: '금리 변동 리스크를 최소화하며 고금리 이자 수익 확보', icon: 'payments' },
+      { name: '가치주', product_name: 'KODEX 가치성장', strategy: '현금 흐름이 탄탄한 저평가 우량주 위주 방어적 운용', icon: 'auto_graph' },
     ],
     down: [
-      { name: '기술주/성장주', desc: '자금 조달 비용 급등', icon: 'memory' },
-      { name: '부동산 및 리츠', desc: '대출이자 부담 증가', icon: 'apartment' },
+      { name: '기술주', product_name: 'TIGER 미국나스닥100', strategy: '자금 조달 비용 급등 및 밸류에이션 하락 압력', icon: 'memory' },
+      { name: '부동산/리츠', product_name: 'TIGER 리츠부동산인프라', strategy: '대출 이자 부담 증가로 인한 수익성 저하', icon: 'apartment' },
     ],
   },
   {
@@ -630,13 +632,13 @@ const INSIGHTS_DATA = [
     bgGrad: 'from-blue-500/20 to-cyan-500/10',
     summary: '경제가 얼어붙어 주식시장 붕괴 우려가 있으므로, 돈 떼일 염려 없는 안전자산으로 피난합니다.',
     up: [
-      { name: '달러', desc: '기축 통화로 자금 집중', icon: 'currency_exchange' },
-      { name: '금', desc: '최후의 안전자산', icon: 'diamond' },
-      { name: '방어주 (통신/제약)', desc: '경기와 무관한 안정적 매출', icon: 'health_and_safety' },
+      { name: '미국 달러', product_name: 'KODEX 미국달러선물', strategy: '글로벌 경제 불안 시 안전 자산인 달러 수요 집중', icon: 'currency_exchange' },
+      { name: '필수 소비재', product_name: 'KODEX 필수소비재', strategy: '경기 둔화와 관계없이 일정한 수요가 유지되는 종목', icon: 'shopping_cart' },
+      { name: '미국 채권', product_name: 'TIGER 미국채10년선물', strategy: '위험 자산 회피 심리로 인한 안전 자산 수요 증가', icon: 'account_balance' },
     ],
     down: [
-      { name: '경기 민감주 (자동차, 반도체)', desc: '수요 급감에 실적 악화', icon: 'directions_car' },
-      { name: '사치재', desc: '소비 위축으로 매출 급감', icon: 'watch' },
+      { name: '경기 민감주', product_name: 'TIGER 현대차그룹+', strategy: '수요 급감에 따른 제조 산업 실격 악화 우려', icon: 'directions_car' },
+      { name: '사치재', product_name: 'TIGER 화장품', strategy: '소비 위축으로 인한 명품 및 기호품 매출 급감', icon: 'watch' },
     ],
   },
 ];
