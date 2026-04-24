@@ -2,8 +2,7 @@ name: Smart Parking Scraper (Bi-monthly)
 
 on:
   schedule:
-    # Run at 00:00 (UTC) on the 1st and 15th of every month.
-    # Note: 00:00 UTC is 09:00 KST
+    # 매달 1일과 15일 09:00 (KST) 실행
     - cron: '0 0 1,15 * *'
   workflow_dispatch: # Allows manual triggering from the GitHub Actions UI
 
