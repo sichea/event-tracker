@@ -1424,7 +1424,7 @@ function ParkingCmaComparison() {
       <div className="mb-10">
         <div className="flex flex-col md:flex-row md:items-end gap-2 mb-2">
           <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline">금리 비교</h1>
-          <span className="text-xs md:text-sm text-primary font-bold mb-1 opacity-80">※ 2026년 4월 기준 실시간 분석</span>
+          <span className="text-xs md:text-sm text-primary font-bold mb-1 opacity-80">※ {new Date().getFullYear()}년 {new Date().getMonth() + 1}월 기준 실시간 분석</span>
         </div>
         <p className="text-on-surface-variant max-w-xl italic">세금(15.4%)을 제외하고 내 통장에 실제로 꽂히는 진짜 이자를 확인하세요.</p>
       </div>
