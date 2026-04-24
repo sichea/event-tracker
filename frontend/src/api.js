@@ -3,6 +3,16 @@ import { supabase } from './supabaseClient';
 // 모든 이벤트를 가져옵니다
 // - 진행중 이벤트 전체
 // - 내가 참여한(user_events에 기록된) 이벤트 중 종료 후 30일 이내인 것
+
+export async function fetchParkingRates() {
+  const { data, error } = await supabase
+    .from('parking_rates')
+    .select('*')
+    .order('max_rate', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchEvents(userId) {
   // 1) 진행중 이벤트 조회
   const { data: activeEvents, error: activeError } = await supabase

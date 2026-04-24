@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription, fetchMarketInsights, fetchAptSubscriptions } from "./api";
+import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription, fetchMarketInsights, fetchAptSubscriptions, fetchParkingRates } from "./api";
 import { supabase } from "./supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -33,7 +33,7 @@ function formatDateRange(start, end) {
 }
 
 // Event Card using Tailwind
-function EventCard({ event, aliases, onToggle }) {
+function EventCard({ event, aliases, onToggle, showToastMsg }) {
   const dday = formatDday(event.d_day);
   const isActive = event.status === "진행중";
   const hasAnyCheck = Object.values(event.checkedAliases || {}).some((v) => v);
@@ -48,6 +48,30 @@ function EventCard({ event, aliases, onToggle }) {
     end.setHours(0, 0, 0, 0);
     return Math.floor((today - end) / (1000 * 60 * 60 * 24));
   })();
+
+  const handleShare = async (e) => {
+    e.preventDefault();
+    const shareData = {
+      title: `[ETF 이벤트] ${event.title}`,
+      text: `${event.provider}에서 진행하는 ETF 이벤트를 확인해보세요!`,
+      url: event.link || window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(event.link || window.location.href);
+        if (typeof showToastMsg === 'function') {
+           showToastMsg("링크가 클립보드에 복사되었습니다.", "success");
+        } else {
+           alert("링크가 복사되었습니다.");
+        }
+      }
+    } catch (err) {
+      console.error("공유 실패:", err);
+    }
+  };
 
   return (
     <div className={`bg-surface-container rounded-3xl p-4 md:p-6 transition-all duration-300 border flex flex-col
@@ -73,17 +97,25 @@ function EventCard({ event, aliases, onToggle }) {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5 md:gap-2">
           {!isActive && daysAfterEnd !== null && (
             <span className="text-[9px] text-outline/60 font-medium">{30 - daysAfterEnd}일 후 목록에서 제거</span>
           )}
+          <button 
+            onClick={handleShare}
+            className="w-8 h-8 rounded-full bg-surface-container-highest hover:bg-primary hover:text-on-primary flex items-center justify-center transition-colors group/share"
+            title="이벤트 공유하기"
+          >
+            <span className="material-symbols-outlined text-sm">share</span>
+          </button>
           {event.link && (
-            <a href={event.link} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-surface-container-highest hover:bg-primary hover:text-on-primary flex items-center justify-center transition-colors">
+            <a href={event.link} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-surface-container-highest hover:bg-primary hover:text-on-primary flex items-center justify-center transition-colors" title="이벤트 페이지 열기">
               <span className="material-symbols-outlined text-sm">open_in_new</span>
             </a>
           )}
         </div>
       </div>
+
       <h4 className="text-sm md:text-base font-bold font-headline mb-2 md:mb-3 line-clamp-2 min-h-[2.5rem] md:min-h-[3rem] leading-snug">{event.title}</h4>
       <div className="text-[11px] md:text-xs text-on-surface-variant mb-4 md:mb-6 flex items-center gap-2">
         <span className="material-symbols-outlined text-[14px]">calendar_today</span>
@@ -1180,6 +1212,88 @@ function InvestmentInsights() {
   );
 }
 
+function ParkingCmaComparison() {
+  const [subTab, setSubTab] = useState('parking'); // 'parking' or 'cma'
+  const [ratesData, setRatesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchParkingRates()
+      .then(data => {
+        setRatesData(data || []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch rates", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const displayData = ratesData.filter(item => item.type === subTab);
+
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="mb-10">
+        <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline mb-2">금리 비교</h1>
+        <p className="text-on-surface-variant max-w-xl italic">현명한 현금 관리를 위해 파킹통장과 CMA 금리를 비교하세요.</p>
+      </div>
+
+      <div className="flex bg-surface-container/50 p-1 rounded-2xl border border-white/5 w-full md:w-fit mb-8">
+        <button 
+          onClick={() => setSubTab('parking')}
+          className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'parking' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+        >
+          파킹통장 (은행)
+        </button>
+        <button 
+          onClick={() => setSubTab('cma')}
+          className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'cma' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+        >
+          CMA (증권사)
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+        </div>
+      ) : displayData.length === 0 ? (
+        <div className="py-20 text-center text-on-surface-variant">
+           <span className="material-symbols-outlined text-5xl mb-4 opacity-50">money_off</span>
+           <p>현재 제공되는 금리 정보가 없습니다.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {displayData.map(item => (
+          <div key={item.id} className="group bg-surface-container border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-container-high hover:-translate-y-1 hover:border-primary/20 duration-300 flex flex-col relative overflow-hidden">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{item.bank}</p>
+                <h4 className="text-lg font-bold font-headline line-clamp-1">{item.product}</h4>
+              </div>
+              <span className="px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-black border border-primary/20">{item.tag}</span>
+            </div>
+            
+            <div className="my-4">
+              <span className="text-3xl font-black text-primary font-headline">{item.rate}<span className="text-lg ml-0.5">%</span></span>
+              <p className="text-xs text-on-surface-variant mt-1">{item.detail}</p>
+            </div>
+
+            <button className="mt-4 w-full py-3 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2">
+              상세 정보 보기
+              <span className="material-symbols-outlined text-sm">chevron_right</span>
+            </button>
+          </div>
+        ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [events, setEvents] = useState([]);
@@ -1526,10 +1640,27 @@ export default function App() {
           </div>
         </div>
         <div className="space-y-1 flex-1">
-          <button onClick={() => {setSelectedProvider(null); setSelectedStatus("전체 보기");}} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${selectedProvider === null ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+          <button onClick={() => { setActiveTab("insights"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${activeTab === 'insights' ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+            <span className="material-symbols-outlined text-xl">insights</span>
+            <span className="font-medium">투자 인사이트</span>
+          </button>
+          <button onClick={() => { setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
             <span className="material-symbols-outlined text-xl">layers</span>
             <span className="font-medium">ETF 이벤트</span>
           </button>
+          <button onClick={() => { setActiveTab("ipo"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${activeTab === 'ipo' ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+            <span className="material-symbols-outlined text-xl">calendar_month</span>
+            <span className="font-medium">공모주 캘린더</span>
+          </button>
+          <button onClick={() => { setActiveTab("apt"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${activeTab === 'apt' ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+            <span className="material-symbols-outlined text-xl">home_work</span>
+            <span className="font-medium">아파트 청약</span>
+          </button>
+          <button onClick={() => { setActiveTab("parking"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${activeTab === 'parking' ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+            <span className="material-symbols-outlined text-xl">account_balance</span>
+            <span className="font-medium">금리 비교</span>
+          </button>
+
           <button onClick={() => supabase.auth.signOut()} className="w-full text-left text-[#ebedfb]/70 hover:bg-[#262c3a]/30 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:text-[#ff716c] duration-300">
             <span className="material-symbols-outlined text-xl">logout</span>
             <span>로그아웃</span>
@@ -1712,6 +1843,8 @@ export default function App() {
 
             </div>
           )
+        ) : activeTab === "parking" ? (
+          <ParkingCmaComparison />
         ) : (
         <>
         {/* Dashboard Header */}
@@ -1882,8 +2015,9 @@ export default function App() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in">
               {displayEvents.length > 0 ? displayEvents.map(e => (
-                <EventCard key={e.id} event={e} aliases={aliases} onToggle={handleToggle} />
+                <EventCard key={e.id} event={e} aliases={aliases} onToggle={handleToggle} showToastMsg={showToastMsg} />
               )) : (
+
                 <div className="col-span-full py-20 text-center text-on-surface-variant">
                   <span className="material-symbols-outlined text-5xl mb-4 opacity-50">filter_list_off</span>
                   <p>해당 조건의 이벤트가 없습니다.</p>
@@ -1914,7 +2048,12 @@ export default function App() {
           <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'apt' ? 'fill' : 'normal'}>home_work</span>
           <span className="text-[10px] font-bold">아파트</span>
         </button>
+        <button onClick={() => { setActiveTab("parking"); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 ${activeTab === 'parking' ? 'text-primary' : 'text-on-surface-variant'}`}>
+          <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'parking' ? 'fill' : 'normal'}>account_balance</span>
+          <span className="text-[10px] font-bold">금리 비교</span>
+        </button>
         <button onClick={() => setShowSettings(!showSettings)} className={`flex flex-col items-center gap-1 ${showSettings ? 'text-primary' : 'text-on-surface-variant'}`}>
+
           <span className="material-symbols-outlined text-2xl" data-weight={showSettings ? 'fill' : 'normal'}>person</span>
           <span className="text-[10px] font-bold">내 정보</span>
         </button>

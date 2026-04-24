@@ -142,11 +142,13 @@ async def scrape_ipo() -> list[dict]:
                     if (text.includes('종목명') && text.includes('청약일')) {
                         t.querySelectorAll('tr').forEach(tr => {
                             const cells = Array.from(tr.querySelectorAll('td, th')).map(td => td.innerText.trim());
-                            // 보통 6~8개 컬럼
-                            if (cells.length >= 6 && cells[0] !== '종목명' && cells[0] !== '') {
+                            // 보통 6~8개 컬럼, 종목명이 너무 길거나(20자 이상), 날짜에 '~'가 없으면 무시
+                            if (cells.length >= 6 && cells[0] !== '종목명' && cells[0].length < 20 && cells[0] !== '' && cells[1].includes('~')) {
                                 results.push({
                                     name: cells[0],
                                     dates: cells[1],
+
+
                                     confirmed_price: cells[2],
                                     desired_price: cells[3],
                                     competition: cells[4],
@@ -177,12 +179,15 @@ async def scrape_ipo() -> list[dict]:
                     if (t.innerText.includes('기업명') && t.innerText.includes('신규상장일')) {
                         t.querySelectorAll('tr').forEach(tr => {
                             const cells = Array.from(tr.querySelectorAll('td')).map(td => td.innerText.trim());
-                            if (cells.length >= 2 && cells[0] !== '기업명' && cells[0] !== '') {
+                            // 기업명이 너무 길거나(20자 이상), 날짜 형식이 아니면 무시 (YYYY.MM.DD 또는 YYYY/MM/DD 지원)
+                            if (cells.length >= 2 && cells[0] !== '기업명' && cells[0].length < 20 && cells[0] !== '' && /^\d{4}[\.\/]\d{2}[\.\/]\d{2}$/.test(cells[1])) {
+
                                 results.push({
                                     name: cells[0],
                                     date: cells[1]
                                 });
                             }
+
                         });
                         break;
                     }
@@ -191,7 +196,9 @@ async def scrape_ipo() -> list[dict]:
             }
             ''')
             
+            print(f"[IPO] 상장 일정 데이터: {listing_rows}")
             print(f"[IPO] {len(subscription_rows)}개 청약 종목, {len(listing_rows)}개 상장 일정 확인")
+
             
             # 상장 일정 맵핑 준비
             listing_map = {}
@@ -223,6 +230,10 @@ async def scrape_ipo() -> list[dict]:
                         if l_norm and norm_name and (norm_name in l_norm or l_norm in norm_name):
                             listing_date = l_date
                             break
+                
+                if "키움" in name:
+                    pass
+
 
                 # 청약마감된 것 중 3개월 이상 지난 건 제외
                 if status == "청약마감" and dates["end"]:
