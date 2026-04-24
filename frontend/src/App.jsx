@@ -1351,16 +1351,36 @@ function ParkingCmaComparison() {
             </div>
             
             <div className="my-4 p-4 bg-[#0a0e17]/50 rounded-2xl border border-white/5">
-              <p className="text-[10px] text-on-surface-variant mb-1 font-bold">예상 월 이자 (세후)</p>
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-[10px] text-on-surface-variant font-bold uppercase">예상 월 이자 (세후)</p>
+                {item.calc.rating && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-[9px] font-bold text-on-surface-variant/60">신용도:</span>
+                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                      item.calc.rating.startsWith('A') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                    }`}>
+                      {item.calc.rating}
+                    </span>
+                  </div>
+                )}
+              </div>
               <div className="flex items-end gap-1">
                 <span className="text-3xl font-black text-[#73ffba] font-headline">
                   {item.calc.amount.toLocaleString()}
                 </span>
                 <span className="text-sm font-bold text-on-surface-variant mb-1.5">원</span>
               </div>
-              <p className="text-[11px] text-on-surface-variant/70 mt-2 font-medium bg-white/5 p-2 rounded-lg leading-relaxed">
-                {item.calc.text}
-              </p>
+              <div className="mt-3 pt-3 border-t border-white/5 space-y-2">
+                <p className="text-[11px] text-on-surface-variant/80 leading-relaxed font-medium">
+                  {item.calc.text}
+                </p>
+                {item.calc.cycle && (
+                   <div className="flex items-center gap-1 text-[10px] text-primary/70 font-bold">
+                     <span className="material-symbols-outlined text-[12px]">schedule</span>
+                     이자 지급: {item.calc.cycle}
+                   </div>
+                )}
+              </div>
             </div>
             
             {item.calc.target && (
