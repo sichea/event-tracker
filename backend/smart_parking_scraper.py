@@ -81,23 +81,29 @@ def analyze_with_gemini(bank_name, text):
     try:
         prompt = f"""
         다음은 네이버에 '{bank_name}'의 예치금 상품(파킹통장, CMA)을 검색한 최신 결과야.
-        검색 결과를 바탕으로 이 금융사의 **모든 경쟁력 있는 파킹통장 및 CMA 상품들**을 찾아내서 JSON 리스트로 출력해.
-        (하나의 은행에 여러 상품이 있다면 모두 포함시켜야 함)
+        여기서 이 금융사의 **모든 경쟁력 있는 파킹통장 및 CMA 상품들**을 추출해줘.
         
         [지시사항]
         1. 형식: [
-             {{"institution": "{bank_name}", "product_name": "상품명1", "max_rate": 0.0, "rules": [{{"limit": 500000, "rate": 7.0}}, ...], "target": "코멘트", "rating": "등급", "cycle": "주기"}},
+             {{
+               "institution": "{bank_name}", 
+               "product_name": "상품명", 
+               "mode": "tiered" 또는 "whole", 
+               "rules": [{{"limit": 500000, "rate": 7.0}}, ...], 
+               "target": "코멘트", "rating": "등급", "cycle": "주기"
+             }},
              ...
            ]
-        2. rules 배열은 한도(limit)가 낮은 순서로 정렬해 (무제한 한도는 limit: null).
-        3. 과거 데이터가 섞여 있을 수 있으니, 텍스트 문맥상 가장 '최신'으로 보이는 정보를 우선 채택해.
-        4. 상품이 하나도 없으면 빈 리스트 []를 출력해.
+        2. **mode 판단 기준**: 
+           - 'tiered': 잔액을 구간별로 나눠서 각기 다른 금리를 적용하는 경우 (예: 50만 이하 7%, 초과분 2%)
+           - 'whole': 잔액 전체에 특정 금리가 적용되는 경우 (예: 1억 이하 시 전액 3.3%)
+        3. rules 배열은 한도(limit)가 낮은 순서로 정렬해 (무제한은 null).
+        4. JSON 배열 형식으로만 응답해.
         
-        텍스트: {text[:20000]}
+        텍스트: {text[:15000]}
         """
         response = model.generate_content(prompt)
         raw = response.text.replace('```json', '').replace('```', '').strip()
-        # 리스트 형태인지 확인 후 반환
         data = json.loads(raw)
         return data if isinstance(data, list) else [data]
     except Exception as e:
@@ -177,6 +183,7 @@ def run_smart_scraper():
                 "target": res.get("target", ""),
                 "rating": res.get("rating"),
                 "cycle": res.get("cycle"),
+                "mode": res.get("mode", "tiered"),
                 "rules": res.get("rules", [])
             }
             
