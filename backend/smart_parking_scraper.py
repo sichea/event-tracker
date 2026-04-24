@@ -107,10 +107,51 @@ def run_smart_scraper():
                 results.append(parsed_data)
                 print(f"✅ 분석 완료: {json.dumps(parsed_data, ensure_ascii=False)[:100]}...")
     
-    # 향후 결과를 Supabase에 저장하는 로직 추가
-    # requests.post(...)
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_KEY")
     
-    print(f"\n🎉 총 {len(results)}건의 상품 분석 완료. (현재는 출력만 합니다)")
+    if results and url and key:
+        print("\n💾 Supabase에 데이터 저장 중...")
+        headers = {
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json"
+        }
+        
+        # 주의: 실제 운영 환경에서는 기존 데이터를 무조건 지우기보다는 
+        # 업데이트 로직을 정교하게 짜는 것이 좋습니다. (여기서는 테스트를 위해 단순 덮어쓰기 또는 추가)
+        # 예시로 기존 데이터를 유지한 채 새로 발견된 것만 'upsert' 하거나 추가할 수 있습니다.
+        # 지금은 시연을 위해 새로 분석된 결과만 추가해 봅니다.
+        
+        # 분석 결과를 DB 스키마에 맞게 변환
+        db_data = []
+        for res in results:
+            # description 부분을 JSON 문자열로 변환 (프론트엔드 호환성 유지)
+            description_json = {
+                "text": res.get("description", {}).get("text", ""),
+                "target": res.get("description", {}).get("target", ""),
+                "rating": res.get("description", {}).get("rating"),
+                "cycle": res.get("description", {}).get("cycle"),
+                "rules": res.get("description", {}).get("rules", [])
+            }
+            db_data.append({
+                "type": "parking",
+                "institution": res.get("institution"),
+                "product_name": res.get("product_name"),
+                "base_rate": 0.1, # AI가 추출하지 않은 경우 임의값 (프론트엔드 계산기에는 영향 없음)
+                "max_rate": res.get("max_rate"),
+                "tag": "AI 분석",
+                "description": json.dumps(description_json, ensure_ascii=False)
+            })
+            
+        # Supabase 전송
+        response = requests.post(f"{url}/rest/v1/parking_rates", headers=headers, json=db_data)
+        if response.status_code in [200, 201, 204]:
+            print(f"✅ DB 업데이트 완료!")
+        else:
+            print(f"❌ DB 업데이트 실패: {response.text}")
+            
+    print(f"\n🎉 총 {len(results)}건의 상품 분석 및 처리 완료.")
 
 if __name__ == "__main__":
     run_smart_scraper()
