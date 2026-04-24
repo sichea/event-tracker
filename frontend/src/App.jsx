@@ -1284,7 +1284,7 @@ function ParkingCmaComparison() {
       <div className="mb-10">
         <div className="flex flex-col md:flex-row md:items-end gap-2 mb-2">
           <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline">금리 비교</h1>
-          <span className="text-xs md:text-sm text-primary font-bold mb-1 opacity-80">※ 2026.4월 멘토리 유튜브 기준 (금리는 수시로 변동될 수 있습니다)</span>
+          <span className="text-xs md:text-sm text-primary font-bold mb-1 opacity-80">※ 2026년 4월 기준 (금리는 수시로 변동될 수 있습니다)</span>
         </div>
         <p className="text-on-surface-variant max-w-xl italic">현명한 현금 관리를 위해 파킹통장과 CMA 금리를 비교하세요.</p>
       </div>
