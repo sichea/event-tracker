@@ -1,5 +1,48 @@
 {
-  "dart": [],
+  "dart": [
+    {
+      "corp_name": "씨엠티엑스",
+      "report_nm": "주식등의대량보유상황보고서(일반)",
+      "filer": "박성훈",
+      "date": "20260424",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000812"
+    },
+    {
+      "corp_name": "롯데관광개발",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "김한준",
+      "date": "20260424",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000808"
+    },
+    {
+      "corp_name": "씨엠티엑스",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "송인광",
+      "date": "20260424",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000806"
+    },
+    {
+      "corp_name": "롯데관광개발",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "김기병",
+      "date": "20260424",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000805"
+    },
+    {
+      "corp_name": "씨엠티엑스",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "김경무",
+      "date": "20260424",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000801"
+    },
+    {
+      "corp_name": "롯데관광개발",
+      "report_nm": "주식등의대량보유상황보고서(일반)",
+      "filer": "김기병",
+      "date": "20260424",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000796"
+    }
+  ],
   "nps": [
     {
       "corp_name": "삼성전자",
@@ -66,5 +109,5 @@
       "reason": "클라우드 및 AI 기술력 확보"
     }
   ],
-  "updated_at": "2026-04-25T03:31:14.305704"
+  "updated_at": "2026-04-25T03:40:17.647468"
 }
