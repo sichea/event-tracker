@@ -14,8 +14,24 @@ if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY가 환경 변수에 설정되지 않았습니다.")
 
 genai.configure(api_key=GEMINI_API_KEY)
-# 최신 모델 사용 (비용 저렴, 성능 우수)
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
+
+# 동적으로 사용 가능한 최신 모델 검색 및 자동 선택 (2026년 최신 모델 호환성 확보)
+selected_model_name = None
+print("🔍 사용 가능한 Gemini AI 모델을 검색 중...")
+for m in genai.list_models():
+    if 'generateContent' in m.supported_generation_methods:
+        # 가성비/속도가 좋은 flash 모델을 최우선으로 찾고, 없으면 pro나 일반 모델 선택
+        if 'flash' in m.name:
+            selected_model_name = m.name
+            break
+        elif 'pro' in m.name and not selected_model_name:
+            selected_model_name = m.name
+
+if not selected_model_name:
+    selected_model_name = 'gemini-pro' # 기본값 폴백
+
+print(f"🤖 최종 선택된 AI 모델: {selected_model_name}")
+model = genai.GenerativeModel(selected_model_name)
 
 # 분석할 금융 상품 URL 리스트 (각 금융사 예금 공시/상품 안내 페이지)
 TARGET_URLS = [
