@@ -1404,19 +1404,38 @@ function ParkingCmaComparison({ parkingFilter }) {
 
   const filteredData = useMemo(() => {
     let list = [...processedData];
+    
     if (parkingFilter === 'no_conditions') {
-      // 우대조건 없는 상품은 '기본 금리'가 높은 순으로 정렬
-      list = list.filter(item => item.base_rate === item.max_rate)
-                 .sort((a, b) => b.base_rate - a.base_rate);
+      // 진짜 '우대조건 없음'은:
+      // 1. base_rate와 max_rate가 같아야 함
+      // 2. 내부 규칙(rules)이 1개이거나, 모든 구간의 금리가 동일해야 함 (계단식 제외)
+      list = list.filter(item => {
+        try {
+          const parsed = JSON.parse(item.description);
+          const rules = parsed.rules || [];
+          const isBaseMaxEqual = item.base_rate === item.max_rate;
+          
+          // 규칙이 1개이거나 모든 규칙의 rate가 동일한지 확인
+          const isSingleRate = rules.length <= 1 || rules.every(r => r.rate === rules[0].rate);
+          // '전액' 적용 모드이거나 계단식이 아니어야 함
+          const isNotTiered = parsed.mode !== 'tiered' || rules.length <= 1;
+
+          return isBaseMaxEqual && isSingleRate && isNotTiered;
+        } catch (e) {
+          return item.base_rate === item.max_rate;
+        }
+      }).sort((a, b) => b.base_rate - a.base_rate);
     } else if (parkingFilter === 'high_yield') {
-      // 최고 금리순은 조건 포함 '최대 금리' 자체가 높은 순으로 재정렬
-      list = [...processedData].sort((a, b) => b.max_rate - a.max_rate);
+      // 최고 금리순은 세후 이자가 아닌 '표기상 최대 금리'가 높은 순으로 엄격하게 정렬
+      list = [...processedData].sort((a, b) => {
+        if (b.max_rate !== a.max_rate) return b.max_rate - a.max_rate;
+        return b.calc.afterTax - a.calc.afterTax;
+      });
     } else if (parkingFilter === 'major') {
       const majors = ["KB", "신한", "우리", "하나", "NH", "IBK", "카카오", "케이", "토스", "SC", "씨티"];
       list = list.filter(item => majors.some(m => item.institution.includes(m)));
     }
     
-    // 최고 금리순일 때는 더 많은 선택지를 위해 10개까지 노출
     const limit = parkingFilter === 'high_yield' ? 10 : 5;
     return list.slice(0, limit);
   }, [processedData, parkingFilter]);
