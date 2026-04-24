@@ -1782,7 +1782,7 @@ export default function App() {
         <nav className="flex justify-between items-center w-full px-4 md:px-8 h-16">
           <div className="flex items-center gap-4 md:gap-12">
             <div className="flex items-center gap-2">
-              <button onClick={() => setIsDrawerOpen(true)} className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center">
+              <button onClick={() => setIsDrawerOpen(!isDrawerOpen)} className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center">
                 <span className="material-symbols-outlined text-[#ebedfb]">menu</span>
               </button>
               <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>RE:MEMBER</span>
@@ -1821,44 +1821,36 @@ export default function App() {
         </nav>
       </header>
 
-      {/* Drawer Overlay */}
-      {isDrawerOpen && (
-        <div className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm transition-opacity" onClick={() => setIsDrawerOpen(false)}></div>
-      )}
+      {/* No Overlay Backdrop as per request to keep it pushing content */}
 
-      <aside className={`flex flex-col fixed left-0 top-0 bottom-0 p-4 w-64 bg-gradient-to-b from-[#0a0e17] to-[#262c3a] z-[70] transition-transform duration-300 border-r border-white/5 shadow-2xl ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between mb-8 px-2 pt-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-              <span className="material-symbols-outlined text-primary" data-weight="fill">sensors</span>
-            </div>
-            <div>
-              <p className="text-sm font-black text-[#73ffba] uppercase tracking-wider font-headline">FUTURE SIGNAL</p>
-              <p className="text-[10px] text-on-surface-variant italic">고래들의 돈줄 추적</p>
-            </div>
+      <aside className={`flex flex-col fixed left-0 top-16 bottom-0 p-4 w-64 bg-gradient-to-b from-[#0a0e17] to-[#262c3a] z-40 transition-transform duration-300 border-r border-white/5 shadow-2xl ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center gap-3 mb-8 px-2 pt-2">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+            <span className="material-symbols-outlined text-primary" data-weight="fill">sensors</span>
           </div>
-          <button onClick={() => setIsDrawerOpen(false)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-            <span className="material-symbols-outlined text-sm">close</span>
-          </button>
+          <div>
+            <p className="text-sm font-black text-[#73ffba] uppercase tracking-wider font-headline">FUTURE SIGNAL</p>
+            <p className="text-[10px] text-on-surface-variant italic">고래들의 돈줄 추적</p>
+          </div>
         </div>
         
         <div className="space-y-1 flex-1">
           {activeTab === 'insights' ? (
             <>
               <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-4">투자 인사이트</p>
-              <button onClick={() => { setInsightSubTab("macro"); setIsDrawerOpen(false); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'macro' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setInsightSubTab("macro"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'macro' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">public</span>
                 <span className="font-medium text-sm">매크로 시나리오</span>
               </button>
-              <button onClick={() => { setInsightSubTab("dart"); setIsDrawerOpen(false); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'dart' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setInsightSubTab("dart"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'dart' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">notifications_active</span>
                 <span className="font-medium text-sm">고래 지분 변동 (5%)</span>
               </button>
-              <button onClick={() => { setInsightSubTab("nps"); setIsDrawerOpen(false); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'nps' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setInsightSubTab("nps"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'nps' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">account_balance</span>
                 <span className="font-medium text-sm">국민연금 주력주</span>
               </button>
-              <button onClick={() => { setInsightSubTab("legends"); setIsDrawerOpen(false); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'legends' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setInsightSubTab("legends"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'legends' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">military_tech</span>
                 <span className="font-medium text-sm">글로벌 투자 전설</span>
               </button>
@@ -1878,7 +1870,7 @@ export default function App() {
         </div>
       </aside>
 
-      <main className="pt-20 pb-24 md:pb-12 px-4 md:px-12 min-h-screen">
+      <main className={`pt-20 pb-24 md:pb-12 px-4 md:px-12 min-h-screen transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
         
         {/* Settings Panel */}
         {showSettings && (
