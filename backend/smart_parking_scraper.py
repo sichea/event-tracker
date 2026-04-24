@@ -37,59 +37,60 @@ TARGET_URLS = [
 ]
 
 def fetch_page_text(url):
-    """URL에서 순수 텍스트만 추출"""
+    """URL에서 순수 텍스트만 추출 (차단 방지 로직 강화)"""
     try:
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Cache-Control": "max-age=0",
+            "Upgrade-Insecure-Requests": "1"
         }
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
+        response = requests.get(url, headers=headers, timeout=15)
+        print(f"-> [{url}] 응답 코드: {response.status_code}, 데이터 크기: {len(response.text)} bytes")
         
+        if response.status_code != 200:
+            print(f"⚠️ [{url}] 접근 실패 (HTTP {response.status_code})")
+            return None
+            
+        # 차단 여부 확인 (너무 짧거나 특정 키워드가 있는 경우)
+        if len(response.text) < 1000:
+            print(f"⚠️ [{url}] 데이터가 너무 적습니다. 차단되었을 가능성이 있습니다. (텍스트 일부: {response.text[:100]}...)")
+            return None
+
         soup = BeautifulSoup(response.text, 'html.parser')
-        # 불필요한 태그 제거 (스크립트, 스타일)
-        for script in soup(["script", "style", "nav", "footer"]):
+        for script in soup(["script", "style", "nav", "footer", "header", "aside"]):
             script.extract()
             
         text = soup.get_text(separator=' ', strip=True)
+        # 불필요한 공백 제거
+        text = ' '.join(text.split())
         return text
     except Exception as e:
-        print(f"[{url}] 페이지 가져오기 실패: {e}")
+        print(f"❌ [{url}] 오류 발생: {e}")
         return None
 
 def analyze_with_gemini(institution, product_name, text_content):
     """Gemini를 사용해 복잡한 금리 구간 추출"""
     
+    # 텍스트가 너무 길면 잘라서 전달 (Gemini Flash는 길어도 되지만 비용/속도 고려)
+    text_snippet = text_content[:10000]
+    
     prompt = f"""
-다음은 {institution}의 '{product_name}' 상품 설명 페이지 텍스트야.
-이 텍스트를 읽고, 파킹통장 계산기에 필요한 '금액 구간별 이율표'를 추출해줘.
+다음은 {institution}의 '{product_name}' 관련 페이지에서 추출한 텍스트야.
+이 텍스트를 읽고, 파킹통장 계산기에 필요한 '금액 구간별 최고 금리(우대금리 포함)' 정보를 추출해줘.
 
 [지시사항]
-1. 최고 금리(우대금리 포함) 기준으로 계산해.
-2. 결과는 반드시 아래 JSON 형식으로만 출력해. (다른 설명은 절대 쓰지 마)
-3. 'rules' 배열의 객체는 한도 금액이 낮은 순서부터 정렬해.
-4. 'limit'은 해당 구간의 최대 금액(원)이야. 무제한이면 null로 해.
-5. 'rate'는 해당 구간의 금리(%)야.
+1. 결과는 반드시 JSON 형식으로만 출력해. (코드 블록 없이)
+2. 'rules' 배열은 한도가 낮은 순서대로 정렬해. (예: 50만, 500만, 무제한 순)
+3. 'limit'은 구간 상한액(원), 무제한이면 null.
+4. 'rate'는 해당 구간의 최고 이율(%).
+5. 'rating'은 은행 신용등급(AAA, A 등), 'cycle'은 이자지급 주기(매월, 매일 등). 없으면 null.
+6. 'target'은 이 상품이 어떤 사람에게 가장 추천되는지 20자 내외로 적어줘.
 
-[출력 JSON 예시]
-{{
-  "institution": "{institution}",
-  "product_name": "{product_name}",
-  "max_rate": 7.0,
-  "description": {{
-    "text": "50만원 이하 연 7.0%, 500만원 이하 0.8%, 초과분 0.1%",
-    "target": "어떤 사람에게 추천하는지 한 줄 코멘트",
-    "rating": "BBB+", // 페이지에 없으면 null
-    "cycle": "매월", // 이자 지급 주기 (예: 매월, 매일)
-    "rules": [
-      {{"limit": 500000, "rate": 7.0}},
-      {{"limit": 5000000, "rate": 0.8}},
-      {{"limit": null, "rate": 0.1}}
-    ]
-  }}
-}}
-
-[분석할 텍스트]
-{text_content[:8000]} # 토큰 절약을 위해 앞부분만 사용 (보통 요약 정보는 상단에 있음)
+[텍스트 데이터]
+{text_snippet}
 """
     try:
         response = model.generate_content(prompt)
