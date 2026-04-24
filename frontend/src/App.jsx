@@ -1406,27 +1406,30 @@ function ParkingCmaComparison({ parkingFilter }) {
     let list = [...processedData];
     
     if (parkingFilter === 'no_conditions') {
-      // 진짜 '우대조건 없음'은:
-      // 1. base_rate와 max_rate가 같아야 함
-      // 2. 내부 규칙(rules)이 1개이거나, 모든 구간의 금리가 동일해야 함 (계단식 제외)
+      // 텍스트 기반 정밀 필터링: 문구에 '우대', '조건', '첫 거래', '미션' 등이 있으면 탈락
+      const conditionKeywords = ["우대", "조건", "미션", "첫 거래", "신규", "급여", "카드", "자동이체", "마케팅", "실적"];
+      
       list = list.filter(item => {
         try {
           const parsed = JSON.parse(item.description);
-          const rules = parsed.rules || [];
+          const text = (parsed.text || "").toLowerCase();
+          const target = (parsed.target || "").toLowerCase();
+          
+          // 1. 금리 수치상 우대 금리가 없어야 함
           const isBaseMaxEqual = item.base_rate === item.max_rate;
           
-          // 규칙이 1개이거나 모든 규칙의 rate가 동일한지 확인
-          const isSingleRate = rules.length <= 1 || rules.every(r => r.rate === rules[0].rate);
-          // '전액' 적용 모드이거나 계단식이 아니어야 함
-          const isNotTiered = parsed.mode !== 'tiered' || rules.length <= 1;
+          // 2. 텍스트상 조건성 키워드가 없어야 함
+          const hasConditionText = conditionKeywords.some(k => text.includes(k) || target.includes(k));
+          
+          // 3. 계단식(tiered) 금리가 아니어야 함 (rules가 1개 이하)
+          const isNotTiered = (parsed.rules || []).length <= 1;
 
-          return isBaseMaxEqual && isSingleRate && isNotTiered;
+          return isBaseMaxEqual && !hasConditionText && isNotTiered;
         } catch (e) {
           return item.base_rate === item.max_rate;
         }
       }).sort((a, b) => b.base_rate - a.base_rate);
     } else if (parkingFilter === 'high_yield') {
-      // 최고 금리순은 세후 이자가 아닌 '표기상 최대 금리'가 높은 순으로 엄격하게 정렬
       list = [...processedData].sort((a, b) => {
         if (b.max_rate !== a.max_rate) return b.max_rate - a.max_rate;
         return b.calc.afterTax - a.calc.afterTax;
@@ -1436,7 +1439,8 @@ function ParkingCmaComparison({ parkingFilter }) {
       list = list.filter(item => majors.some(m => item.institution.includes(m)));
     }
     
-    const limit = parkingFilter === 'high_yield' ? 10 : 5;
+    // 전체 상품(all)은 20개까지, 나머지 필터 탭은 Top 5 고정
+    const limit = (parkingFilter === 'all' || !parkingFilter) ? 20 : 5;
     return list.slice(0, limit);
   }, [processedData, parkingFilter]);
 
