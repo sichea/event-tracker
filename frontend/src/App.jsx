@@ -177,13 +177,28 @@ function AptCard({ apt }) {
         </div>
         <div className="flex items-center gap-2 text-xs text-on-surface-variant">
           <span className="material-symbols-outlined text-sm opacity-60">campaign</span>
-          <span className="font-medium">당첨자 발표: {apt.winner_date?.replace(/-/g, '.') || '미정'}</span>
+          <span className={`font-medium ${new Date().toISOString().split('T')[0] >= (apt.winner_date || '') ? 'text-primary font-bold' : ''}`}>당첨자 발표: {apt.winner_date?.replace(/-/g, '.') || '미정'}</span>
         </div>
         <div className="flex items-center gap-2 text-[11px] text-on-surface-variant/70">
           <span className="material-symbols-outlined text-sm opacity-50">apartment</span>
           <span>{apt.constructor} | {apt.sale_type}</span>
         </div>
       </div>
+
+      {/* 당첨자 확인 버튼 (발표일 이후 노출) */}
+      {apt.winner_date && new Date().toISOString().split('T')[0] >= apt.winner_date && (
+        <a 
+          href="https://www.applyhome.co.kr/co/coa/selectMainView.do#" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="mt-auto w-full py-3 bg-primary/20 hover:bg-primary text-primary hover:text-on-primary text-xs font-bold rounded-xl border border-primary/30 transition-all flex items-center justify-center gap-2 group"
+        >
+          <span className="material-symbols-outlined text-sm group-hover:animate-bounce">celebration</span>
+          당첨자 확인하기
+        </a>
+      )}
+
+
 
     </div>
   );
@@ -905,7 +920,8 @@ function InvestmentInsights() {
     fetchMarketInsights().then(d => {
       if (d) {
         setMarketData(d);
-        setSelectedScenario(d.scenario);
+        const primaryScenario = d.scenario.split(',')[0];
+        setSelectedScenario(primaryScenario);
       }
       setMdLoading(false);
     }).catch(() => setMdLoading(false));
@@ -1003,12 +1019,13 @@ function InvestmentInsights() {
           >
             <span className="material-symbols-outlined text-lg" style={selectedScenario === s.id ? { color: s.color } : {}}>{s.icon}</span>
             {s.label}
-            {marketData?.scenario === s.id && (
+            {marketData?.scenario?.split(',').includes(s.id) && (
               <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[8px] font-black text-white animate-pulse shadow-lg shadow-red-500/30">now</span>
             )}
           </button>
         ))}
       </div>
+
 
       {/* Scenario Content */}
       {scenario && (
@@ -1022,12 +1039,12 @@ function InvestmentInsights() {
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
                   <h2 className="text-lg md:text-xl font-extrabold font-headline" style={{ color: scenario.color }}>{scenario.label}</h2>
-                  {marketData?.scenario === scenario.id && (
+                  {marketData?.scenario?.split(',').includes(scenario.id) && (
                     <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">현재 상황</span>
                   )}
                 </div>
                 <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">{scenario.summary}</p>
-                {marketData?.scenario === scenario.id && marketData?.analysis && (
+                {marketData?.scenario?.split(',').includes(scenario.id) && marketData?.analysis && (
                   <div className="mt-4 p-4 rounded-xl bg-surface-container/50 border border-white/5 backdrop-blur-sm">
                     <div className="flex items-start gap-2 text-xs md:text-sm text-on-surface leading-relaxed">
                       <span className="material-symbols-outlined text-sm md:text-base shrink-0 text-primary mt-0.5">verified</span>
@@ -1667,16 +1684,32 @@ export default function App() {
                 <p className="text-on-surface-variant max-w-xl italic">당신의 첫 번째 보금자리를 위한 로또 청약 시그널을 확인하세요.</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {aptEvents.map(apt => (
-                  <AptCard key={apt.id} apt={apt} />
-                ))}
+                {(() => {
+                  const filteredApts = aptEvents.filter(apt => {
+                    if (!apt.winner_date) return true;
+                    const winner = new Date(apt.winner_date);
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    winner.setHours(0,0,0,0);
+                    const diffDays = Math.floor((today - winner) / (1000 * 60 * 60 * 24));
+                    return diffDays <= 7;
+                  });
+
+                  if (filteredApts.length === 0) {
+                    return (
+                      <div className="col-span-full py-20 text-center">
+                        <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">home_work</span>
+                        <p className="text-on-surface-variant">현재 예정된 아파트 청약 일정이 없습니다.</p>
+                      </div>
+                    );
+                  }
+
+                  return filteredApts.map(apt => (
+                    <AptCard key={apt.id} apt={apt} />
+                  ));
+                })()}
               </div>
-              {aptEvents.length === 0 && (
-                <div className="py-20 text-center">
-                  <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">home_work</span>
-                  <p className="text-on-surface-variant">현재 예정된 아파트 청약 일정이 없습니다.</p>
-                </div>
-              )}
+
             </div>
           )
         ) : (

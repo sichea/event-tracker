@@ -281,11 +281,63 @@ async def save_to_supabase(events: list):
 
 
 async def run_apt_scrape_and_save():
-    events = await scrape_apt()
-    if events:
-        await save_to_supabase(events)
+    """스크래핑 후 DB 저장 및 기존 데이터 상태 동기화"""
+    import httpx
+    
+    # 1. 새로운 데이터 스크래핑
+    new_events = await scrape_apt()
+    
+    # 2. 기존 DB에서 '청약중' 또는 '청약예정'인 데이터 가져오기 (상태 동기화용)
+    existing_events = []
+    if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+        headers = {
+            "apikey": SUPABASE_SERVICE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+        }
+        try:
+            async with httpx.AsyncClient() as client:
+                # 청약중이거나 청약예정인 것들만 가져와서 오늘 날짜와 대조
+                resp = await client.get(
+                    f"{SUPABASE_URL}/rest/v1/apt_subscriptions?or=(status.eq.청약중,status.eq.청약예정)",
+                    headers=headers
+                )
+                if resp.status_code == 200:
+                    existing_events = resp.json()
+        except Exception as e:
+            print(f"[APT DB 조회 오류] {e}")
+
+    # 3. 데이터 통합 및 상태 재계산
+    all_records_map = {e["id"]: e for e in existing_events}
+    
+    # 새로운 데이터로 업데이트 또는 추가
+    for ne in new_events:
+        all_records_map[ne["id"]] = ne
+        
+    # 모든 기록에 대해 날짜 기반 상태 재계산 (오늘 날짜 기준)
+    today = date.today()
+    updated_records = []
+    
+    for rid, record in all_records_map.items():
+        # 날짜 파싱 및 상태 결정
+        sub_start = record.get("subscription_start")
+        sub_end = record.get("subscription_end")
+        
+        # determine_apt_status 로직 재적용
+        new_status = determine_apt_status(sub_start, sub_end)
+        
+        # 상태가 변했거나 새 데이터면 리스트에 추가
+        if record.get("status") != new_status or any(ne["id"] == rid for ne in new_events):
+            record["status"] = new_status
+            updated_records.append(record)
+            if record.get("status") != new_status:
+                print(f"  [APT 상태 업데이트] {record.get('name')} : {record.get('status')} -> {new_status}")
+
+    # 4. 최종 저장
+    if updated_records:
+        await save_to_supabase(updated_records)
     else:
-        print("[APT] 수집된 데이터가 없습니다.")
+        print("[APT] 업데이트할 데이터가 없습니다.")
+
 
 
 if __name__ == "__main__":

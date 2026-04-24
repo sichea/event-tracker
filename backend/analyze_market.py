@@ -225,25 +225,29 @@ def fetch_naver_news():
 
 
 def determine_scenario(kr_rate, kr_rate_prev, us_rate, us_rate_prev, cpi, gdp, news=[]):
-    """지표를 분석하여 현재 시장 상황과 그 이유를 판단합니다."""
-    
-    # 0. 전쟁/지정학적 위기 판단 (뉴스 키워드 기반)
+    """지표를 분석하여 현재 시장 상황들을 모두 판단합니다 (중복 판정 가능)."""
+    detected_scenarios = []
+    reasons = []
+
+    # 1. 전쟁/지정학적 위기 판단 (뉴스 키워드 기반)
     war_keywords = ["전쟁", "침공", "교전", "폭격", "지정학적 리스크", "분쟁 격화"]
     for n in news:
         if any(wk in n.get("title", "") or wk in n.get("description", "") for wk in war_keywords):
-            return "war", f"뉴스 '{n.get('title')[:20]}...' 등 지정학적 위기 고조 신호가 감지되어 '전쟁/위기' 시나리오로 판정했습니다."
+            reasons.append(f"지정학적 위기 고조: 뉴스 '{n.get('title')[:20]}...' 등 분쟁 관련 신호가 감지되었습니다.")
+            detected_scenarios.append("war")
+            break
 
-    # 1. 경기 침체 판단 (GDP 마이너스)
+    # 2. 경기 침체 판단 (GDP 마이너스)
     if gdp is not None and gdp < 0:
-        reason = f"미국 GDP 성장률이 {gdp}%로 마이너스를 기록하며 경기 침체 신호가 포착되었습니다. 안전 자산 선호가 강해질 수 있습니다."
-        return "recession", reason
+        reasons.append(f"경기 침체 신호: 미국 GDP 성장률이 {gdp}%로 마이너스를 기록했습니다.")
+        detected_scenarios.append("recession")
 
-    # 2. 인플레이션 심화 판단 (CPI 3.5% 이상)
+    # 3. 인플레이션 심화 판단 (CPI 3.5% 이상)
     if cpi is not None and cpi >= 3.5:
-        reason = f"미국 CPI가 {cpi}%로 고물가 상태가 지속되면서 연준의 긴축 기조가 강화될 우려가 있습니다."
-        return "inflation", reason
+        reasons.append(f"인플레이션 우려: 미국 CPI가 {cpi}%로 고물가 상태가 지속되고 있습니다.")
+        detected_scenarios.append("inflation")
 
-    # 3. 금리 방향 판단
+    # 4. 금리 방향 판단
     rate_direction = 0
     kr_desc = ""
     us_desc = ""
@@ -261,22 +265,29 @@ def determine_scenario(kr_rate, kr_rate_prev, us_rate, us_rate_prev, cpi, gdp, n
         elif diff > 0: us_desc = f"미국 금리 인상({us_rate_prev}%→{us_rate}%)"
 
     if rate_direction < 0:
-        reason = f"{kr_desc} {us_desc} 추세에 따라 시장 유동성 확대가 기대되는 '금리 인하' 상황으로 판정했습니다."
-        return "rate_cut", reason
+        reasons.append(f"유동성 확대: {kr_desc} {us_desc} 추세가 나타나고 있습니다.")
+        detected_scenarios.append("rate_cut")
     elif rate_direction > 0:
-        reason = f"{kr_desc} {us_desc} 기조가 뚜렷하여 투자 심리 위축이 우려되는 '금리 인상' 상황으로 판정했습니다."
-        return "rate_hike", reason
+        reasons.append(f"긴축 기조: {kr_desc} {us_desc} 흐름이 뚜렷합니다.")
+        detected_scenarios.append("rate_hike")
 
-    # 4. 금리 변동 없음 → CPI로 2차 판단
-    if cpi is not None:
-        if cpi >= 2.5:
-            reason = f"금리는 동결되었으나 CPI가 {cpi}%로 다소 높아 '인플레이션 경계' 상황으로 판정했습니다."
-            return "inflation", reason
+    # 5. 기본값 처리 (아무것도 감지되지 않았을 때)
+    if not detected_scenarios:
+        if cpi is not None and cpi >= 2.5:
+            reasons.append(f"물가 경계: 금리는 안정적이나 CPI가 {cpi}%로 다소 높은 편입니다.")
+            detected_scenarios.append("inflation")
         else:
-            reason = f"금리가 안정적이고 물가({cpi}%)도 낮아 투자에 우호적인 환경이 지속되고 있습니다."
-            return "rate_cut", reason
+            reasons.append("시장 안정: 주요 지표들이 큰 변동 없이 안정적인 흐름을 보이고 있습니다.")
+            detected_scenarios.append("rate_cut")
 
-    return "rate_cut", "현재 주요 지표들이 안정적인 흐름을 보이고 있어 금리 인하(완화) 기조를 유지합니다."
+    # 중복 제거 및 결과 반환
+    final_scenarios = []
+    for s in detected_scenarios:
+        if s not in final_scenarios:
+            final_scenarios.append(s)
+            
+    return final_scenarios, " | ".join(reasons)
+
 
 
 # ─── 시나리오 데이터 정의 (Global) ───
@@ -621,8 +632,8 @@ def main():
     # 2. 뉴스 수집
     news = fetch_naver_news()
 
-    # 3. 시나리오 자동 판단
-    scenario, analysis = determine_scenario(kr_rate, kr_rate_prev, us_rate, us_rate_prev, cpi, gdp, news)
+    # 3. 시나리오 자동 판단 (복합 판정 지원)
+    scenarios, analysis = determine_scenario(kr_rate, kr_rate_prev, us_rate, us_rate_prev, cpi, gdp, news)
 
     # 4. 실시간 ETF 데이터 수집 및 모든 시나리오 다이나믹 매핑
     print("📊 모든 시나리오별 실시간 ETF 수익률 데이터 분석 중...")
@@ -637,16 +648,36 @@ def main():
             "caution": cau
         }
 
-    # 현재 판정된 시나리오에 대한 데이터 (하위 호환성 유지)
-    recommended = all_scenarios_data[scenario]["recommended"]
-    caution = all_scenarios_data[scenario]["caution"]
+    # 감지된 모든 시나리오에 대한 데이터 병합
+    recommended = []
+    caution = []
     
+    # 중복 제거를 위한 세트
+    seen_rec_categories = set()
+    seen_cau_categories = set()
+    
+    for s_id in scenarios:
+        s_data = all_scenarios_data.get(s_id)
+        if not s_data: continue
+        
+        for r in s_data["recommended"]:
+            if r["category"] not in seen_rec_categories:
+                recommended.append(r)
+                seen_rec_categories.add(r["category"])
+                
+        for c in s_data["caution"]:
+            if c["category"] not in seen_cau_categories:
+                caution.append(c)
+                seen_cau_categories.add(c["category"])
+    
+    # scenario 컬럼에는 콤마로 연결하여 저장
+    scenario_str = ",".join(scenarios)
     yield_date = datetime.datetime.now().strftime("%Y.%m.%d")
 
     # 5. Supabase 저장
     insight_data = {
         "id": "current",
-        "scenario": scenario,
+        "scenario": scenario_str,
         "analysis": analysis,
         "kr_rate": kr_rate,
         "us_rate": us_rate,
@@ -663,10 +694,11 @@ def main():
     }
 
     supabase_upsert(insight_data)
-    print(f"\n🎯 최종 판정: {scenario}")
+    print(f"\n🎯 최종 판정: {scenario_str}")
     print(f"🕒 수익률 기준일: {yield_date}")
     print(f"📝 분석 근거: {analysis}")
     print("🎉 시장 인사이트 분석이 완료되었습니다.")
+
 
 
 if __name__ == "__main__":
