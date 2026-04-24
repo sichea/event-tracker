@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+import time
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 import google.generativeai as genai
@@ -9,16 +10,17 @@ from dotenv import load_dotenv
 # 환경 변수 로드
 load_dotenv()
 
+print("🚀 지능형 스크래퍼 시스템 기동 중...")
+
 # Gemini API 설정
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY가 환경 변수에 설정되지 않았습니다.")
+    raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다.")
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# 동적으로 사용 가능한 최신 모델 검색 및 자동 선택 (2026년 최신 모델 호환성 확보)
+# 동적 모델 선택
 selected_model_name = None
-print("🔍 사용 가능한 Gemini AI 모델을 검색 중...")
 try:
     for m in genai.list_models():
         if 'generateContent' in m.supported_generation_methods:
@@ -27,16 +29,16 @@ try:
                 break
             elif 'pro' in m.name and not selected_model_name:
                 selected_model_name = m.name
-except Exception as e:
-    print(f"⚠️ 모델 목록 조회 실패: {e}")
+except:
+    pass
 
 if not selected_model_name:
     selected_model_name = 'gemini-pro'
 
-print(f"🤖 최종 선택된 AI 모델: {selected_model_name}")
+print(f"🤖 AI 모델 선택 완료: {selected_model_name}")
 model = genai.GenerativeModel(selected_model_name)
 
-# 분석할 금융 상품 URL 리스트
+# 분석 대상 URL
 TARGET_URLS = [
     { "institution": "OK저축은행", "product_name": "OK짠테크/파킹플렉스", "url": "https://m.oksavingsbank.com/m/goods/DpstGoodList.do" },
     { "institution": "다올저축은행", "product_name": "Fi 쌈짓돈", "url": "https://www.daolsb.com/fi/deposit/depositInfo.do" },
@@ -48,8 +50,7 @@ TARGET_URLS = [
 ]
 
 def fetch_page_text(url):
-    """실제 브라우저(Playwright)를 사용해 페이지 렌더링 후 텍스트 추출"""
-    print(f"-> [{url}] 브라우저 기동 중...")
+    print(f"🔍 [{url}] 분석 시작...")
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -58,135 +59,102 @@ def fetch_page_text(url):
             )
             page = context.new_page()
             
-            # 페이지 이동
-            response = page.goto(url, wait_until="networkidle", timeout=60000)
-            if not response or response.status != 200:
-                print(f"⚠️ [{url}] 접근 실패 (HTTP {response.status if response else 'Unknown'})")
-                browser.close()
-                return None
-                
-            page.wait_for_timeout(3000) # JS 실행 대기
+            # 페이지 접속 (타임아웃 넉넉히)
+            page.goto(url, wait_until="load", timeout=90000)
+            print("   -> 페이지 접속 성공, 렌더링 대기 중...")
+            
+            # 자바스크립트가 실행되고 데이터가 뜰 때까지 충분히 대기 (10초)
+            time.sleep(10)
+            
+            # 화면 끝까지 스크롤 (숨겨진 내용 로딩용)
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            time.sleep(2)
             
             content = page.content()
             soup = BeautifulSoup(content, 'html.parser')
-            for script in soup(["script", "style", "nav", "footer", "header", "aside"]):
-                script.extract()
             
+            # 불필요한 요소 제거
+            for s in soup(["script", "style", "header", "footer", "nav", "aside"]):
+                s.extract()
+                
             text = soup.get_text(separator=' ', strip=True)
             text = ' '.join(text.split())
             
-            print(f"✅ [{url}] 텍스트 추출 성공 ({len(text)} 자)")
+            print(f"   ✅ 추출 성공: {len(text)} 자 확보")
             browser.close()
             return text
     except Exception as e:
-        print(f"❌ [{url}] 브라우저 제어 오류: {e}")
+        print(f"   ❌ 오류 발생: {str(e)[:100]}")
         return None
 
-def analyze_with_gemini(institution, product_name, text_content):
-    """Gemini를 사용해 복잡한 금리 구간 추출"""
-    text_snippet = text_content[:15000] # 좀 더 길게
-    
-    prompt = f"""
-다음은 {institution}의 '{product_name}' 관련 페이지에서 추출한 텍스트야.
-이 텍스트를 읽고, 파킹통장 계산기에 필요한 '금액 구간별 최고 금리(우대금리 포함)' 정보를 추출해줘.
-
-[지시사항]
-1. 결과는 반드시 JSON 형식으로만 출력해.
-2. 'rules' 배열은 한도가 낮은 순서대로 정렬해.
-3. 'limit'은 구간 상한액(원), 무제한이면 null.
-4. 'rate'는 해당 구간의 최고 이율(%).
-5. 'rating'은 은행 신용등급, 'cycle'은 이자지급 주기. 없으면 null.
-6. 'target'은 이 상품이 어떤 사람에게 가장 추천되는지 20자 내외 코멘트.
-7. 'product_name'은 텍스트에서 찾은 정확한 상품명을 적어줘.
-
-[텍스트 데이터]
-{text_snippet}
-"""
+def analyze_with_gemini(institution, product_name, text):
     try:
+        prompt = f"""
+        다음은 {institution} {product_name} 페이지의 텍스트야.
+        금액 구간별 '최고 금리' 정보를 JSON으로 추출해줘.
+        형식: {{"institution": "...", "product_name": "...", "max_rate": 0.0, "rules": [{{"limit": 500000, "rate": 7.0}}, ...], "target": "코멘트", "rating": "등급", "cycle": "주기"}}
+        텍스트: {text[:15000]}
+        """
         response = model.generate_content(prompt)
-        raw_json = response.text.replace('```json', '').replace('```', '').strip()
-        parsed_data = json.loads(raw_json)
-        return parsed_data
-    except Exception as e:
-        print(f"[{product_name}] Gemini 분석 실패: {e}")
+        raw = response.text.replace('```json', '').replace('```', '').strip()
+        return json.loads(raw)
+    except:
         return None
 
 def run_smart_scraper():
-    print("🤖 지능형 금리 분석 스크래퍼 실행 중...")
+    print(f"🛠 총 {len(TARGET_URLS)}개의 상품 순찰 시작...")
     results = []
     
     for target in TARGET_URLS:
-        print(f"-> [{target['institution']}] {target['product_name']} 분석 시작...")
         text = fetch_page_text(target['url'])
-        
-        if text:
-            print(f"-> Gemini로 금리 구조 분석 중...")
-            parsed_data = analyze_with_gemini(target['institution'], target['product_name'], text)
-            if parsed_data:
-                # 은행명 보강 (AI가 누락할 경우 대비)
-                if not parsed_data.get("institution"):
-                    parsed_data["institution"] = target['institution']
-                if not parsed_data.get("product_name"):
-                    parsed_data["product_name"] = target['product_name']
-                results.append(parsed_data)
-                print(f"✅ 분석 완료: {parsed_data['product_name']}")
-    
+        if text and len(text) > 500: # 최소 500자 이상일 때만 분석
+            print(f"   -> AI 분석 중...")
+            data = analyze_with_gemini(target['institution'], target['product_name'], text)
+            if data and data.get("rules"):
+                # 필수 필드 보강
+                data["institution"] = data.get("institution") or target['institution']
+                data["product_name"] = data.get("product_name") or target['product_name']
+                results.append(data)
+                print(f"   ✨ 분석 성공: {data['product_name']}")
+        else:
+            print("   ⚠️ 텍스트 부족으로 분석 스킵")
+
+    # DB 저장
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_SERVICE_KEY")
-    
     if results and url and key:
-        print("\n💾 Supabase에 데이터 저장 중...")
-        headers = {
-            "apikey": key,
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
-        }
-        
+        print(f"\n💾 DB 저장 중 ({len(results)}건)...")
+        headers = {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
         for res in results:
-            inst = res.get("institution")
-            prod = res.get("product_name") or res.get("productName")
+            inst = res['institution']
+            prod = res['product_name']
             
-            if not inst or not prod:
-                print(f"⚠️ 필수 정보 누락으로 스킵합니다.")
-                continue
-                
-            query_url = f"{url}/rest/v1/parking_rates?institution=eq.{inst}&product_name=eq.{prod}&select=id"
-            check_res = requests.get(query_url, headers=headers)
-            existing_records = check_res.json()
+            # 중복 체크 및 업데이트
+            q = f"{url}/rest/v1/parking_rates?institution=eq.{inst}&product_name=eq.{prod}&select=id"
+            r = requests.get(q, headers=headers).json()
             
-            description_json = {
-                "text": res.get("description", {}).get("text", "") if isinstance(res.get("description"), dict) else str(res.get("description")),
+            desc = {
+                "text": f"AI 분석 결과: {res.get('target', '')}",
                 "target": res.get("target", ""),
                 "rating": res.get("rating"),
                 "cycle": res.get("cycle"),
                 "rules": res.get("rules", [])
             }
             
-            # AI 분석 결과가 너무 부실하면(rules가 비어있으면) 업데이트하지 않음
-            if not res.get("rules") or len(res.get("rules")) == 0:
-                print(f"⚠️ [{prod}] 유효한 금리 정보를 찾지 못해 업데이트를 건너뜁니다.")
-                continue
-
             payload = {
                 "type": "parking" if "cma" not in prod.lower() else "cma",
                 "institution": inst,
                 "product_name": prod,
-                "max_rate": res.get("max_rate") or (res.get("rules")[0].get("rate") if res.get("rules") else 0),
+                "max_rate": res.get("max_rate") or (res.get("rules")[0]['rate'] if res.get("rules") else 0),
                 "tag": "🤖 AI 실시간",
-                "description": json.dumps(description_json, ensure_ascii=False)
+                "description": json.dumps(desc, ensure_ascii=False)
             }
             
-            if existing_records:
-                record_id = existing_records[0]['id']
-                print(f"-> [{prod}] 업데이트 중...")
-                requests.patch(f"{url}/rest/v1/parking_rates?id=eq.{record_id}", headers=headers, json=payload)
+            if r:
+                requests.patch(f"{url}/rest/v1/parking_rates?id=eq.{r[0]['id']}", headers=headers, json=payload)
             else:
-                print(f"-> [{prod}] 신규 추가 중...")
                 requests.post(f"{url}/rest/v1/parking_rates", headers=headers, json=[payload])
-                
-        print(f"✅ DB 스마트 동기화 완료!")
-            
-    print(f"\n🎉 모든 처리를 마쳤습니다.")
+        print("✅ 모든 데이터 동기화 완료!")
 
 if __name__ == "__main__":
     run_smart_scraper()
