@@ -1349,7 +1349,13 @@ function ParkingCmaComparison() {
                 <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{item.institution}</p>
                 <h4 className="text-lg font-bold font-headline line-clamp-1">{item.product_name}</h4>
               </div>
-              <span className="px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-black border border-primary/20 shrink-0">{item.tag}</span>
+              <span className={`px-2 py-1 rounded-md text-[10px] font-black border shrink-0 transition-all ${
+                item.tag?.includes('AI') 
+                  ? 'bg-primary text-on-primary border-primary shadow-[0_0_10px_rgba(115,255,186,0.3)] animate-pulse' 
+                  : 'bg-primary/10 text-primary border-primary/20'
+              }`}>
+                {item.tag}
+              </span>
             </div>
             
             <div className="my-4 p-4 bg-[#0a0e17]/50 rounded-2xl border border-white/5">
