@@ -1281,10 +1281,15 @@ function ParkingCmaComparison() {
               <p className="text-xs text-on-surface-variant mt-1">{item.description}</p>
             </div>
 
-            <button className="mt-4 w-full py-3 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2">
-              상세 정보 보기
-              <span className="material-symbols-outlined text-sm">chevron_right</span>
-            </button>
+            <a 
+              href={`https://search.naver.com/search.naver?query=${encodeURIComponent(item.institution + ' ' + item.product_name)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 w-full py-3 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+            >
+              네이버에서 검색하기
+              <span className="material-symbols-outlined text-sm">search</span>
+            </a>
           </div>
         ))}
         </div>
