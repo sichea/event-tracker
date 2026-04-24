@@ -1439,10 +1439,8 @@ function ParkingCmaComparison({ parkingFilter }) {
         }
       }).sort((a, b) => b.base_rate - a.base_rate);
     } else if (parkingFilter === 'high_yield') {
-      list = [...processedData].sort((a, b) => {
-        if (b.max_rate !== a.max_rate) return b.max_rate - a.max_rate;
-        return b.calc.afterTax - a.calc.afterTax;
-      });
+      // 실수령액(세후 이자) 기준으로 정렬
+      list = [...processedData].sort((a, b) => b.calc.afterTax - a.calc.afterTax);
     } else if (parkingFilter === 'major') {
       const majors = ["KB", "신한", "우리", "하나", "NH", "IBK", "카카오", "케이", "토스", "SC", "씨티"];
       list = list.filter(item => majors.some(m => item.institution.includes(m)));
@@ -1996,7 +1994,7 @@ export default function App() {
               {[
                 { id: 'all', label: '전체 상품', icon: 'list' },
                 { id: 'no_conditions', label: '우대조건 없음', icon: 'verified_user' },
-                { id: 'high_yield', label: '최고 금리순', icon: 'trending_up' },
+                { id: 'high_yield', label: '실수령액 순', icon: 'payments' },
                 { id: 'major', label: '1금융권/대형사', icon: 'account_balance' }
               ].map(f => (
                 <button 
