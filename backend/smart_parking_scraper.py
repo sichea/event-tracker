@@ -17,14 +17,23 @@ genai.configure(api_key=GEMINI_API_KEY)
 # 최신 모델 사용 (비용 저렴, 성능 우수)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-# 분석할 금융 상품 URL 리스트 (예시)
+# 분석할 금융 상품 URL 리스트 (각 금융사 예금 공시/상품 안내 페이지)
 TARGET_URLS = [
-    {
-        "institution": "OK저축은행",
-        "product_name": "OK짠테크통장",
-        "url": "https://m.oksavingsbank.com/m/goods/DpstGoodDtl.do?goodsCd=1001155" # 예시 URL
-    }
-    # 향후 여기에 각 은행의 상세 페이지 URL을 추가합니다.
+    # 저축은행 (고금리 파킹통장 주력)
+    { "institution": "OK저축은행", "product_name": "OK짠테크/파킹플렉스", "url": "https://m.oksavingsbank.com/m/goods/DpstGoodList.do" },
+    { "institution": "다올저축은행", "product_name": "Fi 쌈짓돈", "url": "https://www.daolsb.com/fi/deposit/depositInfo.do" },
+    { "institution": "애큐온저축은행", "product_name": "머니모으기", "url": "https://www.acuonsb.co.kr/HP11010000.do" },
+    { "institution": "DB저축은행", "product_name": "DB행복파킹", "url": "https://www.idbsb.com/deposit/dep_02_01.do" },
+    
+    # 인터넷전문은행 (앱 기반이지만 공시 페이지 존재)
+    { "institution": "토스뱅크", "product_name": "나눠모으기/토스뱅크통장", "url": "https://www.tossbank.com/product-service/savings/account" },
+    { "institution": "케이뱅크", "product_name": "플러스박스", "url": "https://www.kbanknow.com/ib20/mnu/FDP0000000" },
+    { "institution": "카카오뱅크", "product_name": "세이프박스", "url": "https://www.kakaobank.com/products/safebox" },
+    
+    # 증권사 CMA
+    { "institution": "한국투자증권", "product_name": "CMA 발행어음형", "url": "https://www.truefriend.com/main/finance/cma/CMA.jsp" },
+    { "institution": "미래에셋증권", "product_name": "CMA-RP형", "url": "https://securities.miraeasset.com/hki/hki3028/n01.do" },
+    { "institution": "KB증권", "product_name": "my CMA", "url": "https://www.kbsec.com/go.able?realId=01010100" }
 ]
 
 def fetch_page_text(url):
