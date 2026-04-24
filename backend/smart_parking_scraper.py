@@ -8,7 +8,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 
 # 환경 변수 로드
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 print("[Parking Scraper] Starting...")
 
@@ -189,21 +189,27 @@ def run_smart_scraper():
             
             rates = [rule['rate'] for rule in res.get('rules', [])]
             max_rate = max(rates) if rates else (res.get('max_rate') or 0.0)
+            base_rate = rates[0] if rates else max_rate
             
             payload = {
                 "type": "parking" if "cma" not in prod.lower() else "cma",
                 "institution": inst,
                 "product_name": prod,
+                "base_rate": base_rate,
                 "max_rate": max_rate,
                 "tag": "🤖 AI 실시간 탐색",
                 "description": json.dumps(desc, ensure_ascii=False)
             }
             
-            if r:
-                requests.patch(f"{url}/rest/v1/parking_rates?id=eq.{r[0]['id']}", headers=headers, json=payload)
+            if r and isinstance(r, list) and len(r) > 0:
+                resp = requests.patch(f"{url}/rest/v1/parking_rates?id=eq.{r[0]['id']}", headers=headers, json=payload)
             else:
-                requests.post(f"{url}/rest/v1/parking_rates", headers=headers, json=[payload])
-        print("Done! Sync completed for all discovered products.")
+                resp = requests.post(f"{url}/rest/v1/parking_rates", headers=headers, json=[payload])
+                
+            if resp.status_code >= 400:
+                print(f"   Error saving [{prod}]: {resp.status_code} {resp.text}")
+        
+        print("\nDone! Sync completed for all discovered products.")
 
 if __name__ == "__main__":
     run_smart_scraper()
