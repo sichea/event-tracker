@@ -1321,9 +1321,9 @@ function InvestmentInsights({ subTab }) {
   );
 }
 
-function ParkingCmaComparison() {
+function ParkingCmaComparison({ parkingFilter }) {
   const [subTab, setSubTab] = useState('parking'); // 'parking' or 'cma'
-  const [parkingFilter, setParkingFilter] = useState('all'); // 'all', 'no_conditions', 'high_yield', 'major'
+  const [expandedItems, setExpandedItems] = useState({}); // { [id]: boolean }
   const [ratesData, setRatesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [depositAmount, setDepositAmount] = useState(5000000); // 기본 500만원
