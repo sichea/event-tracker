@@ -1398,9 +1398,26 @@ function ParkingCmaComparison() {
     const filtered = ratesData.filter(item => item.type === subTab);
     return filtered.map(item => {
       const calc = calculateInterest(item.description, depositAmount);
-      return { ...item, calc };
+      return { ...item, calc: { ...calc, text: calc.text.replace("포털 검색 자동 분석: ", "") } };
     }).sort((a, b) => b.calc.afterTax - a.calc.afterTax);
   }, [ratesData, subTab, depositAmount, calculateInterest]);
+
+  const filteredData = useMemo(() => {
+    let list = [...processedData];
+    if (parkingFilter === 'no_conditions') {
+      list = list.filter(item => item.base_rate === item.max_rate);
+    } else if (parkingFilter === 'high_yield') {
+      list = list.slice(0, 10);
+    } else if (parkingFilter === 'major') {
+      const majors = ["KB", "신한", "우리", "하나", "NH", "IBK", "카카오", "케이", "토스", "SC", "씨티"];
+      list = list.filter(item => majors.some(m => item.institution.includes(m)));
+    }
+    return list.slice(0, 5); // 상위 5개만 표시
+  }, [processedData, parkingFilter]);
+
+  const toggleExpand = (id) => {
+    setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const filteredData = useMemo(() => {
     let list = [...processedData];
@@ -1429,45 +1446,22 @@ function ParkingCmaComparison() {
       </div>
 
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
-        <div className="flex flex-col gap-4 w-full md:w-auto">
-          <div className="flex bg-surface-container/50 p-1 rounded-2xl border border-white/5 w-full md:w-fit">
-            <button 
-              onClick={() => { setSubTab('parking'); setParkingFilter('all'); }}
-              className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'parking' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
-            >
-              파킹통장 (은행)
-            </button>
-            <button 
-              onClick={() => { setSubTab('cma'); setParkingFilter('all'); }}
-              className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'cma' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
-            >
-              CMA (증권사)
-            </button>
-          </div>
-          
-          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-            {[
-              { id: 'all', label: '전체' },
-              { id: 'no_conditions', label: '우대조건 없음' },
-              { id: 'high_yield', label: '최고 금리순' },
-              { id: 'major', label: subTab === 'parking' ? '1금융권' : '대형 증권사' }
-            ].map(f => (
-              <button
-                key={f.id}
-                onClick={() => setParkingFilter(f.id)}
-                className={`px-4 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap border transition-all ${
-                  parkingFilter === f.id 
-                    ? 'bg-primary/20 border-primary text-primary shadow-sm' 
-                    : 'bg-white/5 border-white/10 text-on-surface-variant hover:bg-white/10'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex bg-surface-container/50 p-1 rounded-2xl border border-white/5 w-full md:w-fit">
+          <button 
+            onClick={() => setSubTab('parking')}
+            className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'parking' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+          >
+            파킹통장 (은행)
+          </button>
+          <button 
+            onClick={() => setSubTab('cma')}
+            className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'cma' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+          >
+            CMA (증권사)
+          </button>
         </div>
 
-        <div className="flex items-center gap-4 bg-surface-container-high px-6 py-3 rounded-2xl border border-primary/20 w-full md:w-auto self-start">
+        <div className="flex items-center gap-4 bg-surface-container-high px-6 py-3 rounded-2xl border border-primary/20 w-full md:w-auto">
           <span className="font-bold text-sm text-on-surface whitespace-nowrap">예치 금액</span>
           <div className="relative flex-1 md:w-48">
             <input 
@@ -1537,25 +1531,32 @@ function ParkingCmaComparison() {
                 <span className="text-sm font-bold text-[#73ffba] mb-1.5">원</span>
               </div>
 
-              <div className="mt-1 pt-3 border-t border-white/5 space-y-2">
+              <div className={`overflow-hidden transition-all duration-300 ${expandedItems[item.id] ? 'max-h-96 opacity-100 mt-4 pt-4 border-t border-white/5' : 'max-h-0 opacity-0'}`}>
                 <p className="text-[11px] text-on-surface-variant/80 leading-relaxed font-medium">
                   {item.calc.text}
                 </p>
                 {item.calc.cycle && (
-                   <div className="flex items-center gap-1 text-[10px] text-primary/70 font-bold">
+                   <div className="flex items-center gap-1 text-[10px] text-primary/70 font-bold mt-2">
                      <span className="material-symbols-outlined text-[12px]">schedule</span>
                      이자 지급: {item.calc.cycle}
                    </div>
                 )}
+                {item.calc.target && (
+                  <div className="mt-3 pt-3 border-t border-white/5 flex items-start gap-1.5">
+                    <span className="material-symbols-outlined text-[14px] text-primary mt-0.5">check_circle</span>
+                    <p className="text-xs font-bold text-on-surface">{item.calc.target}</p>
+                  </div>
+                )}
               </div>
+
+              <button 
+                onClick={() => toggleExpand(item.id)}
+                className="w-full mt-2 py-1 text-[10px] font-bold text-on-surface-variant/60 hover:text-primary transition-colors flex items-center justify-center gap-1"
+              >
+                {expandedItems[item.id] ? '정보 접기' : '자세한 조건 보기'}
+                <span className={`material-symbols-outlined text-sm transition-transform duration-300 ${expandedItems[item.id] ? 'rotate-180' : ''}`}>expand_more</span>
+              </button>
             </div>
-            
-            {item.calc.target && (
-              <div className="mt-auto mb-2 flex items-start gap-1.5">
-                <span className="material-symbols-outlined text-[14px] text-primary mt-0.5">check_circle</span>
-                <p className="text-xs font-bold text-on-surface">{item.calc.target}</p>
-              </div>
-            )}
           </div>
         ))}
         </div>
@@ -1581,6 +1582,7 @@ export default function App() {
   const [adminToken, setAdminToken] = useState(null);
   const [activeTab, setActiveTab] = useState("insights"); // "insights" | "dashboard" | "ipo" | "apt" | "parking"
   const [insightSubTab, setInsightSubTab] = useState("macro"); // "macro", "dart", "nps", "legends"
+  const [parkingFilter, setParkingFilter] = useState('all'); // 'all', 'no_conditions', 'high_yield', 'major'
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [ipoEvents, setIpoEvents] = useState([]);
   const [ipoLoading, setIpoLoading] = useState(false);
@@ -1933,14 +1935,33 @@ export default function App() {
                 <span className="material-symbols-outlined text-xl">notifications_active</span>
                 <span className="font-medium text-sm">고래 지분 변동 (5%)</span>
               </button>
-              <button onClick={() => { setInsightSubTab("nps"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'nps' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setInsightSubTab("nps"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'nps' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">account_balance</span>
                 <span className="font-medium text-sm">국민연금 주력주</span>
               </button>
-              <button onClick={() => { setInsightSubTab("legends"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'legends' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setInsightSubTab("legends"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'legends' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">military_tech</span>
                 <span className="font-medium text-sm">글로벌 투자 전설</span>
               </button>
+            </>
+          ) : activeTab === 'parking' ? (
+            <>
+              <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-4">금리 필터</p>
+              {[
+                { id: 'all', label: '전체 상품', icon: 'list' },
+                { id: 'no_conditions', label: '우대조건 없음', icon: 'verified_user' },
+                { id: 'high_yield', label: '최고 금리순', icon: 'trending_up' },
+                { id: 'major', label: '1금융권/대형사', icon: 'account_balance' }
+              ].map(f => (
+                <button 
+                  key={f.id}
+                  onClick={() => { setParkingFilter(f.id); window.scrollTo(0,0); }} 
+                  className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${parkingFilter === f.id ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
+                >
+                  <span className="material-symbols-outlined text-xl">{f.icon}</span>
+                  <span className="font-medium text-sm">{f.label}</span>
+                </button>
+              ))}
             </>
           ) : (
             <div className="text-center py-10 text-on-surface-variant/50 text-xs">
@@ -2133,7 +2154,7 @@ export default function App() {
             </div>
           )
         ) : activeTab === "parking" ? (
-          <ParkingCmaComparison />
+          <ParkingCmaComparison parkingFilter={parkingFilter} />
         ) : (
         <>
         {/* Dashboard Header */}
