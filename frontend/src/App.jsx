@@ -1262,10 +1262,12 @@ function ParkingCmaComparison() {
       return {
          amount: monthlyInterestAfterTax,
          text: parsed.text,
-         target: parsed.target
+         target: parsed.target,
+         rating: parsed.rating,
+         cycle: parsed.cycle
       };
     } catch (e) {
-      return { amount: 0, text: rulesJsonStr, target: "" };
+      return { amount: 0, text: rulesJsonStr, target: "", rating: null, cycle: null };
     }
   }, []);
 
