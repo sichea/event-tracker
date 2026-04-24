@@ -1323,6 +1323,7 @@ function InvestmentInsights({ subTab }) {
 
 function ParkingCmaComparison() {
   const [subTab, setSubTab] = useState('parking'); // 'parking' or 'cma'
+  const [parkingFilter, setParkingFilter] = useState('all'); // 'all', 'no_conditions', 'high_yield', 'major'
   const [ratesData, setRatesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [depositAmount, setDepositAmount] = useState(5000000); // 기본 500만원
@@ -1401,33 +1402,72 @@ function ParkingCmaComparison() {
     }).sort((a, b) => b.calc.afterTax - a.calc.afterTax);
   }, [ratesData, subTab, depositAmount, calculateInterest]);
 
+  const filteredData = useMemo(() => {
+    let list = [...processedData];
+    if (parkingFilter === 'no_conditions') {
+      // 우대조건 없음: 기본금리와 최고금리가 같은 상품
+      list = list.filter(item => item.base_rate === item.max_rate);
+    } else if (parkingFilter === 'high_yield') {
+      // 최고 금리순: 이미 정렬되어 있으므로 상위 10개
+      list = list.slice(0, 10);
+    } else if (parkingFilter === 'major') {
+      // 1금융권: 주요 시중은행 및 인터넷은행
+      const majors = ["KB", "신한", "우리", "하나", "NH", "IBK", "카카오", "케이", "토스", "SC", "씨티"];
+      list = list.filter(item => majors.some(m => item.institution.includes(m)));
+    }
+    return list;
+  }, [processedData, parkingFilter]);
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-10">
         <div className="flex flex-col md:flex-row md:items-end gap-2 mb-2">
           <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline">금리 비교</h1>
-          <span className="text-xs md:text-sm text-primary font-bold mb-1 opacity-80">※ 2026년 4월 기준 (AI 실시간 데이터 분석)</span>
+          <span className="text-xs md:text-sm text-primary font-bold mb-1 opacity-80">※ 2026년 4월 기준 실시간 분석</span>
         </div>
         <p className="text-on-surface-variant max-w-xl italic">세금(15.4%)을 제외하고 내 통장에 실제로 꽂히는 진짜 이자를 확인하세요.</p>
       </div>
 
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
-        <div className="flex bg-surface-container/50 p-1 rounded-2xl border border-white/5 w-full md:w-fit">
-          <button 
-            onClick={() => setSubTab('parking')}
-            className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'parking' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
-          >
-            파킹통장 (은행)
-          </button>
-          <button 
-            onClick={() => setSubTab('cma')}
-            className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'cma' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
-          >
-            CMA (증권사)
-          </button>
+        <div className="flex flex-col gap-4 w-full md:w-auto">
+          <div className="flex bg-surface-container/50 p-1 rounded-2xl border border-white/5 w-full md:w-fit">
+            <button 
+              onClick={() => { setSubTab('parking'); setParkingFilter('all'); }}
+              className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'parking' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+            >
+              파킹통장 (은행)
+            </button>
+            <button 
+              onClick={() => { setSubTab('cma'); setParkingFilter('all'); }}
+              className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'cma' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+            >
+              CMA (증권사)
+            </button>
+          </div>
+          
+          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+            {[
+              { id: 'all', label: '전체' },
+              { id: 'no_conditions', label: '우대조건 없음' },
+              { id: 'high_yield', label: '최고 금리순' },
+              { id: 'major', label: subTab === 'parking' ? '1금융권' : '대형 증권사' }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setParkingFilter(f.id)}
+                className={`px-4 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap border transition-all ${
+                  parkingFilter === f.id 
+                    ? 'bg-primary/20 border-primary text-primary shadow-sm' 
+                    : 'bg-white/5 border-white/10 text-on-surface-variant hover:bg-white/10'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-surface-container-high px-6 py-3 rounded-2xl border border-primary/20 w-full md:w-auto">
+        <div className="flex items-center gap-4 bg-surface-container-high px-6 py-3 rounded-2xl border border-primary/20 w-full md:w-auto self-start">
           <span className="font-bold text-sm text-on-surface whitespace-nowrap">예치 금액</span>
           <div className="relative flex-1 md:w-48">
             <input 
@@ -1455,42 +1495,39 @@ function ParkingCmaComparison() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        {processedData.map((item, idx) => (
+        {filteredData.map((item, idx) => (
           <div key={item.id} className="group bg-surface-container border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-container-high hover:-translate-y-1 hover:border-primary/50 duration-300 flex flex-col relative overflow-hidden shadow-lg">
             
-            {idx === 0 && depositAmount > 0 && (
+            {idx === 0 && depositAmount > 0 && parkingFilter === 'all' && (
               <div className="absolute top-0 right-0 bg-primary text-on-primary text-[10px] font-black px-4 py-1 rounded-bl-xl shadow-md">
                 가장 유리해요! 👑
               </div>
             )}
 
             <div className="flex justify-between items-start mb-4">
-              <div className="pr-12">
+              <div className="flex-1 pr-4">
                 <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{item.institution}</p>
-                <h4 className="text-lg font-bold font-headline line-clamp-1">{item.product_name}</h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-lg font-bold font-headline line-clamp-1">{item.product_name}</h4>
+                  <a 
+                    href={`https://search.naver.com/search.naver?query=${encodeURIComponent(item.institution + ' ' + item.product_name)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1 rounded-full bg-white/5 hover:bg-primary/20 text-on-surface-variant hover:text-primary transition-all shrink-0"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">search</span>
+                  </a>
+                </div>
               </div>
-              <span className={`px-2 py-1 rounded-md text-[10px] font-black border shrink-0 transition-all ${
-                item.tag?.includes('AI') 
-                  ? 'bg-primary text-on-primary border-primary shadow-[0_0_10px_rgba(115,255,186,0.3)] animate-pulse' 
-                  : 'bg-primary/10 text-primary border-primary/20'
-              }`}>
-                {item.tag}
-              </span>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-xl font-black text-primary">{item.max_rate}%</span>
+                <span className="text-[9px] text-on-surface-variant font-bold">최고금리</span>
+              </div>
             </div>
             
             <div className="my-4 p-4 bg-[#0a0e17]/50 rounded-2xl border border-white/5">
               <div className="flex justify-between items-center mb-2">
                 <p className="text-[10px] text-primary font-bold uppercase">예상 월 수령액 (세후)</p>
-                {item.calc.rating && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-[9px] font-bold text-on-surface-variant/60">신용도:</span>
-                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                      item.calc.rating.startsWith('A') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                    }`}>
-                      {item.calc.rating}
-                    </span>
-                  </div>
-                )}
               </div>
               
               <div className="flex items-end gap-1 mb-3">
@@ -1519,17 +1556,6 @@ function ParkingCmaComparison() {
                 <p className="text-xs font-bold text-on-surface">{item.calc.target}</p>
               </div>
             )}
-
-
-            <a 
-              href={`https://search.naver.com/search.naver?query=${encodeURIComponent(item.institution + ' ' + item.product_name)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 w-full py-3 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-            >
-              네이버에서 검색하기
-              <span className="material-symbols-outlined text-sm">search</span>
-            </a>
           </div>
         ))}
         </div>
