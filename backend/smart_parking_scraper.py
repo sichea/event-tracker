@@ -40,12 +40,12 @@ model = genai.GenerativeModel(selected_model_name)
 
 # 분석 대상 URL
 TARGET_URLS = [
-    { "institution": "OK저축은행", "product_name": "OK짠테크/파킹플렉스", "url": "https://m.oksavingsbank.com/m/goods/DpstGoodList.do" },
-    { "institution": "다올저축은행", "product_name": "Fi 쌈짓돈", "url": "https://www.daolsb.com/fi/deposit/depositInfo.do" },
-    { "institution": "애큐온저축은행", "product_name": "머니모으기", "url": "https://www.acuonsb.co.kr/HP11010000.do" },
+    { "institution": "OK저축은행", "product_name": "OK짠테크/파킹플렉스", "url": "https://www.oksavingsbank.com/product/deposit/interest/731" },
+    { "institution": "다올저축은행", "product_name": "Fi 쌈짓돈", "url": "https://m.daolsb.com/deposit/goods.do?gds_cd=DC215" },
+    { "institution": "애큐온저축은행", "product_name": "머니모으기", "url": "https://www.acuonsb.co.kr/product/deposit/list/moneyGathering" },
     { "institution": "토스뱅크", "product_name": "나눠모으기/토스뱅크통장", "url": "https://www.tossbank.com/product-service/savings/account" },
     { "institution": "케이뱅크", "product_name": "플러스박스", "url": "https://www.kbanknow.com/ib20/mnu/FDP0000000" },
-    { "institution": "한국투자증증권", "product_name": "CMA 발행어음형", "url": "https://www.truefriend.com/main/finance/cma/CMA.jsp" },
+    { "institution": "한국투자증권", "product_name": "CMA 발행어음형", "url": "https://www.truefriend.com/main/customer/guide/CMA.jsp" },
     { "institution": "KB증권", "product_name": "my CMA", "url": "https://www.kbsec.com/go.able?realId=01010100" }
 ]
 
