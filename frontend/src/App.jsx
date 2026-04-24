@@ -941,7 +941,7 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type, yieldD
   );
 }
 
-function InvestmentInsights() {
+function InvestmentInsights({ subTab }) {
   const [selectedScenario, setSelectedScenario] = useState(INSIGHTS_DATA[0].id);
   const [marketData, setMarketData] = useState(null);
   const [mdLoading, setMdLoading] = useState(true);
@@ -990,8 +990,56 @@ function InvestmentInsights() {
 
   const news = marketData?.news || [];
 
+  if (subTab === 'dart') {
+    return (
+      <div className="py-12 animate-in fade-in slide-in-from-bottom-4">
+        <div className="mb-8 md:mb-12">
+          <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">고래 지분 변동</h1>
+          <p className="text-on-surface-variant text-sm md:text-base">큰손들의 5% 이상 대량 보유 공시를 실시간으로 추적합니다.</p>
+        </div>
+        <div className="bg-surface-container border border-white/5 rounded-3xl p-10 md:p-20 flex flex-col items-center justify-center text-center shadow-lg">
+          <span className="material-symbols-outlined text-6xl text-primary/40 mb-6">notifications_active</span>
+          <h3 className="text-xl md:text-2xl font-bold font-headline mb-2 text-on-surface">DART 공시 실시간 연동 준비 중</h3>
+          <p className="text-sm text-on-surface-variant max-w-md">국민연금 등 주요 투자자들의 지분 변동 내역(5% 룰)을 AI가 분석하여 제공할 예정입니다. 조금만 기다려주세요!</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (subTab === 'nps') {
+    return (
+      <div className="py-12 animate-in fade-in slide-in-from-bottom-4">
+        <div className="mb-8 md:mb-12">
+          <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">국민연금 주력주</h1>
+          <p className="text-on-surface-variant text-sm md:text-base">국민연금이 10% 이상 보유한 확실한 종목들의 비중 추세를 확인하세요.</p>
+        </div>
+        <div className="bg-surface-container border border-white/5 rounded-3xl p-10 md:p-20 flex flex-col items-center justify-center text-center shadow-lg">
+          <span className="material-symbols-outlined text-6xl text-blue-400/40 mb-6">account_balance</span>
+          <h3 className="text-xl md:text-2xl font-bold font-headline mb-2 text-on-surface">국민연금 포트폴리오 분석 준비 중</h3>
+          <p className="text-sm text-on-surface-variant max-w-md">국내 주식시장의 가장 큰손, 국민연금의 장기 주력 투자 종목과 비중 증감 추이를 제공할 예정입니다.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (subTab === 'legends') {
+    return (
+      <div className="py-12 animate-in fade-in slide-in-from-bottom-4">
+        <div className="mb-8 md:mb-12">
+          <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">글로벌 투자 전설</h1>
+          <p className="text-on-surface-variant text-sm md:text-base">워런 버핏, 레이 달리오 등 글로벌 거인들의 포트폴리오를 엿보세요.</p>
+        </div>
+        <div className="bg-surface-container border border-white/5 rounded-3xl p-10 md:p-20 flex flex-col items-center justify-center text-center shadow-lg">
+          <span className="material-symbols-outlined text-6xl text-purple-400/40 mb-6">military_tech</span>
+          <h3 className="text-xl md:text-2xl font-bold font-headline mb-2 text-on-surface">13F 공시 데이터 연동 준비 중</h3>
+          <p className="text-sm text-on-surface-variant max-w-md">미국 SEC에 보고되는 13F 공시를 바탕으로 전설적인 투자자들의 매수/매도 현황을 분석하여 제공할 예정입니다.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="py-6 md:py-12">
+    <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
       {/* Header */}
       <div className="mb-8 md:mb-12">
         <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">투자 인사이트</h1>
@@ -1444,7 +1492,9 @@ export default function App() {
   const [scrapingStatus, setScrapingStatus] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
-  const [activeTab, setActiveTab] = useState("insights"); // "insights" | "dashboard" | "ipo" | "apt"
+  const [activeTab, setActiveTab] = useState("insights"); // "insights" | "dashboard" | "ipo" | "apt" | "parking"
+  const [insightSubTab, setInsightSubTab] = useState("macro"); // "macro", "dart", "nps", "legends"
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [ipoEvents, setIpoEvents] = useState([]);
   const [ipoLoading, setIpoLoading] = useState(false);
   const [selectedIpo, setSelectedIpo] = useState(null);
@@ -1731,7 +1781,12 @@ export default function App() {
       <header className="fixed top-0 w-full z-50 bg-[#0a0e17]/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
         <nav className="flex justify-between items-center w-full px-4 md:px-8 h-16">
           <div className="flex items-center gap-4 md:gap-12">
-            <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>RE:MEMBER</span>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setIsDrawerOpen(true)} className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#ebedfb]">menu</span>
+              </button>
+              <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>RE:MEMBER</span>
+            </div>
             {/* Desktop Tabs */}
             <div className="hidden md:flex items-center gap-8 text-sm font-medium">
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'insights' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => setActiveTab("insights")}>투자 인사이트</button>
@@ -1766,46 +1821,64 @@ export default function App() {
         </nav>
       </header>
 
-      <aside className="flex flex-col fixed left-0 top-16 bottom-0 p-4 h-[calc(100vh-64px)] w-64 bg-gradient-to-b from-[#0a0e17] to-[#262c3a] z-40 hidden xl:flex border-r border-white/5">
-        <div className="flex items-center gap-3 mb-8 px-2">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-            <span className="material-symbols-outlined text-primary" data-weight="fill">sensors</span>
-          </div>
-          <div>
-            <p className="text-sm font-black text-[#73ffba] uppercase tracking-wider font-headline font-italic">FUTURE SIGNAL</p>
-            <p className="text-xs text-on-surface-variant italic">"절대 놓치지 마, 기억해!"</p>
-          </div>
-        </div>
-        <div className="space-y-1 flex-1">
-          <button onClick={() => { setActiveTab("insights"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${activeTab === 'insights' ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
-            <span className="material-symbols-outlined text-xl">insights</span>
-            <span className="font-medium">투자 인사이트</span>
-          </button>
-          <button onClick={() => { setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
-            <span className="material-symbols-outlined text-xl">layers</span>
-            <span className="font-medium">ETF 이벤트</span>
-          </button>
-          <button onClick={() => { setActiveTab("ipo"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${activeTab === 'ipo' ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
-            <span className="material-symbols-outlined text-xl">calendar_month</span>
-            <span className="font-medium">공모주 캘린더</span>
-          </button>
-          <button onClick={() => { setActiveTab("apt"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${activeTab === 'apt' ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
-            <span className="material-symbols-outlined text-xl">home_work</span>
-            <span className="font-medium">아파트 청약</span>
-          </button>
-          <button onClick={() => { setActiveTab("parking"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${activeTab === 'parking' ? 'bg-[#262c3a] text-[#73ffba]' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
-            <span className="material-symbols-outlined text-xl">account_balance</span>
-            <span className="font-medium">금리 비교</span>
-          </button>
+      {/* Drawer Overlay */}
+      {isDrawerOpen && (
+        <div className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm transition-opacity" onClick={() => setIsDrawerOpen(false)}></div>
+      )}
 
-          <button onClick={() => supabase.auth.signOut()} className="w-full text-left text-[#ebedfb]/70 hover:bg-[#262c3a]/30 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:text-[#ff716c] duration-300">
-            <span className="material-symbols-outlined text-xl">logout</span>
-            <span>로그아웃</span>
+      <aside className={`flex flex-col fixed left-0 top-0 bottom-0 p-4 w-64 bg-gradient-to-b from-[#0a0e17] to-[#262c3a] z-[70] transition-transform duration-300 border-r border-white/5 shadow-2xl ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between mb-8 px-2 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+              <span className="material-symbols-outlined text-primary" data-weight="fill">sensors</span>
+            </div>
+            <div>
+              <p className="text-sm font-black text-[#73ffba] uppercase tracking-wider font-headline">FUTURE SIGNAL</p>
+              <p className="text-[10px] text-on-surface-variant italic">고래들의 돈줄 추적</p>
+            </div>
+          </div>
+          <button onClick={() => setIsDrawerOpen(false)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+            <span className="material-symbols-outlined text-sm">close</span>
           </button>
+        </div>
+        
+        <div className="space-y-1 flex-1">
+          {activeTab === 'insights' ? (
+            <>
+              <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-4">투자 인사이트</p>
+              <button onClick={() => { setInsightSubTab("macro"); setIsDrawerOpen(false); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'macro' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+                <span className="material-symbols-outlined text-xl">public</span>
+                <span className="font-medium text-sm">매크로 시나리오</span>
+              </button>
+              <button onClick={() => { setInsightSubTab("dart"); setIsDrawerOpen(false); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'dart' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+                <span className="material-symbols-outlined text-xl">notifications_active</span>
+                <span className="font-medium text-sm">고래 지분 변동 (5%)</span>
+              </button>
+              <button onClick={() => { setInsightSubTab("nps"); setIsDrawerOpen(false); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'nps' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+                <span className="material-symbols-outlined text-xl">account_balance</span>
+                <span className="font-medium text-sm">국민연금 주력주</span>
+              </button>
+              <button onClick={() => { setInsightSubTab("legends"); setIsDrawerOpen(false); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'legends' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+                <span className="material-symbols-outlined text-xl">military_tech</span>
+                <span className="font-medium text-sm">글로벌 투자 전설</span>
+              </button>
+            </>
+          ) : (
+            <div className="text-center py-10 text-on-surface-variant/50 text-xs">
+              현재 선택된 탭({activeTab})의<br/>세부 메뉴가 없습니다.
+            </div>
+          )}
+
+          <div className="absolute bottom-6 left-4 right-4">
+            <button onClick={() => supabase.auth.signOut()} className="w-full text-left text-[#ebedfb]/70 hover:bg-[#262c3a]/30 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:text-[#ff716c] duration-300">
+              <span className="material-symbols-outlined text-xl">logout</span>
+              <span className="text-sm font-medium">로그아웃</span>
+            </button>
+          </div>
         </div>
       </aside>
 
-      <main className="pt-20 pb-24 md:pb-12 px-4 md:px-12 xl:ml-64 min-h-screen">
+      <main className="pt-20 pb-24 md:pb-12 px-4 md:px-12 min-h-screen">
         
         {/* Settings Panel */}
         {showSettings && (
@@ -1922,7 +1995,7 @@ export default function App() {
 
         {/* Tab Content Switch */}
         {activeTab === "insights" ? (
-          <InvestmentInsights />
+          <InvestmentInsights subTab={insightSubTab} />
         ) : activeTab === "ipo" ? (
           ipoLoading ? (
             <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
