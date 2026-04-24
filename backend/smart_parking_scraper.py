@@ -48,8 +48,8 @@ TARGET_BANKS = [
 
 def fetch_search_results(bank_name):
     """은행 사이트 대신 네이버 검색 결과를 긁어오는 혁신적인 방식"""
-    # 파킹통장과 CMA를 모두 포괄하는 검색어
-    query = urllib.parse.quote(f"{bank_name} 파킹통장 CMA 금리 최신")
+    # 파킹통장과 CMA를 모두 포괄하면서 2026년 최신 데이터만 타겟팅
+    query = urllib.parse.quote(f"{bank_name} 파킹통장 CMA 금리 2026년 최신")
     url = f"https://search.naver.com/search.naver?where=nexearch&query={query}"
     
     print(f"Searching: [{bank_name}] ...")
@@ -80,25 +80,45 @@ def fetch_search_results(bank_name):
 def analyze_with_gemini(bank_name, text):
     try:
         prompt = f"""
-        다음은 네이버에 '{bank_name}'의 예치금 상품(파킹통장, CMA)을 검색한 최신 결과야.
-        여기서 이 금융사의 **모든 경쟁력 있는 파킹통장 및 CMA 상품들**을 추출해줘.
-        
-        [지시사항]
-        1. 형식: [
+        다음은 네이버에 '{bank_name}'의 예치금 상품(파킹통장, CMA)을 검색한 결과야.
+        너의 임무는 이 텍스트에서 **가장 정확하고, 가장 최신의, 입출금이 자유로운 파킹통장/CMA 정보**만을 뽑아내는 거야. 
+        "한 치의 오차도 없이" 완벽하게 분석해 줘.
+
+        [초정밀 분석 지침]
+        1. **최신성 검증 (CRITICAL)**: 
+           - 텍스트 내에 날짜(연도)가 있다면 반드시 확인해. 2023년, 2024년, 2025년과 같은 과거 금리 정보는 **무조건 무시해**.
+           - 여러 금리가 언급된다면 가장 최신(2026년 또는 가장 최근 시점) 금리만 선택해. "인하 전" 금리는 절대 쓰지 마.
+        2. **상품 유형 검증 (CRITICAL)**:
+           - 이름에 '예금'이 들어가더라도 **'자유입출금'**이나 **'파킹통장'**이라는 설명이 없거나, **'정기'**, **'거치식'**, **'만기'**라는 조건이 붙어있다면 절대 포함하지 마.
+        3. **금리 분해 (CRITICAL)**:
+           - **base_rate (기본금리)**: 아무 조건(마케팅 동의, 자동이체, 첫 거래 등) 없이 누구나 가입만 하면 받는 금리.
+           - **max_rate (최고금리)**: 모든 우대 조건을 만족했을 때 받는 최대 금리. 우대 조건이 아예 없다면 base_rate와 동일하게 설정.
+        4. **우대 조건 텍스트화**:
+           - preferential_conditions: 우대 금리를 받기 위한 조건을 텍스트로 자세히 적어. (예: "마케팅 동의 0.1% + 첫 거래 0.5%"). 우대가 없으면 빈 문자열("").
+        5. **금액 구간 (Tiers)**:
+           - 누진 금리(구간별로 금리가 다름)인 경우, 각 구간을 limit(해당 구간의 상한액) 기준으로 분리해서 rules 배열에 넣어. 무제한 초과분은 limit을 null로 설정. 한도가 낮은 순으로 정렬.
+
+        [출력 형식]
+        - 반드시 아래 JSON 배열 형식으로만 응답할 것.
+        [
              {{
                "institution": "{bank_name}", 
-               "product_name": "상품명", 
+               "product_name": "정확한 상품명", 
                "mode": "tiered" 또는 "whole", 
-               "rules": [{{"limit": 500000, "rate": 7.0}}, ...], 
-               "target": "코멘트", "rating": "등급", "cycle": "주기"
-             }},
-             ...
-           ]
-        2. **mode 판단 기준**: 
-           - 'tiered': 잔액을 구간별로 나눠서 각기 다른 금리를 적용하는 경우 (예: 50만 이하 7%, 초과분 2%)
-           - 'whole': 잔액 전체에 특정 금리가 적용되는 경우 (예: 1억 이하 시 전액 3.3%)
-        3. rules 배열은 한도(limit)가 낮은 순서로 정렬해 (무제한은 null).
-        4. JSON 배열 형식으로만 응답해.
+               "rules": [
+                 {{
+                   "limit": 50000000, 
+                   "base_rate": 2.0, 
+                   "max_rate": 2.5
+                 }},
+                 ...
+               ], 
+               "preferential_conditions": "우대 조건 상세 설명",
+               "target": "가입 대상 (없으면 빈 문자열)", 
+               "rating": "신용 등급 (없으면 null)", 
+               "cycle": "이자 지급 주기 (예: 매월, 매일)"
+             }}
+        ]
         
         텍스트: {text[:15000]}
         """
@@ -112,7 +132,7 @@ def analyze_with_gemini(bank_name, text):
 
 def discover_new_targets():
     """랭킹 및 뉴스 검색을 통해 신규 상품이나 금융사를 발굴하는 탐색 단계"""
-    query = urllib.parse.quote("2024년 최신 파킹통장 순위 추천 신상품")
+    query = urllib.parse.quote("2026년 파킹통장 순위 추천 신상품")
     url = f"https://search.naver.com/search.naver?where=nexearch&query={query}"
     
     print("🌐 [신상품 발굴] 최신 금융 랭킹 탐색 중...")
@@ -161,7 +181,8 @@ def run_smart_scraper():
                     if data.get("rules"):
                         data["institution"] = bank
                         all_results.append(data)
-                        print(f"   Success: [{data['product_name']}] Max {data['rules'][0]['rate']}%")
+                        first_max = data['rules'][0].get('max_rate', 0)
+                        print(f"   Success: [{data['product_name']}] Max {first_max}%")
         else:
             print(f"   Skipping [{bank}] due to lack of data")
 
@@ -181,15 +202,18 @@ def run_smart_scraper():
             desc = {
                 "text": f"포털 검색 자동 분석: {res.get('target', '')}",
                 "target": res.get("target", ""),
+                "preferential_conditions": res.get("preferential_conditions", ""),
                 "rating": res.get("rating"),
                 "cycle": res.get("cycle"),
                 "mode": res.get("mode", "tiered"),
                 "rules": res.get("rules", [])
             }
             
-            rates = [rule['rate'] for rule in res.get('rules', [])]
-            max_rate = max(rates) if rates else (res.get('max_rate') or 0.0)
-            base_rate = rates[0] if rates else max_rate
+            max_rates = [rule.get('max_rate', 0) for rule in res.get('rules', [])]
+            base_rates = [rule.get('base_rate', 0) for rule in res.get('rules', [])]
+            
+            max_rate = max(max_rates) if max_rates else 0.0
+            base_rate = base_rates[0] if base_rates else max_rate
             
             payload = {
                 "type": "parking" if "cma" not in prod.lower() else "cma",

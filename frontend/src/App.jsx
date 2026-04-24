@@ -1327,6 +1327,7 @@ function ParkingCmaComparison({ parkingFilter }) {
   const [ratesData, setRatesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [depositAmount, setDepositAmount] = useState(5000000); // 기본 500만원
+  const [usePreferential, setUsePreferential] = useState(false); // 우대금리 적용 여부
 
   useEffect(() => {
     fetchParkingRates()
@@ -1340,7 +1341,7 @@ function ParkingCmaComparison({ parkingFilter }) {
       });
   }, []);
 
-  const calculateInterest = useCallback((rulesJsonStr, amount) => {
+  const calculateInterest = useCallback((rulesJsonStr, amount, applyBonus) => {
     try {
       const parsed = JSON.parse(rulesJsonStr);
       const rules = parsed.rules || [];
@@ -1351,14 +1352,15 @@ function ParkingCmaComparison({ parkingFilter }) {
 
       if (mode === "whole") {
         // 전액 금리 방식: 잔액이 속한 구간의 금리를 전액에 적용
-        let appliedRate = rules[0].rate;
+        let appliedRule = rules[0];
         for (const rule of rules) {
           if (rule.limit === null || amount <= rule.limit) {
-            appliedRate = rule.rate;
+            appliedRule = rule;
             break;
           }
         }
-        totalInterestYearly = amount * (appliedRate / 100);
+        const rate = applyBonus ? (appliedRule.max_rate || appliedRule.rate) : (appliedRule.base_rate || appliedRule.rate);
+        totalInterestYearly = amount * (rate / 100);
       } else {
         // 누진 금리 방식 (기본)
         let remaining = amount;
@@ -1373,7 +1375,8 @@ function ParkingCmaComparison({ parkingFilter }) {
             chunk = Math.min(remaining, tierSize);
             previousLimit = rule.limit;
           }
-          totalInterestYearly += chunk * (rule.rate / 100);
+          const rate = applyBonus ? (rule.max_rate || rule.rate) : (rule.base_rate || rule.rate);
+          totalInterestYearly += chunk * (rate / 100);
           remaining -= chunk;
         }
       }
@@ -1387,7 +1390,8 @@ function ParkingCmaComparison({ parkingFilter }) {
          text: parsed.text,
          target: parsed.target,
          rating: parsed.rating,
-         cycle: parsed.cycle
+         cycle: parsed.cycle,
+         preferential_conditions: parsed.preferential_conditions
       };
     } catch (e) {
       return { amount: 0, text: rulesJsonStr, target: "", rating: null, cycle: null };
@@ -1395,12 +1399,17 @@ function ParkingCmaComparison({ parkingFilter }) {
   }, []);
 
   const processedData = useMemo(() => {
-    const filtered = ratesData.filter(item => item.type === subTab);
+    const excludeKeywords = ["적립식", "정기예금", "정기적금", "적금", "만기"];
+    const filtered = ratesData.filter(item => {
+      const isCorrectType = item.type === subTab;
+      const isNotSavings = !excludeKeywords.some(k => item.product_name.includes(k));
+      return isCorrectType && isNotSavings;
+    });
     return filtered.map(item => {
-      const calc = calculateInterest(item.description, depositAmount);
+      const calc = calculateInterest(item.description, depositAmount, usePreferential);
       return { ...item, calc: { ...calc, text: calc.text.replace("포털 검색 자동 분석: ", "") } };
     }).sort((a, b) => b.calc.afterTax - a.calc.afterTax);
-  }, [ratesData, subTab, depositAmount, calculateInterest]);
+  }, [ratesData, subTab, depositAmount, calculateInterest, usePreferential]);
 
   const filteredData = useMemo(() => {
     let list = [...processedData];
@@ -1487,6 +1496,14 @@ function ParkingCmaComparison({ parkingFilter }) {
             />
             <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm font-bold text-on-surface-variant">만원</span>
           </div>
+
+          <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-xl border border-primary/20 cursor-pointer select-none hover:bg-primary/10 transition-all"
+               onClick={() => setUsePreferential(!usePreferential)}>
+            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${usePreferential ? 'bg-primary border-primary' : 'border-white/20'}`}>
+               {usePreferential && <span className="material-symbols-outlined text-on-primary text-[14px] font-bold">check</span>}
+            </div>
+            <span className={`text-xs font-bold whitespace-nowrap ${usePreferential ? 'text-primary' : 'text-on-surface-variant'}`}>우대금리 포함</span>
+          </div>
         </div>
       </div>
 
@@ -1527,8 +1544,13 @@ function ParkingCmaComparison({ parkingFilter }) {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1">
-                <span className="text-xl font-black text-primary">{item.max_rate}%</span>
-                <span className="text-[9px] text-on-surface-variant font-bold">최고금리</span>
+                <div className="flex flex-col items-end">
+                   <span className="text-xl font-black text-primary">{item.max_rate}%</span>
+                   <span className="text-[9px] text-on-surface-variant font-bold">최고금리</span>
+                </div>
+                <div className="mt-1 text-[10px] text-on-surface-variant/60 font-medium">
+                   기본 {item.base_rate}%
+                </div>
               </div>
             </div>
             
@@ -1554,9 +1576,20 @@ function ParkingCmaComparison({ parkingFilter }) {
                      이자 지급: {item.calc.cycle}
                    </div>
                 )}
+                {item.calc.preferential_conditions && (
+                  <div className="mt-3 p-3 bg-primary/5 rounded-xl border border-primary/10">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="material-symbols-outlined text-[14px] text-primary">verified</span>
+                      <p className="text-[10px] font-bold text-primary uppercase">우대 조건</p>
+                    </div>
+                    <p className="text-[11px] text-on-surface leading-relaxed whitespace-pre-wrap">
+                      {item.calc.preferential_conditions}
+                    </p>
+                  </div>
+                )}
                 {item.calc.target && (
                   <div className="mt-3 pt-3 border-t border-white/5 flex items-start gap-1.5">
-                    <span className="material-symbols-outlined text-[14px] text-primary mt-0.5">check_circle</span>
+                    <span className="material-symbols-outlined text-[14px] text-primary mt-0.5">group</span>
                     <p className="text-xs font-bold text-on-surface">{item.calc.target}</p>
                   </div>
                 )}
