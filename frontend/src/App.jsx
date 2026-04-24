@@ -1405,14 +1405,20 @@ function ParkingCmaComparison({ parkingFilter }) {
   const filteredData = useMemo(() => {
     let list = [...processedData];
     if (parkingFilter === 'no_conditions') {
-      list = list.filter(item => item.base_rate === item.max_rate);
+      // 우대조건 없는 상품은 '기본 금리'가 높은 순으로 정렬
+      list = list.filter(item => item.base_rate === item.max_rate)
+                 .sort((a, b) => b.base_rate - a.base_rate);
     } else if (parkingFilter === 'high_yield') {
-      list = list.slice(0, 10);
+      // 최고 금리순은 조건 포함 '최대 금리' 자체가 높은 순으로 재정렬
+      list = [...processedData].sort((a, b) => b.max_rate - a.max_rate);
     } else if (parkingFilter === 'major') {
       const majors = ["KB", "신한", "우리", "하나", "NH", "IBK", "카카오", "케이", "토스", "SC", "씨티"];
       list = list.filter(item => majors.some(m => item.institution.includes(m)));
     }
-    return list.slice(0, 5); // 상위 5개만 표시
+    
+    // 최고 금리순일 때는 더 많은 선택지를 위해 10개까지 노출
+    const limit = parkingFilter === 'high_yield' ? 10 : 5;
+    return list.slice(0, limit);
   }, [processedData, parkingFilter]);
 
   const toggleExpand = (id) => {
