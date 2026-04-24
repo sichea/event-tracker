@@ -946,6 +946,7 @@ function InvestmentInsights({ subTab }) {
   const [marketData, setMarketData] = useState(null);
   const [mdLoading, setMdLoading] = useState(true);
   const [detailAsset, setDetailAsset] = useState(null); // { asset, type }
+  const [whaleData, setWhaleData] = useState(null);
   const scenario = INSIGHTS_DATA.find(s => s.id === selectedScenario);
 
   useEffect(() => {
@@ -957,6 +958,11 @@ function InvestmentInsights({ subTab }) {
       }
       setMdLoading(false);
     }).catch(() => setMdLoading(false));
+
+    fetch('/data/whale.json')
+      .then(res => res.json())
+      .then(data => setWhaleData(data))
+      .catch(err => console.error("Whale data fetch error:", err));
   }, []);
 
   const indicators = marketData ? [
@@ -992,48 +998,103 @@ function InvestmentInsights({ subTab }) {
 
   if (subTab === 'dart') {
     return (
-      <div className="py-12 animate-in fade-in slide-in-from-bottom-4">
+      <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
         <div className="mb-8 md:mb-12">
           <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">고래 지분 변동</h1>
-          <p className="text-on-surface-variant text-sm md:text-base">큰손들의 5% 이상 대량 보유 공시를 실시간으로 추적합니다.</p>
+          <p className="text-on-surface-variant text-sm md:text-base">큰손들의 지분 대량 보유(5%) 공시를 실시간으로 추적합니다.</p>
         </div>
-        <div className="bg-surface-container border border-white/5 rounded-3xl p-10 md:p-20 flex flex-col items-center justify-center text-center shadow-lg">
-          <span className="material-symbols-outlined text-6xl text-primary/40 mb-6">notifications_active</span>
-          <h3 className="text-xl md:text-2xl font-bold font-headline mb-2 text-on-surface">DART 공시 실시간 연동 준비 중</h3>
-          <p className="text-sm text-on-surface-variant max-w-md">국민연금 등 주요 투자자들의 지분 변동 내역(5% 룰)을 AI가 분석하여 제공할 예정입니다. 조금만 기다려주세요!</p>
-        </div>
+        {!whaleData ? (
+          <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {whaleData.dart.map((item, i) => (
+              <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="bg-surface-container border border-white/5 rounded-2xl p-6 hover:bg-surface-container-high hover:border-primary/50 transition-all duration-300 group flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-3">
+                    <span className="text-[10px] font-bold text-on-surface-variant bg-white/5 px-2 py-1 rounded">{item.date}</span>
+                    <span className="material-symbols-outlined text-primary/50 group-hover:text-primary transition-colors text-sm">open_in_new</span>
+                  </div>
+                  <h3 className="text-xl font-bold font-headline mb-1 text-on-surface line-clamp-1">{item.corp_name}</h3>
+                  <p className="text-sm font-medium text-primary mb-3 line-clamp-1">{item.filer}</p>
+                </div>
+                <div className="text-xs text-on-surface-variant leading-relaxed p-3 bg-black/20 rounded-xl border border-white/5 line-clamp-2 mt-2">
+                  {item.report_nm}
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
 
   if (subTab === 'nps') {
     return (
-      <div className="py-12 animate-in fade-in slide-in-from-bottom-4">
+      <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
         <div className="mb-8 md:mb-12">
           <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">국민연금 주력주</h1>
-          <p className="text-on-surface-variant text-sm md:text-base">국민연금이 10% 이상 보유한 확실한 종목들의 비중 추세를 확인하세요.</p>
+          <p className="text-on-surface-variant text-sm md:text-base">국민연금이 대량 보유한 핵심 종목과 최근 투자 동향입니다.</p>
         </div>
-        <div className="bg-surface-container border border-white/5 rounded-3xl p-10 md:p-20 flex flex-col items-center justify-center text-center shadow-lg">
-          <span className="material-symbols-outlined text-6xl text-blue-400/40 mb-6">account_balance</span>
-          <h3 className="text-xl md:text-2xl font-bold font-headline mb-2 text-on-surface">국민연금 포트폴리오 분석 준비 중</h3>
-          <p className="text-sm text-on-surface-variant max-w-md">국내 주식시장의 가장 큰손, 국민연금의 장기 주력 투자 종목과 비중 증감 추이를 제공할 예정입니다.</p>
-        </div>
+        {!whaleData ? (
+          <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
+        ) : (
+          <div className="space-y-4">
+            {whaleData.nps.map((item, i) => (
+              <div key={i} className="bg-surface-container border border-white/5 rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-blue-400/30 transition-all">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-xl font-bold font-headline">{item.corp_name}</h3>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${item.trend === '비중확대' ? 'bg-red-500/10 text-red-400 border-red-500/20' : item.trend === '비중축소' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-on-surface-variant border-white/10'}`}>
+                      {item.trend}
+                    </span>
+                  </div>
+                  <p className="text-sm text-on-surface-variant">{item.reason}</p>
+                </div>
+                <div className="flex items-center gap-2 bg-black/20 px-4 py-2 rounded-xl shrink-0">
+                  <span className="text-xs font-medium text-on-surface-variant">보유지분</span>
+                  <span className="text-lg font-black text-blue-400">{item.ownership_pct}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
 
   if (subTab === 'legends') {
     return (
-      <div className="py-12 animate-in fade-in slide-in-from-bottom-4">
+      <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
         <div className="mb-8 md:mb-12">
           <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">글로벌 투자 전설</h1>
-          <p className="text-on-surface-variant text-sm md:text-base">워런 버핏, 레이 달리오 등 글로벌 거인들의 포트폴리오를 엿보세요.</p>
+          <p className="text-on-surface-variant text-sm md:text-base">워런 버핏, 레이 달리오 등 거인들의 13F 포트폴리오 픽입니다.</p>
         </div>
-        <div className="bg-surface-container border border-white/5 rounded-3xl p-10 md:p-20 flex flex-col items-center justify-center text-center shadow-lg">
-          <span className="material-symbols-outlined text-6xl text-purple-400/40 mb-6">military_tech</span>
-          <h3 className="text-xl md:text-2xl font-bold font-headline mb-2 text-on-surface">13F 공시 데이터 연동 준비 중</h3>
-          <p className="text-sm text-on-surface-variant max-w-md">미국 SEC에 보고되는 13F 공시를 바탕으로 전설적인 투자자들의 매수/매도 현황을 분석하여 제공할 예정입니다.</p>
-        </div>
+        {!whaleData ? (
+          <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {whaleData.legends.map((item, i) => (
+              <div key={i} className="bg-surface-container border border-white/5 rounded-2xl p-6 hover:border-purple-400/30 transition-all flex flex-col justify-between">
+                <div>
+                  <p className="text-[10px] font-bold text-purple-400 mb-2">{item.investor}</p>
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-xl font-bold font-headline">{item.corp_name} <span className="text-sm text-on-surface-variant font-medium ml-1">({item.ticker})</span></h3>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${item.action === '신규매수' || item.action === '비중확대' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
+                      {item.action}
+                    </span>
+                  </div>
+                </div>
+                <div className="bg-black/20 rounded-xl p-4 border border-white/5">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs text-on-surface-variant">포트폴리오 비중</span>
+                    <span className="text-sm font-black text-on-surface">{item.portfolio_pct}%</span>
+                  </div>
+                  <p className="text-xs text-on-surface-variant/80 border-t border-white/5 pt-2 mt-2">{item.reason}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

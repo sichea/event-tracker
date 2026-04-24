@@ -1,0 +1,70 @@
+{
+  "dart": [],
+  "nps": [
+    {
+      "corp_name": "삼성전자",
+      "ownership_pct": 7.42,
+      "trend": "유지",
+      "reason": "반도체 사이클 회복 및 HBM 경쟁력"
+    },
+    {
+      "corp_name": "SK하이닉스",
+      "ownership_pct": 7.9,
+      "trend": "비중확대",
+      "reason": "HBM 시장 주도권 및 실적 턴어라운드"
+    },
+    {
+      "corp_name": "LG에너지솔루션",
+      "ownership_pct": 5.74,
+      "trend": "유지",
+      "reason": "글로벌 2차전지 장기 수요 견조"
+    },
+    {
+      "corp_name": "현대차",
+      "ownership_pct": 7.35,
+      "trend": "비중확대",
+      "reason": "호실적 지속 및 주주환원 정책 강화"
+    },
+    {
+      "corp_name": "기아",
+      "ownership_pct": 7.17,
+      "trend": "비중확대",
+      "reason": "역대 최대 영업이익 및 배당 매력"
+    }
+  ],
+  "legends": [
+    {
+      "investor": "워런 버핏 (Berkshire)",
+      "corp_name": "Apple",
+      "ticker": "AAPL",
+      "action": "비중축소",
+      "portfolio_pct": 42.9,
+      "reason": "포트폴리오 리스크 관리 및 차익 실현"
+    },
+    {
+      "investor": "워런 버핏 (Berkshire)",
+      "corp_name": "Occidental",
+      "ticker": "OXY",
+      "action": "신규매수",
+      "portfolio_pct": 4.6,
+      "reason": "에너지 섹터 비중 확대"
+    },
+    {
+      "investor": "레이 달리오 (Bridgewater)",
+      "corp_name": "Meta",
+      "ticker": "META",
+      "action": "비중확대",
+      "portfolio_pct": 2.1,
+      "reason": "AI 및 광고 매출 성장성 주목"
+    },
+    {
+      "investor": "레이 달리오 (Bridgewater)",
+      "corp_name": "Alphabet",
+      "ticker": "GOOGL",
+      "action": "비중확대",
+      "portfolio_pct": 1.8,
+      "reason": "클라우드 및 AI 기술력 확보"
+    }
+  ],
+  "updated_at": "2026-04-25T03:31:14.305704"
+}
