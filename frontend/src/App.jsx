@@ -1469,13 +1469,13 @@ function ParkingCmaComparison({ parkingFilter }) {
         <div className="flex bg-surface-container/50 p-1 rounded-2xl border border-white/5 w-full md:w-fit">
           <button 
             onClick={() => setSubTab('parking')}
-            className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'parking' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+            className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${subTab === 'parking' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
           >
             파킹통장 (은행)
           </button>
           <button 
             onClick={() => setSubTab('cma')}
-            className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'cma' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+            className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${subTab === 'cma' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
           >
             CMA (증권사)
           </button>
