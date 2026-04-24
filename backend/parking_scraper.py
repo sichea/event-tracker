@@ -17,60 +17,120 @@ def clean_rate(text):
     match = re.search(r'\d+\.?\d*', text)
     return float(match.group()) if match else 0.0
 
-def scrape_parking_rates():
-    """모네타에서 파킹통장(저축예금) 금리 수집"""
-    print("[Parking] 파킹통장 금리 수집 중...")
-    # 모네타 수시입출식 금리 비교 페이지
-    target_url = "http://finance.moneta.co.kr/saving/bestIntCat06List.jsp"
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-    
-    res = requests.get(target_url, headers=headers)
-    res.encoding = 'euc-kr'
-    soup = BeautifulSoup(res.text, 'html.parser')
-    
-    # 금리 테이블 탐색
-    table = soup.select_one("table.amt_table")
-    if not table:
-        print("[Parking] 테이블을 찾을 수 없습니다. 예비 데이터를 사용합니다.")
-        return [
-            {"type": "parking", "institution": "OK저축은행", "product_name": "OK짠테크통장", "base_rate": 7.00, "max_rate": 7.00, "description": "50만원 이하 연 7.0%, 초과분 3.3%", "tag": "최고금리"},
-            {"type": "parking", "institution": "제주은행", "product_name": "J득세", "base_rate": 2.10, "max_rate": 4.10, "description": "기본 2.1% + 우대 최대 2.0%", "tag": "시중은행"},
-            {"type": "parking", "institution": "SC제일은행", "product_name": "제일EZ통장", "base_rate": 2.50, "max_rate": 3.50, "description": "신규고객 6개월간 1.0% 추가", "tag": "신규우대"},
-            {"type": "parking", "institution": "에이치에스비시", "product_name": "HSBC파킹통장", "base_rate": 3.30, "max_rate": 3.30, "description": "조건 없이 연 3.3%", "tag": "무조건"},
-            {"type": "parking", "institution": "케이뱅크", "product_name": "플러스박스", "base_rate": 2.30, "max_rate": 2.30, "description": "한도 10억원, 누구나 연 2.3%", "tag": "편의성"},
-            {"type": "parking", "institution": "카카오뱅크", "product_name": "세이프박스", "base_rate": 2.00, "max_rate": 2.00, "description": "한도 무제한, 연 2.0%", "tag": "안정성"},
-        ]
+import json
 
-    results = []
-    rows = table.select("tr")[1:] # 헤더 제외
-    for row in rows[:15]: # 상위 15개
-        cols = row.select("td")
-        if len(cols) >= 5:
-            inst = cols[1].get_text(strip=True)
-            prod = cols[2].get_text(strip=True)
-            rate = clean_rate(cols[3].get_text(strip=True))
-            
-            results.append({
-                "type": "parking",
-                "institution": inst,
-                "product_name": prod,
-                "base_rate": rate,
-                "max_rate": rate, # 모네타는 기본/우대 구분이 명확치 않을 수 있음
-                "description": "모네타 기준 최신 금리",
-                "tag": "인기" if rate > 3.0 else "안정"
-            })
-    return results
+def scrape_parking_rates():
+    print("[Parking] 파킹통장 상세 데이터(멘토리 26.4월 기준) 구성 중...")
+    
+    # calc_rule: [{limit: 상한액(원), rate: 이율(%)}, ...]
+    # 한도를 초과하는 금액은 다음 구간의 이율을 적용받음. limit: null은 무제한.
+    data = [
+        {
+            "type": "parking", "institution": "OK저축은행", "product_name": "OK짠테크통장 II", "base_rate": 0.5, "max_rate": 7.00,
+            "tag": "50만원 이하 최적",
+            "description": json.dumps({
+                "text": "50만원 이하 연 7.0%, 500만원 이하 0.8% (페이 등록 등 우대 포함)",
+                "target": "OK저축은행 파킹통장 첫/단독 고객",
+                "rules": [{"limit": 500000, "rate": 7.0}, {"limit": 5000000, "rate": 0.8}, {"limit": 50000000, "rate": 0.1}, {"limit": None, "rate": 1.0}]
+            }, ensure_ascii=False)
+        },
+        {
+            "type": "parking", "institution": "다올저축은행", "product_name": "Fi 쌈짓돈 III 통장", "base_rate": 5.0, "max_rate": 5.00,
+            "tag": "무조건 고금리",
+            "description": json.dumps({
+                "text": "우대조건 없음! 1백만원 이하 5%, 5백만원 이하 3%",
+                "target": "1백~5백만원 파킹통장 찾으시는 분",
+                "rules": [{"limit": 1000000, "rate": 5.0}, {"limit": 5000000, "rate": 3.0}, {"limit": 50000000, "rate": 2.0}, {"limit": None, "rate": 1.0}]
+            }, ensure_ascii=False)
+        },
+        {
+            "type": "parking", "institution": "신한은행", "product_name": "올리브영 SOL통장", "base_rate": 0.1, "max_rate": 4.50,
+            "tag": "올영 단골 전용",
+            "description": json.dumps({
+                "text": "2백만원 이하 4.5% (올리브영 결제 및 마케팅 동의 시)",
+                "target": "올리브영 단골고객 선착순 20만명",
+                "rules": [{"limit": 2000000, "rate": 4.5}, {"limit": None, "rate": 0.1}]
+            }, ensure_ascii=False)
+        },
+        {
+            "type": "parking", "institution": "DB저축은행", "product_name": "DB행복파킹통장", "base_rate": 2.3, "max_rate": 3.50,
+            "tag": "첫거래 추천",
+            "description": json.dumps({
+                "text": "5백만원 이하 3.5% (첫거래 및 마케팅 동의)",
+                "target": "첫거래 고객 (500만원 예치)",
+                "rules": [{"limit": 5000000, "rate": 3.5}, {"limit": 30000000, "rate": 1.5}, {"limit": None, "rate": 0.8}]
+            }, ensure_ascii=False)
+        },
+        {
+            "type": "parking", "institution": "애큐온저축은행", "product_name": "머니모으기", "base_rate": 2.0, "max_rate": 5.00,
+            "tag": "목표달성형",
+            "description": json.dumps({
+                "text": "2백만원 이하 최대 5.0% (도전성공, 출석체크 등)",
+                "target": "1인당 5개까지 가입 가능",
+                "rules": [{"limit": 2000000, "rate": 5.0}, {"limit": None, "rate": 2.0}]
+            }, ensure_ascii=False)
+        },
+        {
+            "type": "parking", "institution": "전북은행", "product_name": "씨드모아 통장", "base_rate": 2.0, "max_rate": 3.11,
+            "tag": "고액 단기예치",
+            "description": json.dumps({
+                "text": "금액구간 제한없음! 3개월간 우대금리 제공",
+                "target": "첫거래고객, 3개월만 잠깐 넣어두실 분",
+                "rules": [{"limit": None, "rate": 3.11}]
+            }, ensure_ascii=False)
+        },
+        {
+            "type": "parking", "institution": "OK저축은행", "product_name": "파킹플렉스 통장", "base_rate": 1.5, "max_rate": 3.01,
+            "tag": "조건없는 3억",
+            "description": json.dumps({
+                "text": "우대조건 없음. 5백만원 이하 3.01%, 3억 이하 2.4%",
+                "target": "우대조건 없는 파킹통장 찾는 분 (5백만~3억)",
+                "rules": [{"limit": 5000000, "rate": 3.01}, {"limit": 300000000, "rate": 2.4}, {"limit": None, "rate": 1.5}]
+            }, ensure_ascii=False)
+        },
+        {
+            "type": "parking", "institution": "케이뱅크", "product_name": "플러스박스", "base_rate": 1.7, "max_rate": 2.20,
+            "tag": "인터넷뱅크",
+            "description": json.dumps({
+                "text": "5천만원 초과분 2.2% (5천 이하 1.7%)",
+                "target": "금액 제한 없이 편리하게",
+                "rules": [{"limit": 50000000, "rate": 1.7}, {"limit": None, "rate": 2.2}]
+            }, ensure_ascii=False)
+        },
+        {
+            "type": "parking", "institution": "카카오뱅크", "product_name": "세이프박스", "base_rate": 1.6, "max_rate": 1.60,
+            "tag": "국민파킹통장",
+            "description": json.dumps({
+                "text": "조건 없이 전구간 1.6%",
+                "target": "카카오뱅크 주거래 고객",
+                "rules": [{"limit": None, "rate": 1.6}]
+            }, ensure_ascii=False)
+        },
+        {
+            "type": "parking", "institution": "토스뱅크", "product_name": "나눠모으기", "base_rate": 1.4, "max_rate": 1.40,
+            "tag": "매일이자",
+            "description": json.dumps({
+                "text": "조건 없이 전구간 1.4%",
+                "target": "토스뱅크 주거래 고객",
+                "rules": [{"limit": None, "rate": 1.4}]
+            }, ensure_ascii=False)
+        }
+    ]
+    return data
 
 def scrape_cma_rates():
-    """네이버 금융 또는 전문 사이트에서 CMA 금리 수집 (모네타 보완)"""
-    print("[CMA] CMA 금리 수집 중...")
-    cma_list = [
-        {"type": "cma", "institution": "한국투자증권", "product_name": "CMA 발행어음형", "base_rate": 3.60, "max_rate": 3.60, "description": "하루만 맡겨도 수익 발생", "tag": "발행어음"},
-        {"type": "cma", "institution": "미래에셋증권", "product_name": "CMA-RP형", "base_rate": 3.55, "max_rate": 3.55, "description": "네이버페이 연계 혜택", "tag": "인기"},
-        {"type": "cma", "institution": "SK증권", "product_name": "CMA-RP형", "base_rate": 3.50, "max_rate": 3.50, "description": "안정적인 확정금리", "tag": "RP형"},
-        {"type": "cma", "institution": "우리종합금융", "product_name": "CMA Note", "base_rate": 3.65, "max_rate": 3.65, "description": "예금자 보호 가능 (5천만원)", "tag": "예금자보호"},
+    print("[CMA] CMA 상세 데이터 구성 중...")
+    data = [
+        {
+            "type": "cma", "institution": "한국투자증권", "product_name": "CMA 발행어음형", "base_rate": 3.60, "max_rate": 3.60, "tag": "발행어음",
+            "description": json.dumps({"text": "하루만 맡겨도 연 3.6% 수익 발생", "target": "안정적인 대형 증권사 선호", "rules": [{"limit": None, "rate": 3.6}]}, ensure_ascii=False)
+        },
+        {
+            "type": "cma", "institution": "미래에셋증권", "product_name": "CMA-RP형", "base_rate": 3.55, "max_rate": 3.55, "tag": "인기",
+            "description": json.dumps({"text": "네이버페이 통장 연계 시 추가 혜택", "target": "네이버페이 자주 쓰는 분", "rules": [{"limit": None, "rate": 3.55}]}, ensure_ascii=False)
+        }
     ]
-    return cma_list
+    return data
 
 def main():
     try:

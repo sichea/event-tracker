@@ -1216,6 +1216,7 @@ function ParkingCmaComparison() {
   const [subTab, setSubTab] = useState('parking'); // 'parking' or 'cma'
   const [ratesData, setRatesData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [depositAmount, setDepositAmount] = useState(5000000); // 기본 500만원
 
   useEffect(() => {
     fetchParkingRates()
@@ -1229,7 +1230,53 @@ function ParkingCmaComparison() {
       });
   }, []);
 
-  const displayData = ratesData.filter(item => item.type === subTab);
+  const calculateInterest = useCallback((rulesJsonStr, amount) => {
+    try {
+      const parsed = JSON.parse(rulesJsonStr);
+      const rules = parsed.rules || [];
+      if (rules.length === 0) return { amount: 0, text: parsed.text, target: parsed.target };
+
+      let remaining = amount;
+      let totalInterestYearly = 0;
+      let previousLimit = 0;
+
+      for (const rule of rules) {
+        if (remaining <= 0) break;
+        
+        let chunk = 0;
+        if (rule.limit === null) {
+          chunk = remaining;
+        } else {
+          const tierSize = rule.limit - previousLimit;
+          chunk = Math.min(remaining, tierSize);
+          previousLimit = rule.limit;
+        }
+        
+        totalInterestYearly += chunk * (rule.rate / 100);
+        remaining -= chunk;
+      }
+
+      const monthlyInterestPreTax = totalInterestYearly / 12;
+      const monthlyInterestAfterTax = Math.floor(monthlyInterestPreTax * 0.846); // 세후 15.4% 공제
+      
+      return {
+         amount: monthlyInterestAfterTax,
+         text: parsed.text,
+         target: parsed.target
+      };
+    } catch (e) {
+      return { amount: 0, text: rulesJsonStr, target: "" };
+    }
+  }, []);
+
+  const processedData = useMemo(() => {
+    const filtered = ratesData.filter(item => item.type === subTab);
+    return filtered.map(item => {
+      const calc = calculateInterest(item.description, depositAmount);
+      return { ...item, calc };
+    }).sort((a, b) => b.calc.amount - a.calc.amount);
+  }, [ratesData, subTab, depositAmount, calculateInterest]);
+
 
 
   return (
@@ -1239,26 +1286,43 @@ function ParkingCmaComparison() {
         <p className="text-on-surface-variant max-w-xl italic">현명한 현금 관리를 위해 파킹통장과 CMA 금리를 비교하세요.</p>
       </div>
 
-      <div className="flex bg-surface-container/50 p-1 rounded-2xl border border-white/5 w-full md:w-fit mb-8">
-        <button 
-          onClick={() => setSubTab('parking')}
-          className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'parking' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
-        >
-          파킹통장 (은행)
-        </button>
-        <button 
-          onClick={() => setSubTab('cma')}
-          className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'cma' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
-        >
-          CMA (증권사)
-        </button>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+        <div className="flex bg-surface-container/50 p-1 rounded-2xl border border-white/5 w-full md:w-fit">
+          <button 
+            onClick={() => setSubTab('parking')}
+            className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'parking' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+          >
+            파킹통장 (은행)
+          </button>
+          <button 
+            onClick={() => setSubTab('cma')}
+            className={`flex-1 md:px-8 py-3 rounded-xl font-bold text-sm transition-all ${subTab === 'cma' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+          >
+            CMA (증권사)
+          </button>
+        </div>
+
+        <div className="flex items-center gap-4 bg-surface-container-high px-6 py-3 rounded-2xl border border-primary/20 w-full md:w-auto">
+          <span className="font-bold text-sm text-on-surface whitespace-nowrap">예치 금액</span>
+          <div className="relative flex-1 md:w-48">
+            <input 
+              type="number" 
+              value={depositAmount / 10000} 
+              onChange={(e) => setDepositAmount(Number(e.target.value) * 10000)}
+              className="w-full bg-transparent border-b-2 border-primary/50 focus:border-primary outline-none text-right font-headline text-xl text-primary font-bold pr-6 py-1"
+              min="0"
+              step="10"
+            />
+            <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm font-bold text-on-surface-variant">만원</span>
+          </div>
+        </div>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
         </div>
-      ) : displayData.length === 0 ? (
+      ) : processedData.length === 0 ? (
         <div className="py-20 text-center text-on-surface-variant">
            <span className="material-symbols-outlined text-5xl mb-4 opacity-50">money_off</span>
            <p>현재 제공되는 금리 정보가 없습니다.</p>
@@ -1266,20 +1330,43 @@ function ParkingCmaComparison() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        {displayData.map(item => (
-          <div key={item.id} className="group bg-surface-container border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-container-high hover:-translate-y-1 hover:border-primary/20 duration-300 flex flex-col relative overflow-hidden">
+        {processedData.map((item, idx) => (
+          <div key={item.id} className="group bg-surface-container border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-container-high hover:-translate-y-1 hover:border-primary/50 duration-300 flex flex-col relative overflow-hidden shadow-lg">
+            
+            {idx === 0 && depositAmount > 0 && (
+              <div className="absolute top-0 right-0 bg-primary text-on-primary text-[10px] font-black px-4 py-1 rounded-bl-xl shadow-md">
+                가장 유리해요! 👑
+              </div>
+            )}
+
             <div className="flex justify-between items-start mb-4">
-              <div>
+              <div className="pr-12">
                 <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{item.institution}</p>
                 <h4 className="text-lg font-bold font-headline line-clamp-1">{item.product_name}</h4>
               </div>
-              <span className="px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-black border border-primary/20">{item.tag}</span>
+              <span className="px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-black border border-primary/20 shrink-0">{item.tag}</span>
             </div>
             
-            <div className="my-4">
-              <span className="text-3xl font-black text-primary font-headline">{item.max_rate}<span className="text-lg ml-0.5">%</span></span>
-              <p className="text-xs text-on-surface-variant mt-1">{item.description}</p>
+            <div className="my-4 p-4 bg-[#0a0e17]/50 rounded-2xl border border-white/5">
+              <p className="text-[10px] text-on-surface-variant mb-1 font-bold">예상 월 이자 (세후)</p>
+              <div className="flex items-end gap-1">
+                <span className="text-3xl font-black text-[#73ffba] font-headline">
+                  {item.calc.amount.toLocaleString()}
+                </span>
+                <span className="text-sm font-bold text-on-surface-variant mb-1.5">원</span>
+              </div>
+              <p className="text-[11px] text-on-surface-variant/70 mt-2 font-medium bg-white/5 p-2 rounded-lg leading-relaxed">
+                {item.calc.text}
+              </p>
             </div>
+            
+            {item.calc.target && (
+              <div className="mt-auto mb-2 flex items-start gap-1.5">
+                <span className="material-symbols-outlined text-[14px] text-primary mt-0.5">check_circle</span>
+                <p className="text-xs font-bold text-on-surface">{item.calc.target}</p>
+              </div>
+            )}
+
 
             <a 
               href={`https://search.naver.com/search.naver?query=${encodeURIComponent(item.institution + ' ' + item.product_name)}`}
