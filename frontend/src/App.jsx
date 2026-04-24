@@ -1236,31 +1236,44 @@ function ParkingCmaComparison() {
       const rules = parsed.rules || [];
       if (rules.length === 0) return { amount: 0, text: parsed.text, target: parsed.target };
 
-      let remaining = amount;
       let totalInterestYearly = 0;
-      let previousLimit = 0;
+      const mode = parsed.mode || "tiered"; // "tiered" (누진) or "whole" (전액)
 
-      for (const rule of rules) {
-        if (remaining <= 0) break;
-        
-        let chunk = 0;
-        if (rule.limit === null) {
-          chunk = remaining;
-        } else {
-          const tierSize = rule.limit - previousLimit;
-          chunk = Math.min(remaining, tierSize);
-          previousLimit = rule.limit;
+      if (mode === "whole") {
+        // 전액 금리 방식: 잔액이 속한 구간의 금리를 전액에 적용
+        let appliedRate = rules[0].rate;
+        for (const rule of rules) {
+          if (rule.limit === null || amount <= rule.limit) {
+            appliedRate = rule.rate;
+            break;
+          }
         }
-        
-        totalInterestYearly += chunk * (rule.rate / 100);
-        remaining -= chunk;
+        totalInterestYearly = amount * (appliedRate / 100);
+      } else {
+        // 누진 금리 방식 (기본)
+        let remaining = amount;
+        let previousLimit = 0;
+        for (const rule of rules) {
+          if (remaining <= 0) break;
+          let chunk = 0;
+          if (rule.limit === null) {
+            chunk = remaining;
+          } else {
+            const tierSize = rule.limit - previousLimit;
+            chunk = Math.min(remaining, tierSize);
+            previousLimit = rule.limit;
+          }
+          totalInterestYearly += chunk * (rule.rate / 100);
+          remaining -= chunk;
+        }
       }
 
-      const monthlyInterestPreTax = totalInterestYearly / 12;
-      const monthlyInterestAfterTax = Math.floor(monthlyInterestPreTax * 0.846); // 세후 15.4% 공제
+      const monthlyPreTax = totalInterestYearly / 12;
+      const monthlyAfterTax = Math.floor(monthlyPreTax * 0.846); // 15.4% 공제
       
       return {
-         amount: monthlyInterestAfterTax,
+         preTax: Math.round(monthlyPreTax),
+         afterTax: monthlyAfterTax,
          text: parsed.text,
          target: parsed.target,
          rating: parsed.rating,
@@ -1276,19 +1289,17 @@ function ParkingCmaComparison() {
     return filtered.map(item => {
       const calc = calculateInterest(item.description, depositAmount);
       return { ...item, calc };
-    }).sort((a, b) => b.calc.amount - a.calc.amount);
+    }).sort((a, b) => b.calc.afterTax - a.calc.afterTax);
   }, [ratesData, subTab, depositAmount, calculateInterest]);
-
-
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-10">
         <div className="flex flex-col md:flex-row md:items-end gap-2 mb-2">
           <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline">금리 비교</h1>
-          <span className="text-xs md:text-sm text-primary font-bold mb-1 opacity-80">※ 2026년 4월 기준 (금리는 수시로 변동될 수 있습니다)</span>
+          <span className="text-xs md:text-sm text-primary font-bold mb-1 opacity-80">※ 2026년 4월 기준 (래빗햇살님 데이터 기반)</span>
         </div>
-        <p className="text-on-surface-variant max-w-xl italic">현명한 현금 관리를 위해 파킹통장과 CMA 금리를 비교하세요.</p>
+        <p className="text-on-surface-variant max-w-xl italic">이미지 표와 동일한 세전 이자와 실제 수령액(세후)을 비교해 보세요.</p>
       </div>
 
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
@@ -1360,7 +1371,7 @@ function ParkingCmaComparison() {
             
             <div className="my-4 p-4 bg-[#0a0e17]/50 rounded-2xl border border-white/5">
               <div className="flex justify-between items-center mb-2">
-                <p className="text-[10px] text-on-surface-variant font-bold uppercase">예상 월 이자 (세후)</p>
+                <p className="text-[10px] text-on-surface-variant font-bold uppercase">예상 월 이자 (이미지 표 기준)</p>
                 {item.calc.rating && (
                   <div className="flex items-center gap-1">
                     <span className="text-[9px] font-bold text-on-surface-variant/60">신용도:</span>
@@ -1372,13 +1383,26 @@ function ParkingCmaComparison() {
                   </div>
                 )}
               </div>
-              <div className="flex items-end gap-1">
-                <span className="text-3xl font-black text-[#73ffba] font-headline">
-                  {item.calc.amount.toLocaleString()}
+              <div className="flex items-end gap-1 mb-3">
+                <span className="text-3xl font-black text-white font-headline">
+                  {item.calc.preTax.toLocaleString()}
                 </span>
-                <span className="text-sm font-bold text-on-surface-variant mb-1.5">원</span>
+                <span className="text-sm font-bold text-on-surface-variant mb-1.5">원 (세전)</span>
               </div>
-              <div className="mt-3 pt-3 border-t border-white/5 space-y-2">
+
+              <div className="bg-primary/10 p-3 rounded-xl border border-primary/20 mb-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold text-primary">실제 수령액 (세후)</span>
+                  <div className="flex items-end gap-0.5">
+                    <span className="text-xl font-black text-[#73ffba] font-headline">
+                      {item.calc.afterTax.toLocaleString()}
+                    </span>
+                    <span className="text-[10px] font-bold text-[#73ffba] mb-1">원</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-1 pt-3 border-t border-white/5 space-y-2">
                 <p className="text-[11px] text-on-surface-variant/80 leading-relaxed font-medium">
                   {item.calc.text}
                 </p>

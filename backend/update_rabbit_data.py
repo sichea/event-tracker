@@ -20,7 +20,7 @@ def update_data():
             "description": json.dumps({
                 "text": "50만원 이하 7.0%, 500만원 이하 2.8%, 5천만원 이하 2.1%",
                 "target": "소액 초고금리 파킹의 정석",
-                "rating": "BBB+", "cycle": "매월",
+                "rating": "BBB+", "cycle": "매월", "mode": "tiered",
                 "rules": [{"limit": 500000, "rate": 7.0}, {"limit": 5000000, "rate": 2.8}, {"limit": 50000000, "rate": 2.1}, {"limit": None, "rate": 1.0}]
             }, ensure_ascii=False)
         },
@@ -30,7 +30,7 @@ def update_data():
             "description": json.dumps({
                 "text": "500만원 이하 3.01%, 3억 이하 2.4%, 3억 초과 1.5%",
                 "target": "500만~3억 고액 예치 추천",
-                "rating": "BBB+", "cycle": "매월",
+                "rating": "BBB+", "cycle": "매월", "mode": "tiered",
                 "rules": [{"limit": 5000000, "rate": 3.01}, {"limit": 300000000, "rate": 2.4}, {"limit": None, "rate": 1.5}]
             }, ensure_ascii=False)
         },
@@ -38,20 +38,20 @@ def update_data():
             "type": "parking", "institution": "OK저축은행", "product_name": "OK생활비통장", "base_rate": 0.1, "max_rate": 3.20,
             "tag": "생활비 특화",
             "description": json.dumps({
-                "text": "300만 이하 3.2%, 500만 이하 2.8%, 4천만 이하 2.4%, 1억 이하 2.1%",
+                "text": "300만 이하 3.2%, 800만 이하 2.8%, 4억 이하 2.4%, 10억 이하 2.1%",
                 "target": "잔액 구간별 촘촘한 이율 혜택",
-                "rating": "BBB+", "cycle": "매월",
-                "rules": [{"limit": 3000000, "rate": 3.2}, {"limit": 5000000, "rate": 2.8}, {"limit": 40000000, "rate": 2.4}, {"limit": 100000000, "rate": 2.1}, {"limit": None, "rate": 0.1}]
+                "rating": "BBB+", "cycle": "매월", "mode": "tiered",
+                "rules": [{"limit": 3000000, "rate": 3.2}, {"limit": 8000000, "rate": 2.8}, {"limit": 400000000, "rate": 2.4}, {"limit": 1000000000, "rate": 2.1}, {"limit": None, "rate": 0.1}]
             }, ensure_ascii=False)
         },
         {
             "type": "parking", "institution": "애큐온저축은행", "product_name": "머니모으기", "base_rate": 2.0, "max_rate": 5.00,
             "tag": "최대 1천만원",
             "description": json.dumps({
-                "text": "계좌당 200만원(5%)+우대금리, 5개 계좌 운영 가능",
+                "text": "100만원 이하 5%, 500만원 이하 3%, 5000만원 이하 2%",
                 "target": "부지런한 짠테크족 추천",
-                "rating": "A", "cycle": "매월",
-                "rules": [{"limit": 2000000, "rate": 5.0}, {"limit": None, "rate": 2.0}]
+                "rating": "A", "cycle": "매월", "mode": "tiered",
+                "rules": [{"limit": 1000000, "rate": 5.0}, {"limit": 5000000, "rate": 3.0}, {"limit": 50000000, "rate": 2.0}, {"limit": None, "rate": 2.0}]
             }, ensure_ascii=False)
         },
         {
@@ -60,48 +60,38 @@ def update_data():
             "description": json.dumps({
                 "text": "200만원 이하 3.0%, 초과분 0.1%",
                 "target": "네이버페이 결제 연계 추천",
-                "rating": "AAA", "cycle": "매월",
+                "rating": "AAA", "cycle": "매월", "mode": "tiered",
                 "rules": [{"limit": 2000000, "rate": 3.0}, {"limit": None, "rate": 0.1}]
             }, ensure_ascii=False)
         },
         {
-            "type": "parking", "institution": "KB국민은행", "product_name": "KB비대면입출금(Star)", "base_rate": 0.1, "max_rate": 3.00,
-            "tag": "1금융 소액",
+            "type": "parking", "institution": "다올저축은행", "product_name": "Fi 짠테크/삼짓돈", "base_rate": 1.0, "max_rate": 2.60,
+            "tag": "다올 주력",
             "description": json.dumps({
-                "text": "1000만원 이하 3.0%, 초과분 0.1%",
-                "target": "국민은행 주거래 고객 추천",
-                "rating": "AAA", "cycle": "매월",
-                "rules": [{"limit": 10000000, "rate": 3.0}, {"limit": None, "rate": 0.1}]
+                "text": "1억 이하 2.6%, 초과 1.5%",
+                "target": "다올저축은행 대표 파킹",
+                "rating": "A-", "cycle": "매월", "mode": "tiered",
+                "rules": [{"limit": 100000000, "rate": 2.6}, {"limit": None, "rate": 1.5}]
             }, ensure_ascii=False)
         },
         {
-            "type": "parking", "institution": "다올저축은행", "product_name": "Fi 쌈짓돈/삼짓돈3", "base_rate": 1.0, "max_rate": 5.00,
-            "tag": "소액 최강자",
+            "type": "parking", "institution": "DB저축은행", "product_name": "DB행복파킹", "base_rate": 2.0, "max_rate": 3.50,
+            "tag": "고금리 추천",
             "description": json.dumps({
-                "text": "100만 이하 5%, 500만 이하 3%, 5000만 이하 2%",
-                "target": "100만원 소액 비상금용",
-                "rating": "A-", "cycle": "매월",
-                "rules": [{"limit": 1000000, "rate": 5.0}, {"limit": 5000000, "rate": 3.0}, {"limit": 50000000, "rate": 2.0}, {"limit": None, "rate": 1.0}]
-            }, ensure_ascii=False)
-        },
-        {
-            "type": "parking", "institution": "DB저축은행", "product_name": "DB행복파킹", "base_rate": 0.8, "max_rate": 3.50,
-            "tag": "첫거래 추천",
-            "description": json.dumps({
-                "text": "500만 이하 3.5%, 3천만 이하 1.5%, 초과 0.8%",
+                "text": "500만 이하 3.5%, 3천만 이하 2.7%, 초과 2.0%",
                 "target": "DB저축은행 신규 고객 추천",
-                "rating": "BBB+", "cycle": "매월",
-                "rules": [{"limit": 5000000, "rate": 3.5}, {"limit": 30000000, "rate": 1.5}, {"limit": None, "rate": 0.8}]
+                "rating": "BBB+", "cycle": "매월", "mode": "tiered",
+                "rules": [{"limit": 5000000, "rate": 3.5}, {"limit": 30000000, "rate": 2.7}, {"limit": None, "rate": 2.0}]
             }, ensure_ascii=False)
         },
         {
-            "type": "parking", "institution": "하나저축은행", "product_name": "하나+파킹통장", "base_rate": 2.9, "max_rate": 3.30,
-            "tag": "하나금융지주",
+            "type": "parking", "institution": "하나저축은행", "product_name": "하나+파킹통장", "base_rate": 0.2, "max_rate": 3.30,
+            "tag": "전액 금리 방식",
             "description": json.dumps({
-                "text": "1억 이하 3.2%, 1억 초과 3.3%",
-                "target": "고액을 안전하게 예치하고 싶을 때",
-                "rating": "A", "cycle": "매월",
-                "rules": [{"limit": 100000000, "rate": 3.2}, {"limit": None, "rate": 3.3}]
+                "text": "100만원 이하 3.2%, 100만원 초과 시 전액 3.3% (최대 100억)",
+                "target": "잔액이 많을수록 유리한 전액 금리 방식",
+                "rating": "A", "cycle": "매월", "mode": "whole",
+                "rules": [{"limit": 1000000, "rate": 3.2}, {"limit": None, "rate": 3.3}]
             }, ensure_ascii=False)
         },
         {
