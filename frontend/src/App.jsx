@@ -1270,15 +1270,15 @@ function ParkingCmaComparison() {
           <div key={item.id} className="group bg-surface-container border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-container-high hover:-translate-y-1 hover:border-primary/20 duration-300 flex flex-col relative overflow-hidden">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{item.bank}</p>
-                <h4 className="text-lg font-bold font-headline line-clamp-1">{item.product}</h4>
+                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{item.institution}</p>
+                <h4 className="text-lg font-bold font-headline line-clamp-1">{item.product_name}</h4>
               </div>
               <span className="px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-black border border-primary/20">{item.tag}</span>
             </div>
             
             <div className="my-4">
-              <span className="text-3xl font-black text-primary font-headline">{item.rate}<span className="text-lg ml-0.5">%</span></span>
-              <p className="text-xs text-on-surface-variant mt-1">{item.detail}</p>
+              <span className="text-3xl font-black text-primary font-headline">{item.max_rate}<span className="text-lg ml-0.5">%</span></span>
+              <p className="text-xs text-on-surface-variant mt-1">{item.description}</p>
             </div>
 
             <button className="mt-4 w-full py-3 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2">
@@ -1602,6 +1602,7 @@ export default function App() {
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>ETF 이벤트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'ipo' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents(session?.user?.id).then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>공모주 캘린더</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'apt' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("apt"); if (aptEvents.length === 0) { setAptLoading(true); fetchAptSubscriptions().then(d => { setAptEvents(d); setAptLoading(false); }).catch(() => setAptLoading(false)); } }}>아파트 청약</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'parking' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => setActiveTab("parking")}>금리 비교</button>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-6">
