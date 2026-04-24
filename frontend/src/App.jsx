@@ -1481,14 +1481,14 @@ function ParkingCmaComparison({ parkingFilter }) {
           </button>
         </div>
 
-        <div className="flex items-center gap-4 bg-surface-container-high px-6 py-3 rounded-2xl border border-primary/20 w-full md:w-auto">
+        <div className="flex items-center gap-4 bg-surface-container-high px-6 py-3 rounded-2xl w-full md:w-auto">
           <span className="font-bold text-sm text-on-surface whitespace-nowrap">예치 금액</span>
           <div className="relative flex-1 md:w-48">
             <input 
               type="number" 
               value={depositAmount / 10000} 
               onChange={(e) => setDepositAmount(Number(e.target.value) * 10000)}
-              className="w-full bg-transparent border-b-2 border-primary/50 focus:border-primary outline-none text-right font-headline text-xl text-primary font-bold pr-6 py-1"
+              className="w-full bg-transparent border-none outline-none text-right font-headline text-xl text-primary font-bold pr-6 py-1"
               min="0"
               step="10"
             />
