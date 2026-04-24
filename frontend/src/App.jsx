@@ -1299,7 +1299,7 @@ function ParkingCmaComparison() {
           <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline">금리 비교</h1>
           <span className="text-xs md:text-sm text-primary font-bold mb-1 opacity-80">※ 2026년 4월 기준 (래빗햇살님 데이터 기반)</span>
         </div>
-        <p className="text-on-surface-variant max-w-xl italic">이미지 표와 동일한 세전 이자와 실제 수령액(세후)을 비교해 보세요.</p>
+        <p className="text-on-surface-variant max-w-xl italic">세금(15.4%)을 제외하고 내 통장에 실제로 꽂히는 진짜 이자를 확인하세요.</p>
       </div>
 
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
@@ -1371,7 +1371,7 @@ function ParkingCmaComparison() {
             
             <div className="my-4 p-4 bg-[#0a0e17]/50 rounded-2xl border border-white/5">
               <div className="flex justify-between items-center mb-2">
-                <p className="text-[10px] text-on-surface-variant font-bold uppercase">예상 월 이자 (이미지 표 기준)</p>
+                <p className="text-[10px] text-primary font-bold uppercase">예상 월 수령액 (세후)</p>
                 {item.calc.rating && (
                   <div className="flex items-center gap-1">
                     <span className="text-[9px] font-bold text-on-surface-variant/60">신용도:</span>
@@ -1383,23 +1383,12 @@ function ParkingCmaComparison() {
                   </div>
                 )}
               </div>
+              
               <div className="flex items-end gap-1 mb-3">
-                <span className="text-3xl font-black text-white font-headline">
-                  {item.calc.preTax.toLocaleString()}
+                <span className="text-4xl font-black text-[#73ffba] font-headline">
+                  {item.calc.afterTax.toLocaleString()}
                 </span>
-                <span className="text-sm font-bold text-on-surface-variant mb-1.5">원 (세전)</span>
-              </div>
-
-              <div className="bg-primary/10 p-3 rounded-xl border border-primary/20 mb-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-primary">실제 수령액 (세후)</span>
-                  <div className="flex items-end gap-0.5">
-                    <span className="text-xl font-black text-[#73ffba] font-headline">
-                      {item.calc.afterTax.toLocaleString()}
-                    </span>
-                    <span className="text-[10px] font-bold text-[#73ffba] mb-1">원</span>
-                  </div>
-                </div>
+                <span className="text-sm font-bold text-[#73ffba] mb-1.5">원</span>
               </div>
 
               <div className="mt-1 pt-3 border-t border-white/5 space-y-2">

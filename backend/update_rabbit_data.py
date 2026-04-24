@@ -149,6 +149,26 @@ def update_data():
             }, ensure_ascii=False)
         },
         {
+            "type": "cma", "institution": "한국투자증권", "product_name": "CMA 발행어음형", "base_rate": 3.60, "max_rate": 3.60, "tag": "발행어음",
+            "description": json.dumps({"text": "전 구간 연 3.60%", "target": "대형 증권사 안정성", "rating": "AA", "cycle": "매일", "mode": "whole", "rules": [{"limit": None, "rate": 3.6}]}, ensure_ascii=False)
+        },
+        {
+            "type": "cma", "institution": "미래에셋증권", "product_name": "CMA-RP형", "base_rate": 3.55, "max_rate": 3.55, "tag": "네이버 연계",
+            "description": json.dumps({"text": "전 구간 연 3.55%", "target": "네이버페이 통장 연계", "rating": "AA", "cycle": "매일", "mode": "whole", "rules": [{"limit": None, "rate": 3.55}]}, ensure_ascii=False)
+        },
+        {
+            "type": "cma", "institution": "현대차증권", "product_name": "내일이 기대되는 CMA", "base_rate": 3.55, "max_rate": 3.55, "tag": "고금리 RP",
+            "description": json.dumps({"text": "전 구간 연 3.55%", "target": "조건 없는 고금리", "rating": "A", "cycle": "매일", "mode": "whole", "rules": [{"limit": None, "rate": 3.55}]}, ensure_ascii=False)
+        },
+        {
+            "type": "cma", "institution": "KB증권", "product_name": "my CMA (발행어음형)", "base_rate": 3.40, "max_rate": 3.40, "tag": "KB금융",
+            "description": json.dumps({"text": "전 구간 연 3.40%", "target": "주거래 고객 추천", "rating": "AA", "cycle": "매일", "mode": "whole", "rules": [{"limit": None, "rate": 3.40}]}, ensure_ascii=False)
+        },
+        {
+            "type": "cma", "institution": "NH투자증권", "product_name": "나무 CMA (발행어음형)", "base_rate": 3.30, "max_rate": 3.30, "tag": "편리한 앱",
+            "description": json.dumps({"text": "전 구간 연 3.30%", "target": "나무 앱 사용자 추천", "rating": "AA", "cycle": "매일", "mode": "whole", "rules": [{"limit": None, "rate": 3.30}]}, ensure_ascii=False)
+        },
+        {
             "type": "cma", "institution": "우리종합금융", "product_name": "CMA Note", "base_rate": 3.65, "max_rate": 3.65,
             "tag": "예금자보호 CMA",
             "description": json.dumps({
