@@ -1419,22 +1419,6 @@ function ParkingCmaComparison() {
     setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const filteredData = useMemo(() => {
-    let list = [...processedData];
-    if (parkingFilter === 'no_conditions') {
-      // 우대조건 없음: 기본금리와 최고금리가 같은 상품
-      list = list.filter(item => item.base_rate === item.max_rate);
-    } else if (parkingFilter === 'high_yield') {
-      // 최고 금리순: 이미 정렬되어 있으므로 상위 10개
-      list = list.slice(0, 10);
-    } else if (parkingFilter === 'major') {
-      // 1금융권: 주요 시중은행 및 인터넷은행
-      const majors = ["KB", "신한", "우리", "하나", "NH", "IBK", "카카오", "케이", "토스", "SC", "씨티"];
-      list = list.filter(item => majors.some(m => item.institution.includes(m)));
-    }
-    return list;
-  }, [processedData, parkingFilter]);
-
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-10">
