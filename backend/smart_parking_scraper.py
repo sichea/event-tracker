@@ -127,15 +127,16 @@ def run_smart_scraper():
             "Content-Type": "application/json"
         }
         
-        # 주의: 실제 운영 환경에서는 기존 데이터를 무조건 지우기보다는 
-        # 업데이트 로직을 정교하게 짜는 것이 좋습니다. (여기서는 테스트를 위해 단순 덮어쓰기 또는 추가)
-        # 예시로 기존 데이터를 유지한 채 새로 발견된 것만 'upsert' 하거나 추가할 수 있습니다.
-        # 지금은 시연을 위해 새로 분석된 결과만 추가해 봅니다.
-        
-        # 분석 결과를 DB 스키마에 맞게 변환
-        db_data = []
+        # 분석 결과를 DB에 스마트하게 동기화 (Upsert 방식)
         for res in results:
-            # description 부분을 JSON 문자열로 변환 (프론트엔드 호환성 유지)
+            # 1. 기존에 동일한 은행/상품이 있는지 확인
+            inst = res.get("institution")
+            prod = res.get("product_name")
+            query_url = f"{url}/rest/v1/parking_rates?institution=eq.{inst}&product_name=eq.{prod}&select=id"
+            check_res = requests.get(query_url, headers=headers)
+            existing_records = check_res.json()
+            
+            # description JSON 구성
             description_json = {
                 "text": res.get("description", {}).get("text", ""),
                 "target": res.get("description", {}).get("target", ""),
@@ -143,24 +144,29 @@ def run_smart_scraper():
                 "cycle": res.get("description", {}).get("cycle"),
                 "rules": res.get("description", {}).get("rules", [])
             }
-            db_data.append({
-                "type": "parking",
-                "institution": res.get("institution"),
-                "product_name": res.get("product_name"),
-                "base_rate": 0.1, # AI가 추출하지 않은 경우 임의값 (프론트엔드 계산기에는 영향 없음)
+            
+            payload = {
+                "type": "parking" if "cma" not in prod.lower() else "cma", # 상품명에 cma가 있으면 cma로 분류
+                "institution": inst,
+                "product_name": prod,
                 "max_rate": res.get("max_rate"),
-                "tag": "AI 분석",
+                "tag": "🤖 AI 실시간",
                 "description": json.dumps(description_json, ensure_ascii=False)
-            })
+            }
             
-        # Supabase 전송
-        response = requests.post(f"{url}/rest/v1/parking_rates", headers=headers, json=db_data)
-        if response.status_code in [200, 201, 204]:
-            print(f"✅ DB 업데이트 완료!")
-        else:
-            print(f"❌ DB 업데이트 실패: {response.text}")
+            if existing_records:
+                # 기존 데이터가 있으면 업데이트 (PATCH)
+                record_id = existing_records[0]['id']
+                print(f"-> [{prod}] 기존 데이터 발견 (ID: {record_id}), 최신 AI 정보로 업데이트 중...")
+                requests.patch(f"{url}/rest/v1/parking_rates?id=eq.{record_id}", headers=headers, json=payload)
+            else:
+                # 없으면 신규 삽입 (POST)
+                print(f"-> [{prod}] 신규 상품 발견, DB에 추가 중...")
+                requests.post(f"{url}/rest/v1/parking_rates", headers=headers, json=[payload])
+                
+        print(f"✅ DB 스마트 동기화 완료!")
             
-    print(f"\n🎉 총 {len(results)}건의 상품 분석 및 처리 완료.")
+    print(f"\n🎉 총 {len(results)}건의 상품 분석 및 처리를 마쳤습니다.")
 
 if __name__ == "__main__":
     run_smart_scraper()
