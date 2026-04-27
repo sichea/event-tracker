@@ -32,6 +32,203 @@ function formatDateRange(start, end) {
   return `${s} ~ ${e}`;
 }
 
+// --- New Landing Page Components ---
+function LandingPage({ onAnalyze, isAnalyzing, analysisResult, onReset }) {
+  const [input, setInput] = useState("");
+  
+  if (analysisResult) {
+    return <ScenarioResultView result={analysisResult} onReset={onReset} />;
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 animate-in fade-in duration-700">
+      <div className="max-w-4xl w-full flex flex-col items-center">
+        {/* User Sketch Representation */}
+        <div className="relative mb-12 md:mb-20 w-full flex justify-center">
+           <div className="flex flex-col items-center">
+              {/* Person Icon */}
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-surface-container-highest border border-white/10 flex items-center justify-center shadow-2xl relative">
+                <span className="material-symbols-outlined text-6xl md:text-8xl text-primary/40" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
+                <div className="absolute -top-4 -right-2 w-4 h-4 bg-surface-container-high rounded-full border border-white/5 shadow-lg"></div>
+                <div className="absolute -top-8 -right-8 w-6 h-6 bg-surface-container-high rounded-full border border-white/5 shadow-lg"></div>
+              </div>
+              
+              {/* Main Speech Bubble */}
+              <div className="mt-8 md:mt-12 bg-surface-container-high/80 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative max-w-2xl w-full">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-b-[15px] border-b-surface-container-high/80"></div>
+                
+                <h1 className="text-2xl md:text-4xl font-black font-headline text-center mb-6 text-on-surface leading-tight">
+                  지금 머릿속을 스쳐가는<br/>
+                  <span className="text-primary underline decoration-primary/30 underline-offset-8">시장 상황</span>은 무엇인가요?
+                </h1>
+                
+                <div className="relative group">
+                  <textarea 
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="예: 호르무즈 해협 봉쇄 현실화, 미국 금리 인하 무산 등..."
+                    className="w-full h-32 md:h-40 bg-black/20 border border-white/10 rounded-3xl p-6 text-base md:text-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-on-surface placeholder:text-on-surface-variant/30 resize-none"
+                    disabled={isAnalyzing}
+                  />
+                  
+                  <button 
+                    onClick={() => onAnalyze(input)}
+                    disabled={!input.trim() || isAnalyzing}
+                    className="w-full mt-6 bg-primary text-on-primary font-black py-4 md:py-6 rounded-2xl shadow-[0_0_30px_rgba(115,255,186,0.3)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 transition-all flex items-center justify-center gap-3 text-lg"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
+                        AI가 시장을 분석 중입니다...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined">bolt</span>
+                        수혜 종목 추천받기
+                      </>
+                    )}
+                  </button>
+                </div>
+                
+                <div className="mt-8 flex flex-wrap justify-center gap-3">
+                   {['호르무즈 봉쇄', '미국 금리 인하', '경기 불황', '전쟁 격화'].map(tag => (
+                     <button 
+                       key={tag}
+                       onClick={() => setInput(tag)}
+                       className="text-xs font-bold text-on-surface-variant hover:text-primary bg-white/5 px-4 py-2 rounded-full border border-white/5 hover:border-primary/30 transition-all"
+                     >
+                       #{tag}
+                     </button>
+                   ))}
+                </div>
+              </div>
+           </div>
+        </div>
+        
+        <button 
+          onClick={() => onAnalyze(null)}
+          className="text-on-surface-variant/40 hover:text-primary transition-all flex items-center gap-2 font-bold text-xs tracking-widest uppercase hover:opacity-100 group"
+        >
+          기존 서비스 전체 둘러보기
+          <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ScenarioResultView({ result, onReset }) {
+  const scenarioLabels = {
+    war: { label: '지정학적 위기 (전쟁)', icon: 'explosion', color: 'text-red-400', bgColor: 'bg-red-400/10' },
+    recession: { label: '경기 침체 (불황)', icon: 'trending_down', color: 'text-blue-400', bgColor: 'bg-blue-400/10' },
+    inflation: { label: '고물가 (인플레이션)', icon: 'shopping_cart', color: 'text-orange-400', bgColor: 'bg-orange-400/10' },
+    rate_cut: { label: '금리 인하 (유동성)', icon: 'currency_exchange', color: 'text-emerald-400', bgColor: 'bg-emerald-400/10' },
+    rate_hike: { label: '금리 인상 (긴축)', icon: 'account_balance', color: 'text-purple-400', bgColor: 'bg-purple-400/10' }
+  };
+  
+  const sc = scenarioLabels[result.id] || scenarioLabels.rate_cut;
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-10 duration-700 max-w-5xl mx-auto py-8">
+      <div className="flex items-center justify-between mb-8">
+        <button onClick={onReset} className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-bold">
+          <span className="material-symbols-outlined">arrow_back</span>
+          다시 분석하기
+        </button>
+        <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-50">AI Scenario Analysis Result</span>
+      </div>
+
+      <div className="bg-surface-container rounded-[3rem] p-8 md:p-12 border border-white/10 shadow-2xl mb-12 relative overflow-hidden">
+        <div className={`absolute top-0 right-0 w-96 h-96 ${sc.bgColor} rounded-full blur-[100px] -mr-48 -mt-48 opacity-30`}></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-6">
+            <div className={`w-14 h-14 rounded-2xl ${sc.bgColor} flex items-center justify-center border border-white/5`}>
+               <span className={`material-symbols-outlined text-3xl ${sc.color}`}>{sc.icon}</span>
+            </div>
+            <div>
+              <p className={`text-sm font-black uppercase tracking-tighter ${sc.color}`}>{sc.label}</p>
+              <h2 className="text-3xl md:text-5xl font-black font-headline text-on-surface tracking-tighter">분석 결과: {sc.label.split(' ')[0]} 수혜</h2>
+            </div>
+          </div>
+          <div className="bg-black/20 p-6 rounded-3xl border border-white/5 mb-8">
+            <p className="text-xs font-bold text-on-surface-variant uppercase mb-2 tracking-widest">입력한 상황</p>
+            <p className="text-lg md:text-xl font-medium text-on-surface italic">"{result.input}"</p>
+          </div>
+          <p className="text-on-surface-variant text-base md:text-lg leading-relaxed max-w-3xl">
+            해당 시나리오는 시장 전반의 변동성을 키울 수 있으나, 특정 섹터에는 강력한 모멘텀으로 작용합니다. AI가 선별한 핵심 자산과 주의 종목을 확인하세요.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          <h3 className="text-xl font-bold flex items-center gap-3 px-2">
+            <span className="material-symbols-outlined text-primary">verified</span>
+            핵심 수혜 섹터 및 종목
+          </h3>
+          <div className="space-y-4">
+            {(result.recommended || []).map((asset, idx) => (
+              <div key={idx} className="bg-surface-container-high border border-primary/20 rounded-[2rem] p-6 hover:bg-surface-container-highest transition-all group">
+                <div className="flex justify-between items-start mb-4">
+                  <h4 className="text-xl font-black font-headline text-primary">{asset.category}</h4>
+                  <span className="text-[10px] font-bold bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-tighter">Recommended</span>
+                </div>
+                <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">{asset.desc}</p>
+                <div className="space-y-3">
+                  {(asset.products || []).map((p, pIdx) => (
+                    <div key={pIdx} className="bg-black/20 p-4 rounded-2xl border border-white/5 group-hover:border-primary/20 transition-all">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-bold text-on-surface">{p.name}</span>
+                        <span className="text-xs font-black text-primary">{p.yield}</span>
+                      </div>
+                      <p className="text-[11px] text-on-surface-variant opacity-70 line-clamp-2">{p.strategy}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <h3 className="text-xl font-bold flex items-center gap-3 px-2">
+            <span className="material-symbols-outlined text-red-400">warning</span>
+            변동성 주의 섹터
+          </h3>
+          <div className="space-y-4">
+             {(result.caution || []).length > 0 ? (result.caution || []).map((asset, idx) => (
+              <div key={idx} className="bg-surface-container-high border border-red-400/20 rounded-[2rem] p-6 grayscale-[30%] hover:grayscale-0 transition-all">
+                <h4 className="text-xl font-black font-headline text-red-400 mb-2">{asset.category}</h4>
+                <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">{asset.desc}</p>
+                <div className="space-y-3">
+                  {(asset.products || []).map((p, pIdx) => (
+                    <div key={pIdx} className="bg-black/20 p-4 rounded-2xl border border-white/5">
+                      <span className="text-sm font-bold text-on-surface-variant">{p.name}</span>
+                      <p className="text-[11px] text-on-surface-variant opacity-70 mt-1">{p.strategy}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )) : (
+              <div className="py-20 text-center bg-surface-container-high rounded-[2rem] border border-white/5">
+                <span className="material-symbols-outlined text-4xl text-on-surface-variant/20 mb-3">check_circle</span>
+                <p className="text-sm text-on-surface-variant/40">해당 시나리오에서 뚜렷한<br/>하락 위험 섹터가 발견되지 않았습니다.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      <div className="mt-12 p-8 bg-surface-container rounded-3xl border border-white/5 text-center">
+         <p className="text-sm text-on-surface-variant mb-6">추천받은 자산들의 실제 이벤트와 세부 금리 정보를 확인하시겠습니까?</p>
+         <button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="bg-surface-container-highest text-on-surface px-8 py-4 rounded-2xl font-bold hover:bg-primary hover:text-on-primary transition-all">
+           전체 대시보드 바로가기
+         </button>
+      </div>
+    </div>
+  );
+}
+
 // Event Card using Tailwind
 function EventCard({ event, aliases, onToggle, showToastMsg }) {
   const dday = formatDday(event.d_day);
@@ -1729,7 +1926,7 @@ export default function App() {
   const [scrapingStatus, setScrapingStatus] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
-  const [activeTab, setActiveTab] = useState("insights"); // "insights" | "dashboard" | "ipo" | "apt" | "parking"
+  const [activeTab, setActiveTab] = useState("landing"); // "landing" | "insights" | "dashboard" | "ipo" | "apt" | "parking"
   const [insightSubTab, setInsightSubTab] = useState("macro"); // "macro", "dart", "nps", "legends"
   const [parkingFilter, setParkingFilter] = useState('all'); // 'all', 'no_conditions', 'high_yield', 'major'
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -1743,6 +1940,10 @@ export default function App() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [updateLoading, setUpdateLoading] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [whaleData, setWhaleData] = useState(null); // 투자 인사이트용 데이터
+  const [marketData, setMarketData] = useState(null);
 
   const VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
@@ -1853,19 +2054,25 @@ export default function App() {
     if (!session) { setLoading(false); return; }
     setLoading(true);
     try {
-      const [fetchedAliases, eventsData, statusUpdate] = await Promise.all([
+      const [fetchedAliases, eventsData, statusUpdate, mData, wData] = await Promise.all([
         fetchAliases(session.user.id),
         fetchEvents(session.user.id),
-        fetchScrapingStatus()
+        fetchScrapingStatus(),
+        fetchMarketInsights(),
+        fetch('/data/whale.json').then(r => r.json()).catch(() => null)
       ]);
       setAliases(fetchedAliases || []);
       setEvents(eventsData.events || []);
       setScrapingStatus(statusUpdate);
+      setMarketData(mData);
+      setWhaleData(wData);
+      
       if (isAdmin) {
         const token = await fetchAdminSecret('GITHUB_PAT');
         setAdminToken(token);
       }
     } catch (err) {
+      console.error("Data load error:", err);
       showToastMsg("데이터 연동 실패", "error");
     } finally {
       setLoading(false);
@@ -2023,15 +2230,14 @@ export default function App() {
               <button onClick={() => setIsDrawerOpen(!isDrawerOpen)} className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center">
                 <span className="material-symbols-outlined text-[#ebedfb]">menu</span>
               </button>
-              <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>RE:MEMBER</span>
+              <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setActiveTab("landing"); setAnalysisResult(null);}}>RE:MEMBER</span>
             </div>
-            {/* Desktop Tabs */}
             <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-              <button className={`pb-1 font-headline transition-colors ${activeTab === 'insights' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => setActiveTab("insights")}>투자 인사이트</button>
-              <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>ETF 이벤트</button>
-              <button className={`pb-1 font-headline transition-colors ${activeTab === 'ipo' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents(session?.user?.id).then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>공모주 캘린더</button>
-              <button className={`pb-1 font-headline transition-colors ${activeTab === 'apt' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("apt"); if (aptEvents.length === 0) { setAptLoading(true); fetchAptSubscriptions().then(d => { setAptEvents(d); setAptLoading(false); }).catch(() => setAptLoading(false)); } }}>아파트 청약</button>
-              <button className={`pb-1 font-headline transition-colors ${activeTab === 'parking' ? 'text-[#73ffba] border-b-2 border-[#73ffba]' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => setActiveTab("parking")}>금리 비교</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'landing' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => setActiveTab("landing")}>AI 분석</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'insights' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => setActiveTab("insights")}>투자 인사이트</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>ETF 이벤트</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'ipo' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents(session?.user?.id).then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>공모주</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'apt' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("apt"); if (aptEvents.length === 0) { setAptLoading(true); fetchAptSubscriptions().then(d => { setAptEvents(d); setAptLoading(false); }).catch(() => setAptLoading(false)); } }}>아파트</button>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-6">
@@ -2243,7 +2449,46 @@ export default function App() {
         )}
 
         {/* Tab Content Switch */}
-        {activeTab === "insights" ? (
+        {activeTab === "landing" ? (
+          <LandingPage 
+            onAnalyze={async (input) => {
+              if (!input) {
+                setActiveTab("insights");
+                return;
+              }
+              setIsAnalyzing(true);
+              // AI 분석 시뮬레이션 및 데이터 매핑
+              setTimeout(() => {
+                let scenarioId = "rate_cut";
+                if (input.includes('전쟁') || input.includes('봉쇄') || input.includes('갈등') || input.includes('무산')) scenarioId = "war";
+                else if (input.includes('침체') || input.includes('마이너스') || input.includes('불황')) scenarioId = "recession";
+                else if (input.includes('물가') || input.includes('인플레')) scenarioId = "inflation";
+                else if (input.includes('금리') && input.includes('인상')) scenarioId = "rate_hike";
+                
+                const data = marketData?.all_scenarios_data?.[scenarioId];
+                if (data) {
+                  setAnalysisResult({
+                    id: scenarioId,
+                    input: input,
+                    ...data
+                  });
+                } else {
+                   // Fallback
+                   setAnalysisResult({
+                     id: scenarioId,
+                     input: input,
+                     recommended: [],
+                     caution: []
+                   });
+                }
+                setIsAnalyzing(false);
+              }, 1500);
+            }}
+            isAnalyzing={isAnalyzing}
+            analysisResult={analysisResult}
+            onReset={() => setAnalysisResult(null)}
+          />
+        ) : activeTab === "insights" ? (
           <InvestmentInsights subTab={insightSubTab} />
         ) : activeTab === "ipo" ? (
           ipoLoading ? (
