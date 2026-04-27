@@ -1091,34 +1091,76 @@ function InvestmentInsights({ subTab }) {
         {!whaleData ? (
           <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
         ) : (
-          <div className="space-y-4">
-            {whaleData.nps.map((item, i) => (
-              <div key={i} className="bg-surface-container border border-white/5 rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-blue-400/30 transition-all">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-bold font-headline">{item.corp_name}</h3>
-                        {item.ticker && <span className="text-sm text-on-surface-variant font-medium">({item.ticker})</span>}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${item.type === '해외' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'}`}>
-                          {item.type || '국내'}
-                        </span>
-                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${item.trend === '비중확대' ? 'bg-red-500/10 text-red-400 border-red-500/20' : item.trend === '비중축소' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-on-surface-variant border-white/10'}`}>
-                          {item.trend}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-on-surface-variant">{item.reason}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* 국내 주력주 컬럼 */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 px-1">
+                <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                  <span className="material-symbols-outlined text-blue-400 text-xl">flag</span>
                 </div>
-                <div className="flex items-center gap-2 bg-black/20 px-4 py-2 rounded-xl shrink-0">
-                  <span className="text-xs font-medium text-on-surface-variant">보유지분</span>
-                  <span className="text-lg font-black text-blue-400">{item.ownership_pct}%</span>
+                <div>
+                  <h2 className="text-xl font-black font-headline">국내 주력주</h2>
+                  <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Domestic Top Holdings</p>
                 </div>
               </div>
-            ))}
+              <div className="space-y-3">
+                {whaleData.nps.filter(item => item.type !== '해외').map((item, i) => (
+                  <div key={i} className="bg-surface-container border border-white/5 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-blue-400/40 hover:bg-surface-container-high transition-all group shadow-lg">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <h3 className="text-base font-extrabold font-headline truncate group-hover:text-blue-400 transition-colors">{item.corp_name}</h3>
+                        {item.ticker && <span className="text-[10px] text-on-surface-variant font-medium bg-white/5 px-1.5 py-0.5 rounded">#{item.ticker}</span>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border shrink-0 ${item.trend === '비중확대' ? 'bg-red-500/10 text-red-400 border-red-500/20' : item.trend === '비중축소' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-on-surface-variant border-white/10'}`}>
+                          {item.trend}
+                        </span>
+                        <p className="text-[11px] text-on-surface-variant truncate opacity-70 group-hover:opacity-100 transition-opacity">{item.reason}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end shrink-0 bg-black/20 px-3.5 py-2 rounded-xl border border-white/5 group-hover:border-blue-400/20 transition-colors">
+                      <span className="text-[9px] font-bold text-on-surface-variant opacity-60 uppercase tracking-tighter">Ownership</span>
+                      <span className="text-base font-black text-blue-400">{item.ownership_pct}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 해외 주력주 컬럼 */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 px-1">
+                <div className="w-10 h-10 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+                  <span className="material-symbols-outlined text-purple-400 text-xl">public</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-black font-headline">해외 주력주</h2>
+                  <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Global Top Holdings</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {whaleData.nps.filter(item => item.type === '해외').map((item, i) => (
+                  <div key={i} className="bg-surface-container border border-white/5 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-purple-400/40 hover:bg-surface-container-high transition-all group shadow-lg">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <h3 className="text-base font-extrabold font-headline truncate group-hover:text-purple-400 transition-colors">{item.corp_name}</h3>
+                        {item.ticker && <span className="text-[10px] text-on-surface-variant font-medium bg-white/5 px-1.5 py-0.5 rounded">#{item.ticker}</span>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border shrink-0 ${item.trend === '비중확대' ? 'bg-red-500/10 text-red-400 border-red-500/20' : item.trend === '비중축소' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-on-surface-variant border-white/10'}`}>
+                          {item.trend}
+                        </span>
+                        <p className="text-[11px] text-on-surface-variant truncate opacity-70 group-hover:opacity-100 transition-opacity">{item.reason}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end shrink-0 bg-black/20 px-3.5 py-2 rounded-xl border border-white/5 group-hover:border-purple-400/20 transition-colors">
+                      <span className="text-[9px] font-bold text-on-surface-variant opacity-60 uppercase tracking-tighter">Ownership</span>
+                      <span className="text-base font-black text-purple-400">{item.ownership_pct}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
