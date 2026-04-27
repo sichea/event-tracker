@@ -1,46 +1,46 @@
 {
   "dart": [
     {
-      "corp_name": "씨엠티엑스",
+      "corp_name": "부국증권",
       "report_nm": "주식등의대량보유상황보고서(일반)",
-      "filer": "박성훈",
-      "date": "20260424",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000812"
+      "filer": "김중건",
+      "date": "20260427",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260427000586"
     },
     {
-      "corp_name": "롯데관광개발",
-      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
-      "filer": "김한준",
-      "date": "20260424",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000808"
-    },
-    {
-      "corp_name": "씨엠티엑스",
-      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
-      "filer": "송인광",
-      "date": "20260424",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000806"
-    },
-    {
-      "corp_name": "롯데관광개발",
-      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
-      "filer": "김기병",
-      "date": "20260424",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000805"
-    },
-    {
-      "corp_name": "씨엠티엑스",
-      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
-      "filer": "김경무",
-      "date": "20260424",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000801"
-    },
-    {
-      "corp_name": "롯데관광개발",
+      "corp_name": "씨앤지하이테크",
       "report_nm": "주식등의대량보유상황보고서(일반)",
-      "filer": "김기병",
-      "date": "20260424",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260424000796"
+      "filer": "홍사문",
+      "date": "20260427",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260427000568"
+    },
+    {
+      "corp_name": "KEC",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "황창섭",
+      "date": "20260427",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260427000561"
+    },
+    {
+      "corp_name": "판타지오",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "미래아이앤지",
+      "date": "20260427",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260427000558"
+    },
+    {
+      "corp_name": "비비안",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "쌍방울",
+      "date": "20260427",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260427000556"
+    },
+    {
+      "corp_name": "판타지오",
+      "report_nm": "주식등의대량보유상황보고서(일반)",
+      "filer": "아티스트",
+      "date": "20260427",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260427000550"
     }
   ],
   "nps": [
@@ -48,31 +48,76 @@
       "corp_name": "삼성전자",
       "ownership_pct": 7.42,
       "trend": "유지",
-      "reason": "반도체 사이클 회복 및 HBM 경쟁력"
+      "reason": "반도체 사이클 회복 및 HBM 경쟁력",
+      "type": "국내"
     },
     {
       "corp_name": "SK하이닉스",
       "ownership_pct": 7.9,
       "trend": "비중확대",
-      "reason": "HBM 시장 주도권 및 실적 턴어라운드"
+      "reason": "HBM 시장 주도권 및 실적 턴어라운드",
+      "type": "국내"
     },
     {
       "corp_name": "LG에너지솔루션",
       "ownership_pct": 5.74,
       "trend": "유지",
-      "reason": "글로벌 2차전지 장기 수요 견조"
+      "reason": "글로벌 2차전지 장기 수요 견조",
+      "type": "국내"
     },
     {
       "corp_name": "현대차",
       "ownership_pct": 7.35,
       "trend": "비중확대",
-      "reason": "호실적 지속 및 주주환원 정책 강화"
+      "reason": "호실적 지속 및 주주환원 정책 강화",
+      "type": "국내"
     },
     {
       "corp_name": "기아",
       "ownership_pct": 7.17,
       "trend": "비중확대",
-      "reason": "역대 최대 영업이익 및 배당 매력"
+      "reason": "역대 최대 영업이익 및 배당 매력",
+      "type": "국내"
+    },
+    {
+      "corp_name": "Apple",
+      "ticker": "AAPL",
+      "ownership_pct": 0.85,
+      "trend": "유지",
+      "reason": "아이폰 생태계 기반 안정적 현금 흐름 및 자사주 매입",
+      "type": "해외"
+    },
+    {
+      "corp_name": "Microsoft",
+      "ticker": "MSFT",
+      "ownership_pct": 0.72,
+      "trend": "비중확대",
+      "reason": "클라우드(Azure) 및 생성형 AI 시장 주도권 확보",
+      "type": "해외"
+    },
+    {
+      "corp_name": "NVIDIA",
+      "ticker": "NVDA",
+      "ownership_pct": 0.68,
+      "trend": "비중확대",
+      "reason": "AI 가속기 시장 독점적 지위 및 폭발적 실적 성장",
+      "type": "해외"
+    },
+    {
+      "corp_name": "Amazon",
+      "ticker": "AMZN",
+      "ownership_pct": 0.65,
+      "trend": "유지",
+      "reason": "이커머스 수익성 개선 및 AWS 성장세 지속",
+      "type": "해외"
+    },
+    {
+      "corp_name": "Alphabet",
+      "ticker": "GOOGL",
+      "ownership_pct": 0.62,
+      "trend": "유지",
+      "reason": "검색 광고 지배력 및 유튜브 성장, AI 모델 고도화",
+      "type": "해외"
     }
   ],
   "legends": [
@@ -109,5 +154,5 @@
       "reason": "클라우드 및 AI 기술력 확보"
     }
   ],
-  "updated_at": "2026-04-25T03:40:17.647468"
+  "updated_at": "2026-04-27T16:07:06.466064"
 }

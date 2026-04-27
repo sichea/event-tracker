@@ -35,8 +35,8 @@ def parse_subscription_dates(date_text: str) -> dict:
     
     date_text = date_text.strip()
     
-    # 패턴: 2026.05.20~05.21
-    match = re.match(r'(\d{4})\.(\d{2})\.(\d{2})~(\d{2})\.(\d{2})', date_text)
+    # 패턴: 2026.05.20 ~ 05.21 (공백 허용)
+    match = re.match(r'(\d{4})\.(\d{2})\.(\d{2})\s*~\s*(\d{2})\.(\d{2})', date_text)
     if match:
         year, sm, sd, em, ed = match.groups()
         return {
@@ -44,8 +44,8 @@ def parse_subscription_dates(date_text: str) -> dict:
             "end": f"{year}-{em}-{ed}"
         }
     
-    # 패턴: 2026.05.20~2026.05.21
-    match = re.match(r'(\d{4})\.(\d{2})\.(\d{2})~(\d{4})\.(\d{2})\.(\d{2})', date_text)
+    # 패턴: 2026.05.20 ~ 2026.05.21 (공백 허용)
+    match = re.match(r'(\d{4})\.(\d{2})\.(\d{2})\s*~\s*(\d{4})\.(\d{2})\.(\d{2})', date_text)
     if match:
         sy, sm, sd, ey, em, ed = match.groups()
         return {
@@ -136,19 +136,24 @@ async def scrape_ipo() -> list[dict]:
                 const results = [];
                 const tables = document.querySelectorAll('table');
                 
-                tables.forEach(t => {
-                    // 종목명, 청약일 컬럼이 있는 테이블 모두 탐색 (IPO, SPAC 등)
-                    const text = t.innerText;
-                    if (text.includes('종목명') && text.includes('청약일')) {
-                        t.querySelectorAll('tr').forEach(tr => {
+                for (let table of tables) {
+                    const headers = Array.from(table.querySelectorAll('tr')).map(tr => 
+                        Array.from(tr.querySelectorAll('td, th')).map(td => td.innerText.trim())
+                    );
+                    
+                    // 종목명, 공모주일정 등이 포함된 헤더 행이 있는지 확인
+                    const hasTargetHeader = headers.some(row => 
+                        row.includes('종목명') && (row.includes('공모주일정') || row.includes('공모청약일정'))
+                    );
+                    
+                    if (hasTargetHeader) {
+                        table.querySelectorAll('tr').forEach(tr => {
                             const cells = Array.from(tr.querySelectorAll('td, th')).map(td => td.innerText.trim());
-                            // 보통 6~8개 컬럼, 종목명이 너무 길거나(20자 이상), 날짜에 '~'가 없으면 무시
-                            if (cells.length >= 6 && cells[0] !== '종목명' && cells[0].length < 20 && cells[0] !== '' && cells[1].includes('~')) {
+                            // 데이터 행 필터링: 종목명이 있고, 날짜 형식(~)이 포함된 경우
+                            if (cells.length >= 6 && !['종목명', '기업명', ''].includes(cells[0]) && cells[0].length < 30 && cells[1].includes('~')) {
                                 results.push({
                                     name: cells[0],
                                     dates: cells[1],
-
-
                                     confirmed_price: cells[2],
                                     desired_price: cells[3],
                                     competition: cells[4],
@@ -157,7 +162,7 @@ async def scrape_ipo() -> list[dict]:
                             }
                         });
                     }
-                });
+                }
                 return results;
             }
             ''')

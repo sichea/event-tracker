@@ -999,29 +999,82 @@ function InvestmentInsights({ subTab }) {
   if (subTab === 'dart') {
     return (
       <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
-        <div className="mb-8 md:mb-12">
-          <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">고래 지분 변동</h1>
-          <p className="text-on-surface-variant text-sm md:text-base">큰손들의 지분 대량 보유(5%) 공시를 실시간으로 추적합니다.</p>
+        {/* Header & Guide */}
+        <div className="mb-8 md:mb-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+              <span className="material-symbols-outlined text-primary text-2xl" data-weight="fill">notifications_active</span>
+            </div>
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline">고래 지분 변동</h1>
+              <p className="text-on-surface-variant text-sm md:text-base">큰손들의 실시간 발자취를 추적합니다.</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+            <div className="p-4 rounded-2xl bg-surface-container-highest border border-white/5">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="material-symbols-outlined text-sm text-primary">diversity_3</span>
+                <p className="text-xs font-bold text-on-surface uppercase">5% 룰 (대량보유)</p>
+              </div>
+              <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                기관이나 개인이 지분 <span className="text-primary font-bold">5% 이상</span>을 보유하게 되거나, 기존 보유자의 지분이 1% 이상 변동될 때 공시합니다. 
+                경영권 분쟁이나 큰손의 매집 신호일 수 있습니다.
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-surface-container-highest border border-white/5">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="material-symbols-outlined text-sm text-tertiary">person_search</span>
+                <p className="text-xs font-bold text-on-surface uppercase">내부자 거래 (임원)</p>
+              </div>
+              <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                회사의 <span className="text-tertiary font-bold">임원이나 주요주주</span>가 자사주를 매매할 때 공시합니다. 
+                내부 사정을 가장 잘 아는 사람들의 행동이므로 강력한 투자 힌트가 됩니다.
+              </p>
+            </div>
+          </div>
         </div>
+
         {!whaleData ? (
           <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {whaleData.dart.map((item, i) => (
-              <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="bg-surface-container border border-white/5 rounded-2xl p-6 hover:bg-surface-container-high hover:border-primary/50 transition-all duration-300 group flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="text-[10px] font-bold text-on-surface-variant bg-white/5 px-2 py-1 rounded">{item.date}</span>
-                    <span className="material-symbols-outlined text-primary/50 group-hover:text-primary transition-colors text-sm">open_in_new</span>
+            {whaleData.dart.map((item, i) => {
+              const isInsider = item.report_nm.includes('임원') || item.report_nm.includes('주요주주');
+              const isMajor = item.report_nm.includes('대량보유');
+              
+              return (
+                <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="bg-surface-container border border-white/5 rounded-2xl p-5 hover:bg-surface-container-high hover:border-primary/50 transition-all duration-300 group flex flex-col justify-between shadow-lg">
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-on-surface-variant bg-white/5 px-2 py-0.5 rounded w-fit">
+                          {item.date.slice(0,4)}.{item.date.slice(4,6)}.{item.date.slice(6,8)}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {isInsider ? (
+                             <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-tertiary/10 text-tertiary border border-tertiary/20">내부자</span>
+                          ) : isMajor ? (
+                             <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">5% 지분</span>
+                          ) : (
+                             <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-white/5 text-on-surface-variant border border-white/10">일반공시</span>
+                          )}
+                        </div>
+                      </div>
+                      <span className="material-symbols-outlined text-primary/50 group-hover:text-primary transition-colors text-sm">open_in_new</span>
+                    </div>
+                    <h3 className="text-xl font-bold font-headline mb-1 text-on-surface group-hover:text-primary transition-colors line-clamp-1">{item.corp_name}</h3>
+                    <p className="text-sm font-medium text-on-surface-variant mb-4 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-xs">person</span>
+                      {item.filer}
+                    </p>
                   </div>
-                  <h3 className="text-xl font-bold font-headline mb-1 text-on-surface line-clamp-1">{item.corp_name}</h3>
-                  <p className="text-sm font-medium text-primary mb-3 line-clamp-1">{item.filer}</p>
-                </div>
-                <div className="text-xs text-on-surface-variant leading-relaxed p-3 bg-black/20 rounded-xl border border-white/5 line-clamp-2 mt-2">
-                  {item.report_nm}
-                </div>
-              </a>
-            ))}
+                  <div className="text-[11px] text-on-surface/80 leading-relaxed p-3 bg-black/30 rounded-xl border border-white/5 line-clamp-2 mt-auto font-medium">
+                    {item.report_nm}
+                  </div>
+                </a>
+              );
+            })}
           </div>
         )}
       </div>
@@ -1043,10 +1096,20 @@ function InvestmentInsights({ subTab }) {
               <div key={i} className="bg-surface-container border border-white/5 rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-blue-400/30 transition-all">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-bold font-headline">{item.corp_name}</h3>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${item.trend === '비중확대' ? 'bg-red-500/10 text-red-400 border-red-500/20' : item.trend === '비중축소' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-on-surface-variant border-white/10'}`}>
-                      {item.trend}
-                    </span>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xl font-bold font-headline">{item.corp_name}</h3>
+                        {item.ticker && <span className="text-sm text-on-surface-variant font-medium">({item.ticker})</span>}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${item.type === '해외' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'}`}>
+                          {item.type || '국내'}
+                        </span>
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${item.trend === '비중확대' ? 'bg-red-500/10 text-red-400 border-red-500/20' : item.trend === '비중축소' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-on-surface-variant border-white/10'}`}>
+                          {item.trend}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <p className="text-sm text-on-surface-variant">{item.reason}</p>
                 </div>
