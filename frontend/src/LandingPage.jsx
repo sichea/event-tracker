@@ -60,12 +60,12 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
   const steps = analysisResult?.steps?.map(text => ({ text })) || [];
 
   return (
-    <div className="relative min-h-[calc(100vh-80px)] flex flex-col bg-[#0a0e17] overflow-x-hidden">
+    <div className="relative flex flex-col bg-[#0a0e17] overflow-hidden">
       {/* Background Glow */}
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <main className="flex-1 flex flex-col items-center justify-center py-12 md:py-20 px-6 relative z-10 max-w-4xl mx-auto w-full overflow-hidden">
+      <main className="flex-1 flex flex-col items-center justify-center py-6 md:py-10 px-6 relative z-10 max-w-4xl mx-auto w-full overflow-hidden">
         
         {/* Large Background Robot - Styled for Dark Theme */}
         {!analysisResult && (

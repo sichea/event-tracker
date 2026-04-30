@@ -769,7 +769,7 @@ function App() {
         </div>
       </aside>
 
-      <main className={`pt-20 pb-24 md:pb-12 px-4 md:px-12 min-h-[calc(100vh-80px)] transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
+      <main className={`pt-20 ${activeTab === 'landing' ? 'pb-0 scrollbar-hide' : 'pb-24 md:pb-12 min-h-[calc(100vh-80px)]'} px-4 md:px-12 transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
         
         {/* Settings Panel */}
         {showSettings && (
@@ -1078,7 +1078,7 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className={`border-t border-white/5 bg-[#0a0e17] py-10 px-6 md:px-12 transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
+      <footer className={`border-t border-white/5 bg-[#0a0e17] ${activeTab === 'landing' ? 'py-4' : 'py-10'} px-6 md:px-12 transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <span className="text-lg font-black text-primary tracking-tighter font-headline">RE:MEMBER</span>
