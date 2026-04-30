@@ -330,6 +330,64 @@ function App() {
   const [whaleData, setWhaleData] = useState(null); // 투자 인사이트용 데이터
   const [marketData, setMarketData] = useState(null);
   const [visitorCount, setVisitorCount] = useState({ today: 0, total: 0 });
+  const [showAbout, setShowAbout] = useState(false);
+  const [showContact, setShowContact] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
+  const INFO_CONTENT = {
+    about: {
+      title: 'About RE:MEMBER',
+      icon: 'info',
+      content: `RE:MEMBER는 복잡한 데이터의 홍수 속에서 유의미한 '투자 시그널'을 포착하고 기록하는 스마트한 투자자들을 위한 공간입니다. 
+      우리는 AI 기반의 시나리오 분석 엔진과 실시간 데이터 수집 기술을 결합하여, 거시경제의 흐름부터 세부적인 청약 일정까지 한눈에 파악할 수 있는 통합 인사이트를 제공합니다. 
+      당신의 투자가 단순한 기억을 넘어 기록이 되고, 기록이 곧 수익이 되는 여정을 함께합니다.`
+    },
+    contact: {
+      title: 'Contact Us',
+      icon: 'mail',
+      content: `서비스 이용 중 불편한 점이나 제휴 제안, 기능 건의사항이 있으시면 언제든 연락주세요. 
+      가장 빠른 답변을 드릴 수 있도록 노력하겠습니다.
+      
+      • Email: support@remember.invest
+      • 운영시간: 평일 10:00 - 18:00 (주말/공휴일 제외)`
+    },
+    privacy: {
+      title: 'Privacy Policy',
+      icon: 'shield_lock',
+      content: `RE:MEMBER는 사용자의 개인정보를 소중히 보호하며 투명하게 운영합니다.
+      
+      1. 수집 항목: 방문자 통계 분석을 위한 익명의 접속 로그 (IP 등 개인 식별 정보는 별도로 저장하지 않습니다.)
+      2. 수집 목적: 서비스 이용량 분석 및 안정적인 서버 운영
+      3. 보유 및 파기: 서비스 제공 기간 동안 보유하며, 통계 목적 달성 시 안전하게 파기됩니다.
+      
+      우리는 사용자의 명시적인 동의 없이 어떠한 개인식별정보도 수집하거나 제3자에게 제공하지 않습니다.`
+    }
+  };
+
+  function InfoModal({ isOpen, onClose, type }) {
+    if (!isOpen || !type) return null;
+    const data = INFO_CONTENT[type];
+    
+    return (
+      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in" onClick={onClose}>
+        <div className="bg-surface-container rounded-[2.5rem] w-full max-w-lg border border-white/10 shadow-2xl overflow-hidden p-8 md:p-10 relative" onClick={e => e.stopPropagation()}>
+          <button onClick={onClose} className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+            <span className="material-symbols-outlined text-xl">close</span>
+          </button>
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 mb-8">
+            <span className="material-symbols-outlined text-primary text-3xl">{data.icon}</span>
+          </div>
+          <h2 className="text-3xl font-black font-headline mb-6">{data.title}</h2>
+          <div className="text-on-surface-variant leading-relaxed space-y-4 whitespace-pre-wrap font-medium">
+            {data.content}
+          </div>
+          <button onClick={onClose} className="w-full mt-10 py-4 bg-primary text-on-primary font-black rounded-2xl hover:opacity-90 active:scale-95 transition-all">
+            확인했습니다
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
@@ -1092,9 +1150,9 @@ function App() {
           </div>
 
           <div className="flex items-center gap-6 mb-6 text-sm font-bold text-on-surface-variant">
-            <button className="hover:text-primary transition-colors">About</button>
-            <button className="hover:text-primary transition-colors">Contact</button>
-            <button className="hover:text-primary transition-colors">Privacy</button>
+            <button className="hover:text-primary transition-colors" onClick={() => setShowAbout(true)}>About</button>
+            <button className="hover:text-primary transition-colors" onClick={() => setShowContact(true)}>Contact</button>
+            <button className="hover:text-primary transition-colors" onClick={() => setShowPrivacy(true)}>Privacy</button>
           </div>
 
           <p className="text-xs text-white/20 font-medium">© 2026 RE:MEMBER. All rights reserved.</p>
@@ -1127,6 +1185,11 @@ function App() {
 
       {/* Modal Rendering */}
       <IpoModal ipo={selectedIpo} aliases={aliases} onClose={() => setSelectedIpo(null)} onToggleIpo={handleToggleIpo} />
+      
+      {/* Footer Info Modals */}
+      <InfoModal isOpen={showAbout} onClose={() => setShowAbout(false)} type="about" />
+      <InfoModal isOpen={showContact} onClose={() => setShowContact(false)} type="contact" />
+      <InfoModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} type="privacy" />
 
       {/* FAB */}
       {(selectedProvider || selectedStatus === "참여 목록" || selectedStatus === "마감 임박") && (
