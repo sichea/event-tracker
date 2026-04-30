@@ -62,62 +62,55 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <main className="flex-1 flex flex-col items-center justify-start py-8 md:py-16 px-6 relative z-10">
+      <main className="flex-1 flex flex-col items-center justify-center py-10 md:py-16 px-6 relative z-10 max-w-3xl mx-auto w-full">
         {!analysisResult ? (
-          <div className="w-full max-w-6xl mt-4 md:mt-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <div className="w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             
-            {/* Left Column: Witty Image & Text */}
-            <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-blue-500 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                <img 
-                  src="/images/insight_lending.png" 
-                  alt="Insight Lending AI" 
-                  className="relative w-64 md:w-80 h-auto animate-float drop-shadow-[0_20px_50px_rgba(var(--primary-rgb),0.3)]"
-                />
+            {/* Centered Headline */}
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 mb-1">
+                <span className="material-symbols-outlined text-2xl text-primary">psychology_alt</span>
               </div>
-              <div className="space-y-4">
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tighter">
+              <div className="space-y-2">
+                <h2 className="text-2xl md:text-4xl font-black text-white leading-tight tracking-tighter">
                   시장 전반의 흐름을<br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">꿰뚫는 통찰</span>을 빌려드립니다.
                 </h2>
-                <p className="text-on-surface-variant text-base md:text-lg lg:text-xl opacity-60 max-w-lg leading-relaxed">
+                <p className="text-on-surface-variant text-sm md:text-base opacity-60 max-w-xl leading-relaxed mx-auto">
                   지금 가장 뜨거운 시장의 한 문장을 적어주세요.<br />
-                  AI가 복잡한 자금의 흐름을 추적하여 최적의 시나리오를 설계합니다.
+                  AI가 복잡한 자금의 흐름을 추적하여 시나리오를 설계합니다.
                 </p>
               </div>
             </div>
 
-            {/* Right Column: Input Card */}
-            <div className="w-full max-w-xl mx-auto lg:ml-auto">
-              <div className="glass-card p-8 md:p-12 rounded-[40px] relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                  <span className="material-symbols-outlined text-8xl text-primary">auto_awesome</span>
-                </div>
-                
-                <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+            {/* Centered Input Card */}
+            <div className="w-full max-w-xl mx-auto">
+              <div className="glass-card p-6 md:p-10 rounded-[32px] relative overflow-hidden group">
+                <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-primary/80 uppercase tracking-widest ml-1">Market Scenario Input</label>
+                    <label className="text-[10px] font-bold text-primary/80 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                      Market Scenario Analysis
+                    </label>
                     <textarea 
                       value={scenario} 
                       onChange={(e) => setScenario(e.target.value)} 
                       placeholder="예: 미국-이란 협상 무산으로 인한 유가 급등 뉴스..." 
-                      rows={4} 
-                      className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 text-[#ebedfb] text-lg focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/30 transition-all resize-none shadow-inner placeholder:opacity-30" 
+                      rows={3} 
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[#ebedfb] text-base md:text-lg focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/30 transition-all resize-none shadow-inner placeholder:opacity-20" 
                     />
                   </div>
                   
                   <button 
                     type="submit" 
                     disabled={isAnalyzing || !scenario.trim()} 
-                    className="w-full relative group overflow-hidden bg-primary text-on-primary font-black py-5 md:py-6 rounded-[24px] shadow-2xl hover:shadow-primary/40 transition-all flex items-center justify-center gap-3 text-lg md:text-xl"
+                    className="w-full relative group overflow-hidden bg-primary text-on-primary font-black py-4 md:py-5 rounded-2xl shadow-xl hover:shadow-primary/30 transition-all flex items-center justify-center gap-2 text-base md:text-lg"
                   >
-                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                    <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                     {isAnalyzing ? (
-                      <div className="w-7 h-7 border-4 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
+                      <div className="w-6 h-6 border-3 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
                     ) : (
                       <>
-                        <span className="material-symbols-outlined text-2xl">insights</span>
+                        <span className="material-symbols-outlined text-xl">insights</span>
                         <span>사고 체인 분석 시작하기</span>
                       </>
                     )}
