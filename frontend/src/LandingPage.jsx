@@ -92,7 +92,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
             </div>
 
             {/* Google Search Style Single-Line Input */}
-            <div className="w-full max-w-2xl mx-auto relative group px-4">
+            <div className="w-full max-w-xl mx-auto relative group px-4">
               <div className={`
                 relative flex items-center transition-all duration-500 rounded-full border border-white/10
                 bg-transparent group-hover:bg-white/[0.05] group-hover:backdrop-blur-3xl group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
@@ -145,7 +145,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
               {steps.map((step, i) => <ThoughtBubble key={i} index={i} text={step.text} show={visibleSteps > i} isFinal={i === steps.length - 1} />)}
             </div>
             {visibleSteps >= steps.length && steps.length > 0 && (
-              <div className="w-full max-w-4xl mx-auto mt-8 animate-in fade-in slide-in-from-bottom-12 duration-1000">
+              <div className="w-full max-w-2xl mx-auto mt-8 animate-in fade-in slide-in-from-bottom-12 duration-1000">
                 <div className="bg-[#1e2533]/90 backdrop-blur-3xl p-10 rounded-[48px] border border-primary/20 shadow-2xl relative overflow-hidden">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-10">
                     <div className="space-y-8">
