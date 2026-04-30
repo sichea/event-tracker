@@ -306,7 +306,7 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type, yieldD
         </div>
 
         {/* Content */}
-        <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar space-y-4">
+        <div className="p-6 md:p-8 overflow-y-auto scrollbar-hide space-y-4">
           <p className="text-xs font-black text-on-surface-variant uppercase tracking-wider opacity-70">실제 상세 추천 종목 예시 (TOP 3)</p>
           
           {(asset.products || [asset]).map((p, idx) => (
@@ -410,7 +410,7 @@ export default function InvestmentInsights({ subTab }) {
 
   if (subTab === 'dart') {
     return (
-      <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
+      <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 scrollbar-hide">
         {/* Header & Guide */}
         <div className="mb-8 md:mb-10">
           <div className="flex items-center gap-3 mb-3">
@@ -497,7 +497,7 @@ export default function InvestmentInsights({ subTab }) {
 
   if (subTab === 'nps') {
     return (
-      <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
+      <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 scrollbar-hide">
         <div className="mb-8 md:mb-10">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
@@ -602,7 +602,7 @@ export default function InvestmentInsights({ subTab }) {
 
   if (subTab === 'legends') {
     return (
-      <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
+      <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 scrollbar-hide">
         {/* ... (existing header code) */}
         <div className="mb-8 md:mb-10">
           <div className="flex items-center gap-3 mb-3">
@@ -777,7 +777,7 @@ export default function InvestmentInsights({ subTab }) {
   }
 
   return (
-    <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
+    <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 scrollbar-hide">
       {/* Header */}
       <div className="mb-8 md:mb-12">
         <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">투자 인사이트</h1>

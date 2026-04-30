@@ -23,6 +23,8 @@ build/
 *.log
 *.html
 *.png
+!frontend/public/**/*.png
+!frontend/src/**/*.png
 *.txt
 
 # Debug Scripts
