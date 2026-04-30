@@ -103,22 +103,26 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                   <span className="material-symbols-outlined text-2xl">psychology</span>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="flex-1 flex items-center h-14 md:h-16 relative">
+                <div className="flex-1 flex items-center h-14 md:h-16 relative">
                   <input 
                     type="text"
                     value={scenario} 
                     onChange={(e) => setScenario(e.target.value)} 
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
                     placeholder="시장의 흐름을 바꿀 소식을 입력하세요..." 
-                    className="flex-1 bg-transparent border-none pl-2 pr-14 md:pl-4 md:pr-16 text-white text-base md:text-xl focus:outline-none placeholder:text-white/10 font-medium" 
+                    className="flex-1 bg-transparent border-none pl-2 pr-14 md:pl-4 md:pr-16 text-white text-base md:text-xl focus:outline-none placeholder:text-white/10 font-medium appearance-none" 
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
                   />
                   
                   <button 
-                    type="submit" 
+                    type="button"
+                    onClick={handleSubmit}
                     disabled={isAnalyzing || !scenario.trim()} 
                     className={`
-                      absolute right-1 md:right-2 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 z-30
+                      absolute right-1 md:right-2 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 z-50
                       ${scenario.trim() ? 'bg-primary text-on-primary scale-100 shadow-lg shadow-primary/20' : 'bg-white/5 text-white/20 scale-90'}
                     `}
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
                     {isAnalyzing ? (
                       <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
@@ -126,7 +130,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                       <span className="material-symbols-outlined text-xl md:text-2xl">arrow_forward</span>
                     )}
                   </button>
-                </form>
+                </div>
               </div>
 
               {/* Minimalist Description below the bar */}
