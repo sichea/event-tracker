@@ -99,17 +99,17 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                 ${scenario.trim() ? 'bg-white/[0.03] backdrop-blur-xl' : ''}
                 focus-within:bg-white/[0.08] focus-within:backdrop-blur-3xl focus-within:border-primary/30 focus-within:shadow-[0_0_30px_rgba(var(--primary-rgb),0.1)]
               `}>
-                <div className="pl-6 text-primary/60">
+                <div className="pl-4 md:pl-6 text-primary/60">
                   <span className="material-symbols-outlined text-2xl">psychology</span>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="flex-1 flex items-center h-14 md:h-16 pr-1 md:pr-0">
+                <form onSubmit={handleSubmit} className="flex-1 flex items-center h-14 md:h-16 pr-1.5 md:pr-0">
                   <input 
                     type="text"
                     value={scenario} 
                     onChange={(e) => setScenario(e.target.value)} 
                     placeholder="시장의 흐름을 바꿀 소식을 입력하세요..." 
-                    className="flex-1 bg-transparent border-none px-4 text-white text-lg md:text-xl focus:outline-none placeholder:text-white/10 font-medium" 
+                    className="flex-1 bg-transparent border-none px-2 md:px-4 text-white text-base md:text-xl focus:outline-none placeholder:text-white/10 font-medium" 
                   />
                   
                   <button 
@@ -130,7 +130,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
               </div>
 
               {/* Minimalist Description below the bar */}
-              <div className="mt-6 flex justify-center gap-6 text-[10px] md:text-xs font-bold text-white/20 uppercase tracking-[0.2em]">
+              <div className="flex items-center justify-center gap-4 text-[9px] md:text-xs font-black text-white/20 uppercase tracking-[0.2em] mt-8 animate-in fade-in duration-1000 delay-500">
                 <span className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary/40" /> AI Scenario Analysis</span>
                 <span className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-blue-500/40" /> Real-time Insight</span>
               </div>
