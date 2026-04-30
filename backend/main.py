@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from db import load_events, toggle_checked, save_events
 from scheduler import start_scheduler, stop_scheduler
 from scraper import PROVIDERS
+from ai_analyzer import analyze_with_ai
 
 
 @asynccontextmanager
@@ -120,6 +121,20 @@ async def get_stats():
         }
 
     return stats
+    
+
+class AnalysisRequest(BaseModel):
+    scenario: str
+
+
+@app.post("/api/analyze")
+async def analyze_market_scenario(request: AnalysisRequest):
+    """사용자가 입력한 시나리오를 AI로 분석합니다."""
+    try:
+        result = await analyze_with_ai(request.scenario)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

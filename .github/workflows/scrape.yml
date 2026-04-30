@@ -62,13 +62,15 @@ jobs:
           cd backend
           python apt_scraper.py
 
-      - name: 시장 인사이트 분석 및 갱신
+      - name: 시장 및 고래 인사이트 분석 및 갱신
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
           NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
         run: |
           cd backend
           python analyze_market.py
+          python whale_scraper.py

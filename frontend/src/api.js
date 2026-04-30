@@ -318,6 +318,16 @@ export async function fetchMarketInsights() {
   return data;
 }
 
+export async function fetchWhaleInsights() {
+  const { data, error } = await supabase
+    .from('whale_insights')
+    .select('*')
+    .eq('id', 'current')
+    .single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+}
+
 // --- 부동산 청약 API ---
 export async function fetchAptSubscriptions() {
   const { data, error } = await supabase
