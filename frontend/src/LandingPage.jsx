@@ -108,30 +108,33 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                     type="text"
                     value={scenario} 
                     onChange={(e) => setScenario(e.target.value)} 
-                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
+                    onKeyDown={(e) => e.key === 'Enter' && scenario.trim() && !isAnalyzing && onAnalyze(scenario)}
                     placeholder="시장의 흐름을 바꿀 소식을 입력하세요..." 
                     className="flex-1 bg-transparent border-none pl-2 pr-14 md:pl-4 md:pr-16 text-white text-base md:text-xl focus:outline-none placeholder:text-white/10 font-medium appearance-none" 
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                   />
-                  
-                  <button 
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={isAnalyzing || !scenario.trim()} 
-                    className={`
-                      absolute right-1 md:right-2 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 z-50
-                      ${scenario.trim() ? 'bg-primary text-on-primary scale-100 shadow-lg shadow-primary/20' : 'bg-white/5 text-white/20 scale-90'}
-                    `}
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                  >
-                    {isAnalyzing ? (
-                      <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
-                    ) : (
-                      <span className="material-symbols-outlined text-xl md:text-2xl">arrow_forward</span>
-                    )}
-                  </button>
                 </div>
               </div>
+
+              {/* ULTIMATE FIX: Button moved outside the input container and boosted with z-index */}
+              <button 
+                type="button"
+                onClick={() => scenario.trim() && !isAnalyzing && onAnalyze(scenario)}
+                disabled={isAnalyzing || !scenario.trim()} 
+                className={`
+                  absolute right-6 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 z-[9999]
+                  ${scenario.trim() ? 'bg-primary text-on-primary scale-110 shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]' : 'bg-white/5 text-white/20 scale-90'}
+                  active:scale-95 touch-manipulation cursor-pointer
+                `}
+                style={{ WebkitTapHighlightColor: 'transparent', padding: '10px' }}
+              >
+                {isAnalyzing ? (
+                  <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
+                ) : (
+                  <span className="material-symbols-outlined text-xl md:text-2xl">arrow_forward</span>
+                )}
+              </button>
+            </div>
 
               {/* Minimalist Description below the bar */}
               <div className="flex items-center justify-center gap-4 text-[9px] md:text-xs font-black text-white/20 uppercase tracking-[0.2em] mt-8 animate-in fade-in duration-1000 delay-500">
