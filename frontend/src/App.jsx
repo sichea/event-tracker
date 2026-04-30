@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription, fetchMarketInsights, fetchAptSubscriptions, fetchParkingRates } from "./api";
+import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription, fetchMarketInsights, fetchAptSubscriptions, fetchParkingRates, fetchVisitorCount, incrementVisitor } from "./api";
 import { supabase } from "./supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -329,6 +329,7 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [whaleData, setWhaleData] = useState(null); // 투자 인사이트용 데이터
   const [marketData, setMarketData] = useState(null);
+  const [visitorCount, setVisitorCount] = useState({ today: 0, total: 0 });
 
   const VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
@@ -405,6 +406,18 @@ function App() {
       setIsAdmin(s?.user?.email === 'aikks3782@gmail.com');
     });
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const visited = sessionStorage.getItem('visited');
+    if (!visited) {
+      incrementVisitor().then(() => {
+        sessionStorage.setItem('visited', 'true');
+        fetchVisitorCount().then(setVisitorCount);
+      });
+    } else {
+      fetchVisitorCount().then(setVisitorCount);
+    }
   }, []);
 
   const showToastMsg = useCallback((message, type="success") => {
@@ -1065,6 +1078,30 @@ function App() {
           </>
         )}
       </main>
+
+      {/* Footer */}
+      <footer className={`border-t border-white/5 bg-[#0a0e17] py-10 px-6 md:px-12 transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <span className="text-lg font-black text-primary tracking-tighter font-headline">RE:MEMBER</span>
+            <p className="text-sm text-on-surface-variant mt-2 leading-relaxed">수익 시그널을 포착하고 기록하는 모두의 공간입니다.</p>
+          </div>
+          
+          <div className="flex items-center gap-3 mb-6 text-base">
+            <span className="text-primary font-black">오늘 <span className="text-xl">{visitorCount.today}</span>명</span>
+            <span className="text-white/20">|</span>
+            <span className="text-on-surface-variant font-bold">누적 <span className="text-xl text-white">{visitorCount.total.toLocaleString()}</span>명</span>
+          </div>
+
+          <div className="flex items-center gap-6 mb-6 text-sm font-bold text-on-surface-variant">
+            <button className="hover:text-primary transition-colors">About</button>
+            <button className="hover:text-primary transition-colors">Contact</button>
+            <button className="hover:text-primary transition-colors">Privacy</button>
+          </div>
+
+          <p className="text-xs text-white/20 font-medium">© 2026 RE:MEMBER. All rights reserved.</p>
+        </div>
+      </footer>
 
       {/* Mobile Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-[#0a0e17]/90 backdrop-blur-xl border-t border-white/10 flex items-center justify-around z-50 px-6 pb-safe">

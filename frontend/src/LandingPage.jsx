@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const ThoughtBubble = ({ text, delay, show, isFinal, index }) => {
+const ThoughtBubble = ({ text, show, isFinal, index }) => {
   const [isTyping, setIsTyping] = useState(true);
 
   useEffect(() => {
@@ -10,27 +10,30 @@ const ThoughtBubble = ({ text, delay, show, isFinal, index }) => {
     }
   }, [show]);
 
-  const getAlignment = () => {
-    if (index % 2 === 0) return 'self-start ml-12 md:ml-24';
-    return 'self-end mr-12 md:mr-24';
-  };
-
   return (
-    <div className={`relative flex flex-col max-w-xs md:max-w-md transition-all duration-1000 transform ${show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} ${getAlignment()} mb-8`}>
-      <div className={`relative z-10 bg-[#1e2533]/80 backdrop-blur-2xl border border-white/10 p-5 md:p-6 rounded-[28px] shadow-2xl ${isFinal ? 'border-primary/50 bg-primary/5 ring-2 ring-primary/20' : ''}`}>
-        <div className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-[#1e2533] rotate-45 border-white/10 ${index % 2 === 0 ? '-left-2 border-l border-b' : '-right-2 border-r border-t'}`}></div>
+    <div className={`relative flex flex-col items-center transition-all duration-1000 transform ${show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mx-auto mb-10 w-full max-w-sm md:max-w-lg`}>
+      <div className={`relative z-10 w-full bg-[#1e2533]/80 backdrop-blur-3xl border border-white/10 p-5 md:p-6 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] ${isFinal ? 'border-primary/50 bg-primary/5 ring-4 ring-primary/10' : ''}`}>
+        <div className="absolute -top-3 left-6 px-3 py-1 bg-black/40 backdrop-blur-xl border border-white/5 rounded-full text-[10px] font-black text-primary uppercase tracking-widest">
+          Step {index + 1}
+        </div>
+        
         {isTyping && show ? (
-          <div className="flex gap-1 py-2 px-4">
-            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div>
-            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></div>
-            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]"></div>
+          <div className="flex gap-1.5 py-2 px-1">
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.4s]"></div>
           </div>
         ) : (
-          <p className={`text-sm md:text-base font-bold leading-relaxed tracking-tight ${isFinal ? 'text-primary' : 'text-[#ebedfb]'}`}>{text}</p>
+          <p className={`text-sm md:text-base font-bold leading-relaxed tracking-tight ${isFinal ? 'text-primary' : 'text-[#ebedfb]'}`}>
+            {text}
+          </p>
         )}
       </div>
+      
       {show && !isFinal && (
-        <div className={`absolute -bottom-8 ${index % 2 === 0 ? 'left-1/2' : 'right-1/2'} w-px h-8 bg-gradient-to-b from-primary/40 to-transparent animate-pulse`}></div>
+        <div className="absolute top-full left-1/2 w-px h-10 bg-gradient-to-b from-primary/40 to-transparent flex items-center justify-center -translate-x-1/2">
+          <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-pulse" />
+        </div>
       )}
     </div>
   );

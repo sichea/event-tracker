@@ -341,3 +341,22 @@ export async function fetchAptSubscriptions() {
   }
   return data || [];
 }
+
+// --- 방문자 카운터 API ---
+export async function fetchVisitorCount() {
+  const { data, error } = await supabase
+    .from('site_visitors')
+    .select('today_count, total_count')
+    .eq('id', 'counter')
+    .single();
+  if (error && error.code !== 'PGRST116') {
+    console.error("Visitor fetch error:", error);
+    return { today: 0, total: 0 };
+  }
+  return { today: data?.today_count || 0, total: data?.total_count || 0 };
+}
+
+export async function incrementVisitor() {
+  const { error } = await supabase.rpc('increment_visitor');
+  if (error) console.error("Visitor increment error:", error);
+}
