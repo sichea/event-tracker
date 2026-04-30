@@ -62,60 +62,74 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <main className="flex-1 flex flex-col items-center justify-center py-10 md:py-16 px-6 relative z-10 max-w-3xl mx-auto w-full">
+      <main className="flex-1 flex flex-col items-center justify-center py-12 md:py-20 px-6 relative z-10 max-w-4xl mx-auto w-full overflow-hidden">
+        
+        {/* Large Background Robot - Styled for Dark Theme */}
+        {!analysisResult && (
+          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-[0.12]">
+            <img 
+              src="/images/thinking_robot.png" 
+              alt="" 
+              className="w-full max-w-5xl h-auto object-contain filter invert grayscale brightness-125 contrast-110"
+            />
+          </div>
+        )}
+
         {!analysisResult ? (
-          <div className="w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          <div className="w-full space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000 relative z-10">
             
-            {/* Centered Headline */}
+            {/* Description Text */}
             <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 mb-1">
-                <span className="material-symbols-outlined text-2xl text-primary">psychology_alt</span>
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl md:text-4xl font-black text-white leading-tight tracking-tighter">
-                  시장 전반의 흐름을<br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">꿰뚫는 통찰</span>을 빌려드립니다.
-                </h2>
-                <p className="text-on-surface-variant text-sm md:text-base opacity-60 max-w-xl leading-relaxed mx-auto">
-                  지금 가장 뜨거운 시장의 한 문장을 적어주세요.<br />
-                  AI가 복잡한 자금의 흐름을 추적하여 시나리오를 설계합니다.
-                </p>
-              </div>
+              <p className="text-white/90 text-xl md:text-2xl font-black tracking-tight drop-shadow-2xl">
+                통찰력을 기르는 한 문장을 적어보세요.
+              </p>
+              <p className="text-white/40 text-sm md:text-base font-medium max-w-lg leading-relaxed">
+                AI가 복잡한 자금의 흐름을 추적하여 최적의 시나리오를 설계합니다.
+              </p>
             </div>
 
-            {/* Centered Input Card */}
-            <div className="w-full max-w-xl mx-auto">
-              <div className="glass-card p-6 md:p-10 rounded-[32px] relative overflow-hidden group">
-                <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-primary/80 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                      Market Scenario Analysis
-                    </label>
-                    <textarea 
-                      value={scenario} 
-                      onChange={(e) => setScenario(e.target.value)} 
-                      placeholder="예: 미국-이란 협상 무산으로 인한 유가 급등 뉴스..." 
-                      rows={3} 
-                      className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[#ebedfb] text-base md:text-lg focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/30 transition-all resize-none shadow-inner placeholder:opacity-20" 
-                    />
-                  </div>
+            {/* Google Search Style Single-Line Input */}
+            <div className="w-full max-w-2xl mx-auto relative group px-4">
+              <div className={`
+                relative flex items-center transition-all duration-500 rounded-full border border-white/10
+                bg-transparent group-hover:bg-white/[0.05] group-hover:backdrop-blur-3xl group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
+                ${scenario.trim() ? 'bg-white/[0.03] backdrop-blur-xl' : ''}
+                focus-within:bg-white/[0.08] focus-within:backdrop-blur-3xl focus-within:border-primary/30 focus-within:shadow-[0_0_30px_rgba(var(--primary-rgb),0.1)]
+              `}>
+                <div className="pl-6 text-primary/60">
+                  <span className="material-symbols-outlined text-2xl">psychology</span>
+                </div>
+                
+                <form onSubmit={handleSubmit} className="flex-1 flex items-center h-14 md:h-16">
+                  <input 
+                    type="text"
+                    value={scenario} 
+                    onChange={(e) => setScenario(e.target.value)} 
+                    placeholder="시장의 흐름을 바꿀 소식을 입력하세요..." 
+                    className="flex-1 bg-transparent border-none px-4 text-white text-lg md:text-xl focus:outline-none placeholder:text-white/10 font-medium" 
+                  />
                   
                   <button 
                     type="submit" 
                     disabled={isAnalyzing || !scenario.trim()} 
-                    className="w-full relative group overflow-hidden bg-primary text-on-primary font-black py-4 md:py-5 rounded-2xl shadow-xl hover:shadow-primary/30 transition-all flex items-center justify-center gap-2 text-base md:text-lg"
+                    className={`
+                      mr-2 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300
+                      ${scenario.trim() ? 'bg-primary text-on-primary scale-100' : 'bg-white/5 text-white/20 scale-90'}
+                    `}
                   >
-                    <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                     {isAnalyzing ? (
-                      <div className="w-6 h-6 border-3 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
+                      <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
                     ) : (
-                      <>
-                        <span className="material-symbols-outlined text-xl">insights</span>
-                        <span>사고 체인 분석 시작하기</span>
-                      </>
+                      <span className="material-symbols-outlined text-xl md:text-2xl">arrow_forward</span>
                     )}
                   </button>
                 </form>
+              </div>
+
+              {/* Minimalist Description below the bar */}
+              <div className="mt-6 flex justify-center gap-6 text-[10px] md:text-xs font-bold text-white/20 uppercase tracking-[0.2em]">
+                <span className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary/40" /> AI Scenario Analysis</span>
+                <span className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-blue-500/40" /> Real-time Insight</span>
               </div>
             </div>
           </div>
