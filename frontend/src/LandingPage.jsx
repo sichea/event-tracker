@@ -60,7 +60,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
   const steps = analysisResult?.steps?.map(text => ({ text })) || [];
 
   return (
-    <div className="relative flex flex-col bg-[#0a0e17] overflow-hidden">
+    <div className="relative flex-1 flex flex-col bg-[#0a0e17] overflow-hidden min-h-[calc(100vh-280px)]">
       {/* Background Glow */}
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
@@ -73,7 +73,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
             <img 
               src="/images/thinking_robot.png" 
               alt="" 
-              className="w-full max-w-5xl h-auto object-contain filter invert grayscale brightness-125 contrast-110"
+              className="w-full max-w-5xl h-full object-contain filter invert grayscale brightness-125 contrast-110"
             />
           </div>
         )}
