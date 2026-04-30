@@ -138,7 +138,7 @@ export default function IpoCalendar({ ipoEvents, onSelectIpo, aliases, onToggleI
               <h3 className="text-lg font-black font-headline tracking-tight">예정된 공모주</h3>
             </div>
             
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2 min-h-[300px]">
+            <div className="flex-1 overflow-y-auto scrollbar-hide space-y-4 pr-2 min-h-[300px]">
               {upcomingIpos.length > 0 ? (
                 upcomingIpos.map(ipo => {
                   const isOngoing = ipo.status === '청약중';

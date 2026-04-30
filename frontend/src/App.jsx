@@ -20,7 +20,7 @@ const PROVIDERS = [
   { key: "1Q", label: "1Q", name: "Hana 1Q", bgColor: "bg-green-500", textLabel: "1Q", shadow: "", url: "https://m.blog.naver.com/1qetf" },
   { key: "PLUS", label: "PLUS", name: "Hanwha PLUS", bgColor: "bg-indigo-600", textLabel: "PLUS", textSize: "text-xs", shadow: "", url: "https://m.blog.naver.com/hanwhaasset" },
   { key: "KIWOOM", label: "KIWOOM", name: "Kiwoom KOSETF", bgColor: "bg-pink-600", textLabel: "KIWOOM", textSize: "text-[10px]", shadow: "", url: "https://m.blog.naver.com/kiwoomammkt" },
-  { key: "FUN", label: "FUN", name: "Woori FUN", bgColor: "bg-indigo-400", textLabel: "FUN", shadow: "", url: "https://m.funetf.co.kr/membersLounge/event" },
+  { key: "FUN", label: "FUN", name: "Woori FUN", bgColor: "bg-indigo-400", textLabel: "FUN", shadow: "", url: "https://www.funetf.co.kr/membersLounge/event" },
 ];
 
 function formatDday(dday) {
@@ -202,7 +202,7 @@ function IpoModal({ ipo, aliases, onClose, onToggleIpo }) {
             <span className="material-symbols-outlined text-sm">close</span>
           </button>
         </div>
-        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+        <div className="p-6 overflow-y-auto scrollbar-hide flex-1 space-y-6">
           <div className="flex flex-wrap gap-2">
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusColor(ipo.status)}`}>{ipo.status}</span>
             {ipo.listing_date && (
@@ -667,7 +667,7 @@ function App() {
 
       {/* No Overlay Backdrop as per request to keep it pushing content */}
 
-      <aside className={`flex flex-col fixed left-0 top-16 bottom-0 p-4 w-64 bg-gradient-to-b from-[#0a0e17] to-[#262c3a] z-40 transition-transform duration-300 border-r border-white/5 shadow-2xl ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`flex flex-col fixed left-0 top-16 bottom-0 p-4 w-64 bg-gradient-to-b from-[#0a0e17] to-[#262c3a] z-40 transition-transform duration-300 border-r border-white/5 shadow-2xl overflow-y-auto scrollbar-hide ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center gap-3 mb-8 px-2 pt-2">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
             <span className="material-symbols-outlined text-primary" data-weight="fill">sensors</span>
@@ -719,10 +719,8 @@ function App() {
             </>
           ) : activeTab === 'dashboard' ? (
             <>
-
-
               <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-6">운용사별</p>
-              <div className="space-y-1 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
                 {PROVIDERS.map(p => (
                   <button 
                     key={p.key}
@@ -771,7 +769,7 @@ function App() {
         </div>
       </aside>
 
-      <main className={`pt-20 pb-24 md:pb-12 px-4 md:px-12 min-h-screen transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
+      <main className={`pt-20 pb-24 md:pb-12 px-4 md:px-12 min-h-[calc(100vh-80px)] transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
         
         {/* Settings Panel */}
         {showSettings && (

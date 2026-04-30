@@ -138,7 +138,7 @@ export default function AptCalendar({ aptEvents, searchQuery }) {
               <h3 className="text-lg font-black font-headline tracking-tight">예정된 아파트 청약</h3>
             </div>
             
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2 min-h-[300px]">
+            <div className="flex-1 overflow-y-auto scrollbar-hide space-y-4 pr-2 min-h-[300px]">
               {selectedDateEvents.length > 0 && (
                 <div className="mb-8 space-y-4">
                   <p className="text-[10px] font-black text-primary uppercase tracking-widest px-2">{selectedDate.split('-')[2]}일의 상세 일정</p>
