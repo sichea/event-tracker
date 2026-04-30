@@ -457,24 +457,40 @@ export default function InvestmentInsights({ subTab }) {
               const isInsider = item.report_nm.includes('임원') || item.report_nm.includes('주요주주');
               const isMajor = item.report_nm.includes('대량보유');
               
-              // Simple interpretation logic
+              // Refined interpretation logic
+              const isBuy = item.report_nm.includes('취득') || item.report_nm.includes('매수') || item.report_nm.includes('증여받음');
+              const isSell = item.report_nm.includes('처분') || item.report_nm.includes('매도') || item.report_nm.includes('증여함');
+              
               let interpretation = "지분 변동 포착: 상세 내용을 확인하세요.";
               let signalColor = "text-on-surface-variant";
               let signalIcon = "trending_flat";
+              let signalBadge = null;
 
-              if (item.report_nm.includes('대량보유')) {
+              if (isBuy) {
+                interpretation = "내부자의 강력한 자신감! 주가 상승을 기대하는 직접적인 매수 신호입니다.";
+                signalColor = "text-red-400";
+                signalIcon = "add_circle";
+                signalBadge = { text: "매수 / 확대", bg: "bg-red-500/20", border: "border-red-500/30" };
+              } else if (isSell) {
+                interpretation = "수익 실현 또는 리스크 관리. 내부자의 비중 축소로 신중한 접근이 필요합니다.";
+                signalColor = "text-blue-400";
+                signalIcon = "remove_circle";
+                signalBadge = { text: "매도 / 축소", bg: "bg-blue-500/20", border: "border-blue-500/30" };
+              } else if (item.report_nm.includes('대량보유')) {
                 interpretation = "5% 신규 확보 또는 비중 확대 가능성. 중장기 가치 투자의 강력한 신호입니다.";
                 signalColor = "text-primary";
-                signalIcon = "add_circle";
+                signalIcon = "stars";
+                signalBadge = { text: "비중 확대", bg: "bg-primary/20", border: "border-primary/30" };
               } else if (isInsider) {
-                interpretation = "내부자 지분 변동. 기업 내부 정보에 기반한 자신감 혹은 리스크 관리 신호입니다.";
+                interpretation = "내부자 지분 변동 발생. 상세 보고서에서 정확한 취득/처분 수량을 확인하세요.";
                 signalColor = "text-tertiary";
-                signalIcon = "person_check";
+                signalIcon = "person_search";
+                signalBadge = { text: "내부자 변동", bg: "bg-tertiary/20", border: "border-tertiary/30" };
               }
 
               return (
                 <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="bg-surface-container border border-white/5 rounded-2xl p-5 hover:bg-surface-container-high hover:border-primary/50 transition-all duration-300 group flex flex-col justify-between shadow-lg relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-3xl -mr-12 -mt-12 group-hover:bg-primary/10 transition-all"></div>
+                  <div className={`absolute top-0 right-0 w-32 h-32 ${signalBadge ? signalBadge.bg : 'bg-primary/5'} rounded-full blur-3xl -mr-16 -mt-16 group-hover:opacity-100 transition-opacity opacity-40`}></div>
                   
                   <div className="relative z-10">
                     <div className="flex justify-between items-start mb-3">
@@ -483,12 +499,10 @@ export default function InvestmentInsights({ subTab }) {
                           {item.date.slice(0,4)}.{item.date.slice(4,6)}.{item.date.slice(6,8)}
                         </span>
                         <div className="flex items-center gap-1.5">
-                          {isInsider ? (
-                             <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-tertiary/10 text-tertiary border border-tertiary/20">내부자</span>
-                          ) : isMajor ? (
-                             <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">5% 지분</span>
+                          {signalBadge ? (
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${signalBadge.bg} ${signalColor} border ${signalBadge.border}`}>{signalBadge.text}</span>
                           ) : (
-                             <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-white/5 text-on-surface-variant border border-white/10">일반공시</span>
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-white/5 text-on-surface-variant border border-white/10">일반공시</span>
                           )}
                         </div>
                       </div>
