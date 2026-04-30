@@ -457,71 +457,71 @@ export default function InvestmentInsights({ subTab }) {
               const isInsider = item.report_nm.includes('임원') || item.report_nm.includes('주요주주');
               const isMajor = item.report_nm.includes('대량보유');
               
-              // Refined interpretation logic
+              // Decisive Verdict Logic
               const isBuy = item.report_nm.includes('취득') || item.report_nm.includes('매수') || item.report_nm.includes('증여받음');
               const isSell = item.report_nm.includes('처분') || item.report_nm.includes('매도') || item.report_nm.includes('증여함');
               
-              let interpretation = "지분 변동 포착: 상세 내용을 확인하세요.";
-              let signalColor = "text-on-surface-variant";
-              let signalIcon = "trending_flat";
-              let signalBadge = null;
+              let verdict = { text: "판단 유보", color: "text-on-surface-variant", bg: "bg-white/5", border: "border-white/10", score: 50, icon: "analytics" };
+              let interpretation = "데이터 분석 중입니다. 상세 리포트를 확인하세요.";
 
               if (isBuy) {
-                interpretation = "내부자의 강력한 자신감! 주가 상승을 기대하는 직접적인 매수 신호입니다.";
-                signalColor = "text-red-400";
-                signalIcon = "add_circle";
-                signalBadge = { text: "매수 / 확대", bg: "bg-red-500/20", border: "border-red-500/30" };
+                verdict = { text: "강력 매수", color: "text-primary", bg: "bg-primary/20", border: "border-primary/30", score: 95, icon: "rocket_launch" };
+                interpretation = "내부자의 직접적인 자금 투입이 확인되었습니다. 주가 상승에 대한 강력한 자신감 시그널입니다.";
               } else if (isSell) {
-                interpretation = "수익 실현 또는 리스크 관리. 내부자의 비중 축소로 신중한 접근이 필요합니다.";
-                signalColor = "text-blue-400";
-                signalIcon = "remove_circle";
-                signalBadge = { text: "매도 / 축소", bg: "bg-blue-500/20", border: "border-blue-500/30" };
+                verdict = { text: "매도 주의", color: "text-red-400", bg: "bg-red-500/20", border: "border-red-500/30", score: 85, icon: "warning" };
+                interpretation = "내부자의 지분 매도가 포착되었습니다. 단기 차익 실현 또는 리스크 관리 가능성이 높습니다.";
               } else if (item.report_nm.includes('대량보유')) {
-                interpretation = "5% 신규 확보 또는 비중 확대 가능성. 중장기 가치 투자의 강력한 신호입니다.";
-                signalColor = "text-primary";
-                signalIcon = "stars";
-                signalBadge = { text: "비중 확대", bg: "bg-primary/20", border: "border-primary/30" };
+                verdict = { text: "비중 확대", color: "text-primary", bg: "bg-primary/20", border: "border-primary/30", score: 90, icon: "stars" };
+                interpretation = "5% 이상 대량 지분 확보. 중장기적인 기업 가치 상승에 베팅하는 세력의 움직임입니다.";
               } else if (isInsider) {
-                interpretation = "내부자 지분 변동 발생. 상세 보고서에서 정확한 취득/처분 수량을 확인하세요.";
-                signalColor = "text-tertiary";
-                signalIcon = "person_search";
-                signalBadge = { text: "내부자 변동", bg: "bg-tertiary/20", border: "border-tertiary/30" };
+                // Default insider change if no buy/sell keyword found - usually positive in a bull market context but keep it alert
+                verdict = { text: "매수 확률 높음", color: "text-tertiary", bg: "bg-tertiary/20", border: "border-tertiary/30", score: 75, icon: "person_check" };
+                interpretation = "내부자 지분 변동이 발생했습니다. 통상적으로 경영진의 지분 취득은 주가 저평가 신호로 해석됩니다.";
               }
 
               return (
-                <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="bg-surface-container border border-white/5 rounded-2xl p-5 hover:bg-surface-container-high hover:border-primary/50 transition-all duration-300 group flex flex-col justify-between shadow-lg relative overflow-hidden">
-                  <div className={`absolute top-0 right-0 w-32 h-32 ${signalBadge ? signalBadge.bg : 'bg-primary/5'} rounded-full blur-3xl -mr-16 -mt-16 group-hover:opacity-100 transition-opacity opacity-40`}></div>
+                <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="bg-surface-container border border-white/5 rounded-[2.5rem] p-6 md:p-8 hover:bg-surface-container-high hover:border-primary/50 transition-all duration-300 group flex flex-col justify-between shadow-2xl relative overflow-hidden">
+                  <div className={`absolute top-0 right-0 w-48 h-48 ${verdict.bg} rounded-full blur-[80px] -mr-24 -mt-24 group-hover:opacity-100 transition-opacity opacity-30`}></div>
                   
                   <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-bold text-on-surface-variant bg-white/5 px-2 py-0.5 rounded w-fit">
-                          {item.date.slice(0,4)}.{item.date.slice(4,6)}.{item.date.slice(6,8)}
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-tighter border shadow-xl ${verdict.bg} ${verdict.color} ${verdict.border}`}>
+                          {verdict.text}
                         </span>
-                        <div className="flex items-center gap-1.5">
-                          {signalBadge ? (
-                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${signalBadge.bg} ${signalColor} border ${signalBadge.border}`}>{signalBadge.text}</span>
-                          ) : (
-                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-white/5 text-on-surface-variant border border-white/10">일반공시</span>
-                          )}
+                        <div className="flex flex-col">
+                           <span className="text-[8px] font-black text-on-surface-variant uppercase tracking-widest opacity-50">Signal Strength</span>
+                           <span className={`text-xs font-black ${verdict.color}`}>{verdict.score}%</span>
                         </div>
                       </div>
-                      <span className="material-symbols-outlined text-primary/50 group-hover:text-primary transition-colors text-sm">open_in_new</span>
+                      <span className="text-[11px] font-bold text-on-surface-variant/40">{item.date.slice(0,4)}.{item.date.slice(4,6)}.{item.date.slice(6,8)}</span>
                     </div>
-                    <h3 className="text-xl font-bold font-headline mb-1 text-on-surface group-hover:text-primary transition-colors line-clamp-1">{item.corp_name}</h3>
-                    <p className="text-sm font-medium text-on-surface-variant mb-4 flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-xs">person</span>
-                      {item.filer}
-                    </p>
 
-                    <div className={`flex items-start gap-2 p-3 rounded-xl bg-black/20 border border-white/5 mb-4 ${signalColor}`}>
-                      <span className="material-symbols-outlined text-sm mt-0.5">{signalIcon}</span>
-                      <p className="text-[11px] font-bold leading-relaxed">{interpretation}</p>
+                    <div className="mb-8">
+                      <h3 className="text-2xl font-black font-headline mb-2 text-on-surface group-hover:text-primary transition-colors">{item.corp_name}</h3>
+                      <div className="flex items-center gap-2 text-on-surface-variant font-bold">
+                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                          <span className="material-symbols-outlined text-sm">person</span>
+                        </div>
+                        <span className="text-base">{item.filer}</span>
+                      </div>
+                    </div>
+
+                    <div className={`p-5 rounded-3xl bg-black/40 border border-white/5 mb-6 relative overflow-hidden`}>
+                      <div className={`absolute top-0 left-0 w-1 h-full ${verdict.bg}`}></div>
+                      <div className="flex items-start gap-3">
+                        <span className={`material-symbols-outlined text-xl mt-0.5 ${verdict.color}`}>{verdict.icon}</span>
+                        <div>
+                          <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1 opacity-50">AI 시그널 판정</p>
+                          <p className="text-[13px] font-bold leading-relaxed text-on-surface/90">{interpretation}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="text-[10px] text-on-surface-variant/60 leading-relaxed p-2 bg-white/5 rounded-lg border border-white/5 line-clamp-1 mt-auto font-medium relative z-10">
-                    {item.report_nm}
+                  <div className="flex items-center justify-between text-[10px] font-bold text-on-surface-variant/30 mt-auto relative z-10 pt-4 border-t border-white/5">
+                    <span className="truncate max-w-[200px]">{item.report_nm}</span>
+                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
                   </div>
                 </a>
               );
