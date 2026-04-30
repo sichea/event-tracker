@@ -827,7 +827,7 @@ function App() {
         </div>
       </aside>
 
-      <main className={`pt-20 ${activeTab === 'landing' ? 'pb-0 scrollbar-hide' : 'pb-24 md:pb-12 min-h-[calc(100vh-80px)]'} px-4 md:px-12 transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
+      <main className={`pt-20 ${activeTab === 'landing' ? 'pb-0 scrollbar-hide' : 'pb-24 md:pb-12 min-h-[calc(100vh-80px)]'} px-3 md:px-12 transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
         
         {/* Settings Panel */}
         {showSettings && (

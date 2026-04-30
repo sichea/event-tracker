@@ -60,7 +60,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
   const steps = analysisResult?.steps?.map(text => ({ text })) || [];
 
   return (
-    <div className="relative flex-1 flex flex-col bg-[#0a0e17] overflow-hidden min-h-[calc(100vh-280px)]">
+    <div className="relative flex-1 flex flex-col bg-[#0a0e17] overflow-x-hidden min-h-[calc(100vh-280px)]">
       {/* Background Glow */}
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
@@ -103,7 +103,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                   <span className="material-symbols-outlined text-2xl">psychology</span>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="flex-1 flex items-center h-14 md:h-16">
+                <form onSubmit={handleSubmit} className="flex-1 flex items-center h-14 md:h-16 pr-1 md:pr-0">
                   <input 
                     type="text"
                     value={scenario} 
@@ -116,7 +116,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                     type="submit" 
                     disabled={isAnalyzing || !scenario.trim()} 
                     className={`
-                      mr-2 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300
+                      mr-2 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 flex-shrink-0 relative z-20
                       ${scenario.trim() ? 'bg-primary text-on-primary scale-100' : 'bg-white/5 text-white/20 scale-90'}
                     `}
                   >
