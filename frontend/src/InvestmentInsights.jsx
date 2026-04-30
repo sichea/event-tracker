@@ -457,9 +457,26 @@ export default function InvestmentInsights({ subTab }) {
               const isInsider = item.report_nm.includes('임원') || item.report_nm.includes('주요주주');
               const isMajor = item.report_nm.includes('대량보유');
               
+              // Simple interpretation logic
+              let interpretation = "지분 변동 포착: 상세 내용을 확인하세요.";
+              let signalColor = "text-on-surface-variant";
+              let signalIcon = "trending_flat";
+
+              if (item.report_nm.includes('대량보유')) {
+                interpretation = "5% 신규 확보 또는 비중 확대 가능성. 중장기 가치 투자의 강력한 신호입니다.";
+                signalColor = "text-primary";
+                signalIcon = "add_circle";
+              } else if (isInsider) {
+                interpretation = "내부자 지분 변동. 기업 내부 정보에 기반한 자신감 혹은 리스크 관리 신호입니다.";
+                signalColor = "text-tertiary";
+                signalIcon = "person_check";
+              }
+
               return (
-                <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="bg-surface-container border border-white/5 rounded-2xl p-5 hover:bg-surface-container-high hover:border-primary/50 transition-all duration-300 group flex flex-col justify-between shadow-lg">
-                  <div>
+                <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="bg-surface-container border border-white/5 rounded-2xl p-5 hover:bg-surface-container-high hover:border-primary/50 transition-all duration-300 group flex flex-col justify-between shadow-lg relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-3xl -mr-12 -mt-12 group-hover:bg-primary/10 transition-all"></div>
+                  
+                  <div className="relative z-10">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-bold text-on-surface-variant bg-white/5 px-2 py-0.5 rounded w-fit">
@@ -482,8 +499,14 @@ export default function InvestmentInsights({ subTab }) {
                       <span className="material-symbols-outlined text-xs">person</span>
                       {item.filer}
                     </p>
+
+                    <div className={`flex items-start gap-2 p-3 rounded-xl bg-black/20 border border-white/5 mb-4 ${signalColor}`}>
+                      <span className="material-symbols-outlined text-sm mt-0.5">{signalIcon}</span>
+                      <p className="text-[11px] font-bold leading-relaxed">{interpretation}</p>
+                    </div>
                   </div>
-                  <div className="text-[11px] text-on-surface/80 leading-relaxed p-3 bg-black/30 rounded-xl border border-white/5 line-clamp-2 mt-auto font-medium">
+
+                  <div className="text-[10px] text-on-surface-variant/60 leading-relaxed p-2 bg-white/5 rounded-lg border border-white/5 line-clamp-1 mt-auto font-medium relative z-10">
                     {item.report_nm}
                   </div>
                 </a>
