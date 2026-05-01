@@ -970,24 +970,44 @@ function App() {
         ) : activeTab === "insights" ? (
           <InvestmentInsights subTab={insightSubTab} />
         ) : activeTab === "subscription" ? (
-          subscriptionSubTab === "ipo" ? (
-            ipoLoading ? (
-              <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
+          <div className="flex flex-col h-full">
+            <div className="mb-8">
+              <div className="flex items-center gap-2 bg-surface-container/30 p-1.5 rounded-2xl border border-white/5 w-fit">
+                {[
+                  { id: 'ipo', label: '공모주 청약', icon: 'payments', count: ipoEvents.length },
+                  { id: 'apt', label: '아파트 청약', icon: 'home', count: aptEvents.length }
+                ].map(tab => (
+                  <button 
+                    key={tab.id}
+                    onClick={() => setSubscriptionSubTab(tab.id)}
+                    className={`px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-300 font-bold text-sm ${subscriptionSubTab === tab.id ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5'}`}
+                  >
+                    <span className="material-symbols-outlined text-lg">{tab.icon}</span>
+                    <span>{tab.label}</span>
+                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${subscriptionSubTab === tab.id ? 'bg-white/20' : 'bg-surface-container-highest text-on-surface-variant'}`}>{tab.count}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            {subscriptionSubTab === "ipo" ? (
+              ipoLoading ? (
+                <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
+              ) : (
+                <IpoCalendar 
+                  ipoEvents={ipoEvents} 
+                  onSelectIpo={setSelectedIpo} 
+                  aliases={aliases}
+                  onToggleIpo={handleToggleIpo}
+                />
+              )
             ) : (
-              <IpoCalendar 
-                ipoEvents={ipoEvents} 
-                onSelectIpo={setSelectedIpo} 
-                aliases={aliases}
-                onToggleIpo={handleToggleIpo}
-              />
-            )
-          ) : (
-            aptLoading ? (
-              <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
-            ) : (
-              <AptCalendar aptEvents={aptEvents} />
-            )
-          )
+              aptLoading ? (
+                <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
+              ) : (
+                <AptCalendar aptEvents={aptEvents} />
+              )
+            )}
+          </div>
         ) : activeTab === "parking" ? (
           <ParkingCmaComparison parkingFilter={parkingFilter} />
         ) : (
