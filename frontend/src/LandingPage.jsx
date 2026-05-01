@@ -145,8 +145,8 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                       }
                     }}
                     placeholder="시장의 흐름을 바꿀 소식을 입력하세요..." 
-                    className="flex-1 bg-transparent border-none pl-2 pr-14 md:pl-4 md:pr-16 text-white text-base md:text-xl focus:outline-none placeholder:text-white/10 font-medium appearance-none" 
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                    className="flex-1 bg-transparent border-none pl-2 pr-14 md:pl-4 md:pr-16 text-white text-base md:text-xl !outline-none focus:!outline-none focus:ring-0 placeholder:text-white/10 font-medium appearance-none" 
+                    style={{ WebkitTapHighlightColor: 'transparent', outline: 'none', boxShadow: 'none' }}
                   />
                 </div>
               </div>
