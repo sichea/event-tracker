@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from './api'; // Supabase 클라이언트 가져오기
 
 const ThoughtBubble = ({ text, show, isFinal, index }) => {
   const [isTyping, setIsTyping] = useState(true);
@@ -42,6 +43,34 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
 export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, onReset }) {
   const [scenario, setScenario] = useState('');
   const [visibleSteps, setVisibleSteps] = useState(0);
+  const [remainingQuota, setRemainingQuota] = useState(1500);
+
+  // 초기 쿼터 정보 가져오기
+  useEffect(() => {
+    async function fetchQuota() {
+      try {
+        const { data, error } = await supabase
+          .from('api_usage')
+          .select('remaining_count')
+          .eq('id', 'gemini_daily')
+          .single();
+        
+        if (!error && data) {
+          setRemainingQuota(data.remaining_count);
+        }
+      } catch (err) {
+        console.error("Failed to fetch quota:", err);
+      }
+    }
+    fetchQuota();
+  }, []);
+
+  // 분석 결과에 포함된 최신 쿼터 정보 반영
+  useEffect(() => {
+    if (analysisResult && analysisResult.remaining !== undefined) {
+      setRemainingQuota(analysisResult.remaining);
+    }
+  }, [analysisResult]);
 
   useEffect(() => {
     if (analysisResult && analysisResult.steps) {
@@ -155,9 +184,25 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
             </div>
 
               {/* Minimalist Description below the bar */}
-              <div className="flex items-center justify-center gap-4 text-[9px] md:text-xs font-black text-white/20 uppercase tracking-[0.2em] mt-8 animate-in fade-in duration-1000 delay-500">
-                <span className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary/40" /> AI Scenario Analysis</span>
-                <span className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-blue-500/40" /> Real-time Insight</span>
+              <div className="flex flex-col items-center gap-4 mt-8">
+                <div className="flex items-center justify-center gap-4 text-[9px] md:text-xs font-black text-white/20 uppercase tracking-[0.2em] animate-in fade-in duration-1000 delay-500">
+                  <span className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary/40" /> AI Scenario Analysis</span>
+                  <span className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-blue-500/40" /> Real-time Insight</span>
+                </div>
+                
+                {/* API Quota Display */}
+                <div className="flex flex-col items-center gap-1.5 opacity-40 hover:opacity-80 transition-opacity duration-500">
+                  <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase">
+                    <span className="text-white/40">Daily Insight Energy</span>
+                    <span className="text-primary">{remainingQuota !== null ? remainingQuota.toLocaleString() : '---'} / 1,500</span>
+                  </div>
+                  <div className="w-32 h-0.5 bg-white/5 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary shadow-[0_0_8px_#73ffba] transition-all duration-1000 ease-out"
+                      style={{ width: `${(remainingQuota / 1500) * 100}%` }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
         ) : (
