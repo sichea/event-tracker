@@ -311,10 +311,21 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type, yieldD
           
           {(asset.products || [asset]).map((p, idx) => {
             const name = p.name || p.product_name || asset.name;
-            const codeMatch = name.match(/\((\d{6})\)/);
-            const link = codeMatch 
-              ? `https://finance.naver.com/item/main.naver?code=${codeMatch[1]}`
-              : `https://search.naver.com/search.naver?query=${encodeURIComponent(name.split('(')[0].trim() + ' 주가')}`;
+            
+            // 국내 종목코드 (6자리 숫자)
+            const krCodeMatch = name.match(/\((\d{6})\)/);
+            // 해외 종목코드 (영문 1~5자리)
+            const globalCodeMatch = name.match(/\(([A-Z]{1,5})\)/);
+
+            let link = "";
+            if (krCodeMatch) {
+              link = `https://finance.naver.com/item/main.naver?code=${krCodeMatch[1]}`;
+            } else if (globalCodeMatch) {
+              link = `https://finance.naver.com/world/item.naver?symbol=${globalCodeMatch[1]}`;
+            } else {
+              const cleanName = name.split('(')[0].trim();
+              link = `https://search.naver.com/search.naver?query=${encodeURIComponent(cleanName + ' 주가')}`;
+            }
 
             return (
               <a 
