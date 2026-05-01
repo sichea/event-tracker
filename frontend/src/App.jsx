@@ -302,7 +302,7 @@ function App() {
   const [aliases, setAliases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState(null); 
-  const [selectedStatus, setSelectedStatus] = useState("전체 보기"); 
+  const [selectedStatus, setSelectedStatus] = useState("전체 목록"); 
   const [toast, setToast] = useState({ message: "", visible: false, type: "success" });
   const [showSettings, setShowSettings] = useState(false);
   const [newAliasName, setNewAliasName] = useState("");
@@ -996,7 +996,7 @@ function App() {
             <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-on-surface font-headline mb-2">
-                  {selectedProvider ? `${PROVIDERS.find(p=>p.key===selectedProvider)?.name} 이벤트` : "이벤트"}
+                  {selectedProvider ? `${PROVIDERS.find(p=>p.key===selectedProvider)?.name} ETF 이벤트` : "ETF 이벤트"}
                 </h1>
                 <p className="text-on-surface-variant max-w-xl italic">미래의 내가 보낸 수익 시그널을 확인하세요.</p>
               </div>
@@ -1005,7 +1005,7 @@ function App() {
             {/* Status Filters - Main View */}
             <div className="flex flex-wrap items-center gap-3 mb-10 bg-surface-container/30 p-4 rounded-3xl border border-white/5">
               {[
-                { id: '전체 보기', label: '전체 보기', icon: 'list' },
+                { id: '전체 목록', label: '전체 목록', icon: 'list' },
                 { id: '마감 임박', label: '마감 임박', icon: 'schedule' },
                 { id: '참여 목록', label: '참여 목록', icon: 'task_alt' }
               ].map(f => (
@@ -1020,49 +1020,55 @@ function App() {
               ))}
             </div>
 
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
+            <section className="grid grid-cols-4 gap-2 md:gap-6 mb-8">
               {/* Registered Accounts */}
-              <div className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-6 relative overflow-hidden group">
-                <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
-                  <span className="material-symbols-outlined text-6xl md:text-8xl">account_balance_wallet</span>
+              <div className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-3 md:p-6 relative overflow-hidden group aspect-square flex flex-col justify-center">
+                <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                  <span className="material-symbols-outlined text-4xl md:text-8xl">account_balance_wallet</span>
                 </div>
-                <p className="text-[10px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">등록 계좌</p>
-                <h3 className="text-2xl md:text-4xl font-extrabold text-on-surface font-headline">{aliases.length}<span className="text-xs md:text-base ml-1 opacity-50 font-medium">개</span></h3>
+                <p className="text-[8px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">등록 계좌</p>
+                <h3 className="text-lg md:text-4xl font-extrabold text-on-surface font-headline">{aliases.length}<span className="text-[10px] md:text-base ml-0.5 opacity-50 font-medium">개</span></h3>
               </div>
 
               {/* Active Events */}
-              <div className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-6 relative overflow-hidden group">
-                <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
-                  <span className="material-symbols-outlined text-6xl md:text-8xl">bolt</span>
+              <div 
+                onClick={() => { setSelectedStatus("전체 목록"); setSelectedProvider(null); window.scrollTo(0, 0); }}
+                className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-3 md:p-6 relative overflow-hidden group aspect-square flex flex-col justify-center cursor-pointer hover:border-primary/30 transition-all active:scale-95"
+              >
+                <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                  <span className="material-symbols-outlined text-4xl md:text-8xl">bolt</span>
                 </div>
-                <p className="text-[10px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">진행중 이벤트</p>
-                <h3 className="text-2xl md:text-4xl font-extrabold text-on-surface font-headline">{activeEventsCount}</h3>
-                <p className="mt-1 md:mt-2 text-[9px] md:text-xs text-primary flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[12px] md:text-[14px]">sync</span>
+                <p className="text-[8px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">진행중 이벤트</p>
+                <h3 className="text-lg md:text-4xl font-extrabold text-on-surface font-headline">{activeEventsCount}</h3>
+                <p className="mt-1 text-[7px] md:text-xs text-primary flex items-center gap-0.5 md:gap-1">
+                  <span className="material-symbols-outlined text-[10px] md:text-[14px]">sync</span>
                   {scrapingStatus?.last_run ? new Date(scrapingStatus.last_run).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '오늘'}
                 </p>
               </div>
 
               {/* Participation Rate */}
-              <div className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-6 relative overflow-hidden group">
-                <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
-                  <span className="material-symbols-outlined text-6xl md:text-8xl">analytics</span>
+              <div className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-3 md:p-6 relative overflow-hidden group aspect-square flex flex-col justify-center">
+                <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                  <span className="material-symbols-outlined text-4xl md:text-8xl">analytics</span>
                 </div>
-                <p className="text-[10px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">참여율</p>
-                <h3 className="text-2xl md:text-4xl font-extrabold text-primary font-headline">{checkPercent}%</h3>
-                <div className="mt-2 md:mt-4 w-full bg-surface-container-highest rounded-full h-1 md:h-1.5 overflow-hidden">
+                <p className="text-[8px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">참여율</p>
+                <h3 className="text-lg md:text-4xl font-extrabold text-primary font-headline">{checkPercent}%</h3>
+                <div className="mt-2 md:mt-4 w-full bg-surface-container-highest rounded-full h-0.5 md:h-1.5 overflow-hidden">
                   <div className="bg-primary h-full rounded-full shadow-[0_0_8px_#73ffba] transition-all duration-1000" style={{width: `${checkPercent}%`}}></div>
                 </div>
               </div>
 
               {/* Closing Soon */}
-              <div className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-6 relative overflow-hidden group border-primary/10">
-                <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
-                  <span className="material-symbols-outlined text-6xl md:text-8xl text-tertiary">notification_important</span>
+              <div 
+                onClick={() => { setSelectedStatus("마감 임박"); setSelectedProvider(null); window.scrollTo(0, 0); }}
+                className="bg-surface-container border border-white/5 rounded-2xl md:rounded-3xl p-3 md:p-6 relative overflow-hidden group border-primary/10 aspect-square flex flex-col justify-center cursor-pointer hover:border-tertiary/30 transition-all active:scale-95"
+              >
+                <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                  <span className="material-symbols-outlined text-4xl md:text-8xl text-tertiary">notification_important</span>
                 </div>
-                <p className="text-[10px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">마감 임박</p>
-                <h3 className="text-2xl md:text-4xl font-extrabold text-tertiary font-headline">{upcomingEvents}</h3>
-                <p className="mt-1 md:mt-2 text-[9px] md:text-xs text-tertiary/70">3일 이내 종료</p>
+                <p className="text-[8px] md:text-sm font-bold text-on-surface-variant mb-1 uppercase tracking-wider">마감 임박</p>
+                <h3 className="text-lg md:text-4xl font-extrabold text-tertiary font-headline">{upcomingEvents}</h3>
+                <p className="mt-1 text-[7px] md:text-xs text-tertiary/70">3일 이내 종료</p>
               </div>
             </section>
 
