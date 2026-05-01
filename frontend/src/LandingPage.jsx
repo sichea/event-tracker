@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from './api'; // Supabase 클라이언트 가져오기
+import { supabase } from './supabaseClient'; // 클라이언트에서 직접 가져오기
 
 const ThoughtBubble = ({ text, show, isFinal, index }) => {
   const [isTyping, setIsTyping] = useState(true);
