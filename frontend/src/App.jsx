@@ -952,15 +952,20 @@ function App() {
               }
               setIsAnalyzing(true);
               try {
-                const res = await fetch('http://localhost:8000/api/analyze', {
+                // Cloudflare Serverless Function 호출 (배포/모바일 환경 통합)
+                const res = await fetch('/api/analyze', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ scenario: input })
                 });
+                
+                if (!res.ok) throw new Error('분석 서버 응답 오류');
+                
                 const data = await res.json();
                 setAnalysisResult(data);
               } catch (e) {
                 console.error("Analysis error:", e);
+                showToastMsg("분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", "error");
               } finally {
                 setIsAnalyzing(false);
               }
