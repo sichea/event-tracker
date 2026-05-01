@@ -2,8 +2,8 @@ name: Daily Push Notification Sender
 
 on:
   schedule:
-    # 00:30 UTC = 한국 시간 오전 9시 30분
-    - cron: '30 0 * * *'
+    # 23:30 UTC = 한국 시간 오전 8시 30분
+    - cron: '30 23 * * *'
   workflow_dispatch: # 수동 실행 버튼
 
 jobs:
