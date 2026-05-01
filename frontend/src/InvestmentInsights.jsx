@@ -321,7 +321,8 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type, yieldD
             if (krCodeMatch) {
               link = `https://finance.naver.com/item/main.naver?code=${krCodeMatch[1]}`;
             } else if (globalCodeMatch) {
-              link = `https://finance.naver.com/world/item.naver?symbol=${globalCodeMatch[1]}`;
+              // 해외 증권 전용 검색 페이지로 연결하여 더 직접적인 상세 정보 제공
+              link = `https://finance.naver.com/world/search.naver?query=${globalCodeMatch[1]}`;
             } else {
               const cleanName = name.split('(')[0].trim();
               link = `https://search.naver.com/search.naver?query=${encodeURIComponent(cleanName + ' 주가')}`;
