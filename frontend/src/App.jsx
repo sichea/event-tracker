@@ -952,20 +952,24 @@ function App() {
               }
               setIsAnalyzing(true);
               try {
-                // Cloudflare Serverless Function 호출 (배포/모바일 환경 통합)
+                // Cloudflare Serverless Function 호출
                 const res = await fetch('/api/analyze', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ scenario: input })
                 });
                 
-                if (!res.ok) throw new Error('분석 서버 응답 오류');
+                if (!res.ok) {
+                  const errorData = await res.json().catch(() => ({}));
+                  throw new Error(errorData.details || errorData.error || '분석 서버 응답 오류');
+                }
                 
                 const data = await res.json();
                 setAnalysisResult(data);
               } catch (e) {
                 console.error("Analysis error:", e);
-                showToastMsg("분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", "error");
+                // 상세 에러 메시지를 토스트로 표시하여 디버깅 지원
+                showToastMsg(`오류: ${e.message}`, "error");
               } finally {
                 setIsAnalyzing(false);
               }
