@@ -170,17 +170,12 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
             </div>
             {visibleSteps >= steps.length && steps.length > 0 && (
               <div className="w-full max-w-2xl mx-auto mt-8 animate-in fade-in slide-in-from-bottom-12 duration-1000">
-                <div className="bg-[#1e2533]/90 backdrop-blur-3xl p-10 rounded-[48px] border border-primary/20 shadow-2xl relative overflow-hidden">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-10">
-                    <div className="space-y-8">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                          <span className="material-symbols-outlined text-primary text-3xl">target</span>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-primary uppercase tracking-widest">Recommended</p>
-                          <h3 className="text-2xl md:text-3xl font-black text-[#ebedfb]">추천 섹터: {analysisResult.sector}</h3>
-                        </div>
+                <div className="bg-[#1e2533]/90 backdrop-blur-3xl p-6 md:p-8 rounded-3xl border border-primary/20 shadow-2xl relative overflow-hidden">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 relative z-10">
+                    <div className="space-y-6">
+                      <div className="flex flex-col">
+                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Recommended</p>
+                        <h3 className="text-xl md:text-2xl font-black text-[#ebedfb]">추천 섹터: {analysisResult.sector}</h3>
                       </div>
                       <div className="space-y-4">
                         {analysisResult.stocks?.map((s, i) => (
