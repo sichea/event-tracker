@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+export { supabase } from './supabaseClient';
 
 // 모든 이벤트를 가져옵니다
 // - 진행중 이벤트 전체
