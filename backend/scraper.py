@@ -12,7 +12,6 @@ import asyncio
 import re
 from datetime import datetime, date, timedelta
 from bs4 import BeautifulSoup
-from db import generate_event_id, upsert_events as db_upsert_events
 import sys
 import io
 
@@ -88,6 +87,13 @@ PROVIDERS = {
         "color": "#0068B7",
     },
 }
+
+
+def generate_event_id(provider: str, title: str) -> str:
+    """운용사명과 제목으로 고유 ID를 생성합니다."""
+    import hashlib
+    raw = f"{provider}:{title}"
+    return hashlib.md5(raw.encode()).hexdigest()[:12]
 
 
 def _parse_date(text: str, reference_year: int = None) -> str:

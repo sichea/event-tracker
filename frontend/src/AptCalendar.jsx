@@ -8,7 +8,7 @@ const PUBLIC_HOLIDAYS_2026 = {
   '2026-09-26': '추석', '2026-10-03': '개천절', '2026-10-09': '한글날', '2026-12-25': '성탄절'
 };
 
-export default function AptCalendar({ aptEvents, searchQuery }) {
+export default function AptCalendar({ aptEvents }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 

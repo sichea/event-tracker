@@ -64,13 +64,107 @@ def supabase_upsert(data):
         print(f"[X] Supabase 접속 실패: {e}")
         return False
 
+def extract_shares_from_ai(rcept_no, corp_name, filer):
+    """상세 API가 데이터를 주지 않을 때, 보고서 원문을 AI가 분석하여 수량을 추출합니다."""
+    if not GEMINI_API_KEY: return None
+    
+    # 1. 문서 XML 가져오기
+    doc_url = f"https://opendart.fss.or.kr/api/document.xml?crtfc_key={DART_API_KEY}&rcept_no={rcept_no}"
+    try:
+        import zipfile
+        import io
+        import xml.etree.ElementTree as ET
+        
+        r = requests.get(doc_url)
+        if r.status_code == 200:
+            with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+                # 첫 번째 XML 파일 읽기
+                xml_name = z.namelist()[0]
+                with z.open(xml_name) as f:
+                    xml_content = f.read().decode('utf-8', errors='ignore')
+                    
+                    # AI에게 분석 요청 (너무 길면 자름)
+                    snippet = xml_content[:20000] # 앞부분에 보통 핵심 수량이 나옴
+                    prompt = f"""
+                    다음은 {corp_name}의 공시 보고서(XML) 일부입니다. 
+                    보고자 {filer}의 '이번 변동 수량(증감)'과 '변동 후 보유 수량'을 찾아서 JSON으로만 대답하세요.
+                    양수면 매수, 음수면 매도입니다.
+                    {{ "change_shares": 숫자, "total_shares": 숫자 }}
+                    보고서 본문:
+                    {snippet}
+                    """
+                    
+                    # REST API 호출
+                    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+                    payload = { "contents": [{ "parts": [{"text": prompt}] }] }
+                    
+                    with httpx.Client(timeout=30.0) as client:
+                        resp = client.post(api_url, json=payload)
+                        if resp.status_code == 200:
+                            result = resp.json()
+                            text = result['candidates'][0]['content']['parts'][0]['text']
+                            text = text.replace('```json', '').replace('```', '').strip()
+                            data = json.loads(text)
+                            v = int(data.get('change_shares', 0))
+                            t = int(data.get('total_shares', 0))
+                            if v != 0:
+                                return {
+                                    "change_shares": v,
+                                    "total_shares": t,
+                                    "change_label": f"{v:+,}주"
+                                }
+    except Exception as e:
+        print(f"Deep Scrape Error: {e}")
+    return None
+
+def get_dart_details(corp_code, rcept_no, report_nm, filer_name, corp_name):
+    """회사 고유번호와 보고자 이름을 이용해 상세 변동 수량을 가져옵니다."""
+    if not DART_API_KEY:
+        return None
+        
+    is_major = "대량보유" in report_nm
+    api_type = "majorstock.json" if is_major else "elestock.json"
+    
+    # 상세 API 시도
+    if corp_code:
+        url = f"https://opendart.fss.or.kr/api/{api_type}?crtfc_key={DART_API_KEY}&corp_code={corp_code}"
+        try:
+            r = requests.get(url)
+            data = r.json()
+            if data.get('status') == '000':
+                details = data.get('list', [])
+                if details:
+                    match = next((d for d in details if d.get('rcept_no') == rcept_no), None)
+                    if not match:
+                        name_field = 'nm' if not is_major else 'repror'
+                        match = next((d for d in details if d.get(name_field) == filer_name), None)
+                    
+                    if match:
+                        vary_field = 'stkqy_vary' if not is_major else 'stkqy_irds'
+                        vary_count = match.get(vary_field, '0')
+                        total_count = match.get('stkqy_totl', '0')
+                        
+                        try:
+                            v_str = str(vary_count).replace(',', '')
+                            t_str = str(total_count).replace(',', '')
+                            v_int = int(float(v_str))
+                            t_int = int(float(t_str))
+                            if v_int != 0:
+                                return { "change_shares": v_int, "total_shares": t_int, "change_label": f"{v_int:+,}주" }
+                        except: pass
+        except: pass
+
+    # 상세 API 실패 시 AI 딥 스캔 시도 (임원/주요주주 거래에 특히 유효)
+    print(f"    [!] 상세 API 응답 없음. AI 딥 스캔 가동... ({corp_name})")
+    return extract_shares_from_ai(rcept_no, corp_name, filer_name)
+
 def get_dart_data():
     if not DART_API_KEY:
         print("[!] No DART_API_KEY found. Skipping DART scrape.")
         return []
     
     today = datetime.datetime.now().strftime('%Y%m%d')
-    start = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y%m%d')
+    start = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y%m%d')
     
     url = f'https://opendart.fss.or.kr/api/list.json?crtfc_key={DART_API_KEY}&bgn_de={start}&end_de={today}&pblntf_ty=D'
     try:
@@ -78,17 +172,36 @@ def get_dart_data():
         data = r.json()
         items = data.get('list', [])
         
+        if not items:
+            return []
+            
         formatted_items = []
-        for i in items:
+        print(f"[*] Analyzing {len(items[:20])} recent reports...")
+        
+        for i in items[:20]:
             report_nm = i.get('report_nm', '')
-            if any(kw in report_nm for kw in ["주식", "보유", "지분", "소유", "변동"]):
-                formatted_items.append({
-                    "corp_name": i.get('corp_name'),
+            if any(kw in report_nm for kw in ["임원", "주요주주", "대량보유"]):
+                rcept_no = i.get('rcept_no')
+                corp_code = i.get('corp_code')
+                corp_name = i.get('corp_name')
+                filer = i.get('flr_nm')
+                
+                print(f"  > Fetching details for {corp_name} / {filer}...")
+                details = get_dart_details(corp_code, rcept_no, report_nm, filer, corp_name)
+                
+                item_data = {
+                    "corp_name": corp_name,
                     "report_nm": report_nm.strip(),
-                    "filer": i.get('flr_nm'),
+                    "filer": filer,
                     "date": i.get('rcept_dt'),
-                    "url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={i.get('rcept_no')}"
-                })
+                    "url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={rcept_no}"
+                }
+                if details:
+                    print(f"    [V] Found change: {details['change_label']}")
+                    item_data.update(details)
+                
+                formatted_items.append(item_data)
+                
         return formatted_items[:10]
     except Exception as e:
         print(f"DART API Error: {e}")

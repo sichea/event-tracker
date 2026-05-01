@@ -309,17 +309,35 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type, yieldD
         <div className="p-6 md:p-8 overflow-y-auto scrollbar-hide space-y-4">
           <p className="text-xs font-black text-on-surface-variant uppercase tracking-wider opacity-70">실제 상세 추천 종목 예시 (TOP 3)</p>
           
-          {(asset.products || [asset]).map((p, idx) => (
-            <div key={idx} className="p-4 md:p-5 rounded-2xl bg-surface-container-highest border border-primary/20 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12"></div>
-              <div className="flex justify-between items-start mb-1 relative z-10">
-                <h3 className="text-sm md:text-base font-extrabold text-primary flex-1">{p.name || p.product_name || asset.name}</h3>
-              </div>
-              <p className="text-[11px] md:text-xs text-on-surface-variant leading-relaxed relative z-10">
-                {p.strategy || p.desc || "해당 시장 상황에서 유리한 성과를 기대할 수 있는 대표적인 상품입니다."}
-              </p>
-            </div>
-          ))}
+          {(asset.products || [asset]).map((p, idx) => {
+            const name = p.name || p.product_name || asset.name;
+            const codeMatch = name.match(/\((\d{6})\)/);
+            const link = codeMatch 
+              ? `https://finance.naver.com/item/main.naver?code=${codeMatch[1]}`
+              : `https://search.naver.com/search.naver?query=${encodeURIComponent(name.split('(')[0].trim() + ' 주가')}`;
+
+            return (
+              <a 
+                key={idx} 
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block p-4 md:p-5 rounded-2xl bg-surface-container-highest border border-primary/20 relative overflow-hidden group hover:bg-primary/5 hover:border-primary/40 transition-all cursor-pointer"
+              >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-primary/10 transition-all"></div>
+                <div className="flex justify-between items-start mb-1 relative z-10">
+                  <h3 className="text-sm md:text-base font-extrabold text-primary flex-1 group-hover:underline decoration-2 underline-offset-4">{name}</h3>
+                  <span className="material-symbols-outlined text-primary text-sm md:text-base translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all">arrow_forward</span>
+                </div>
+                <p className="text-[11px] md:text-xs text-on-surface-variant leading-relaxed relative z-10">
+                  {p.strategy || p.desc || "해당 시장 상황에서 유리한 성과를 기대할 수 있는 대표적인 상품입니다."}
+                </p>
+                <div className="mt-2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+                   <span className="text-[9px] font-black text-primary/60 uppercase">네이버 증권에서 확인하기</span>
+                </div>
+              </a>
+            );
+          })}
 
           <div className="bg-surface-container-low p-4 rounded-xl border border-white/5 mt-4">
             <p className="text-[10px] text-on-surface-variant/70 leading-relaxed text-center">
@@ -422,7 +440,7 @@ export default function InvestmentInsights({ subTab }) {
               <p className="text-on-surface-variant text-sm md:text-base">큰손들의 실시간 발자취를 추적합니다.</p>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
             <div className="p-5 rounded-3xl bg-surface-container-highest border border-white/5 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-3xl -mr-12 -mt-12 transition-all group-hover:bg-primary/10"></div>
@@ -431,8 +449,7 @@ export default function InvestmentInsights({ subTab }) {
                 <p className="text-xs font-black text-on-surface uppercase tracking-tight">5% 룰: "큰손들의 중장기 베팅"</p>
               </div>
               <p className="text-[11px] text-on-surface-variant leading-relaxed relative z-10">
-                기관이나 자산가가 지분 <span className="text-primary font-bold">5% 이상</span>을 확보했다는 것은 단순 단타가 아닌 기업의 미래 가치에 크게 승부를 걸었다는 뜻입니다. 
-                <span className="block mt-1 text-on-surface/60 italic">"전문가들이 분석하기에 지금 가격이 저렴하거나, 강력한 호재를 미리 포착했을 가능성이 높습니다."</span>
+                기관이나 자산가가 지분 <span className="text-primary font-bold">5% 이상</span>을 확보했다는 것은 단순 단타가 아닌 기업의 미래 가치에 크게 승부를 걸었다는 뜻입니다.
               </p>
             </div>
             <div className="p-5 rounded-3xl bg-surface-container-highest border border-white/5 relative overflow-hidden group">
@@ -442,8 +459,7 @@ export default function InvestmentInsights({ subTab }) {
                 <p className="text-xs font-black text-on-surface uppercase tracking-tight">내부자 거래: "가장 확실한 자신감"</p>
               </div>
               <p className="text-[11px] text-on-surface-variant leading-relaxed relative z-10">
-                회사의 <span className="text-tertiary font-bold">임원이나 주요주주</span>가 자기 돈으로 주식을 사는 것은 세상 그 어떤 리포트보다 강력한 상승 신호입니다. 
-                <span className="block mt-1 text-on-surface/60 italic">"속사정을 가장 잘 아는 사람들이 주식을 산다면, 우리가 모르는 진짜 호재가 가까이 있을 확률이 큽니다."</span>
+                회사의 <span className="text-tertiary font-bold">임원이나 주요주주</span>가 자기 돈으로 주식을 사는 것은 세상 그 어떤 리포트보다 강력한 상승 신호입니다.
               </p>
             </div>
           </div>
@@ -452,76 +468,109 @@ export default function InvestmentInsights({ subTab }) {
         {!whaleData ? (
           <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {whaleData.dart.map((item, i) => {
+              const isBuy = (item.change_shares || 0) > 0;
+              const isSell = (item.change_shares || 0) < 0;
               const isInsider = item.report_nm.includes('임원') || item.report_nm.includes('주요주주');
               const isMajor = item.report_nm.includes('대량보유');
               
-              // Decisive Verdict Logic
-              const isBuy = item.report_nm.includes('취득') || item.report_nm.includes('매수') || item.report_nm.includes('증여받음');
-              const isSell = item.report_nm.includes('처분') || item.report_nm.includes('매도') || item.report_nm.includes('증여함');
-              
-              let verdict = { text: "판단 유보", color: "text-on-surface-variant", bg: "bg-white/5", border: "border-white/10", score: 50, icon: "analytics" };
-              let interpretation = "데이터 분석 중입니다. 상세 리포트를 확인하세요.";
+              // 색상 및 아이콘을 실제 매수/매도 데이터에 근거하여 설정
+              const theme = isBuy ? { color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", icon: "add_circle" }
+                          : isSell ? { color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: "remove_circle" }
+                          : { color: "text-on-surface-variant", bg: "bg-white/5", border: "border-white/10", icon: "description" };
 
-              if (isBuy) {
-                verdict = { text: "강력 매수", color: "text-primary", bg: "bg-primary/20", border: "border-primary/30", score: 95, icon: "rocket_launch" };
-                interpretation = "내부자의 직접적인 자금 투입이 확인되었습니다. 주가 상승에 대한 강력한 자신감 시그널입니다.";
-              } else if (isSell) {
-                verdict = { text: "매도 주의", color: "text-red-400", bg: "bg-red-500/20", border: "border-red-500/30", score: 85, icon: "warning" };
-                interpretation = "내부자의 지분 매도가 포착되었습니다. 단기 차익 실현 또는 리스크 관리 가능성이 높습니다.";
-              } else if (item.report_nm.includes('대량보유')) {
-                verdict = { text: "비중 확대", color: "text-primary", bg: "bg-primary/20", border: "border-primary/30", score: 90, icon: "stars" };
-                interpretation = "5% 이상 대량 지분 확보. 중장기적인 기업 가치 상승에 베팅하는 세력의 움직임입니다.";
-              } else if (isInsider) {
-                // Default insider change if no buy/sell keyword found - usually positive in a bull market context but keep it alert
-                verdict = { text: "매수 확률 높음", color: "text-tertiary", bg: "bg-tertiary/20", border: "border-tertiary/30", score: 75, icon: "person_check" };
-                interpretation = "내부자 지분 변동이 발생했습니다. 통상적으로 경영진의 지분 취득은 주가 저평가 신호로 해석됩니다.";
-              }
+              const category = isInsider ? "내부자 거래" : (isMajor ? "5% 지분 공시" : "기타 공시");
+
+              const getInterpretation = (obj) => {
+                // ... (이전과 동일한 정교해진 해석 엔진 로직 유지)
+                const { change_shares, total_shares, corp_name, report_nm, filer } = obj;
+                const buySign = change_shares > 0;
+                const sellSign = change_shares < 0;
+                const absChange = Math.abs(change_shares || 0);
+                
+                const isVerySmall = absChange > 0 && absChange < 500;
+                const isMassive = absChange > 50000;
+                const isSignificant = total_shares && absChange && (absChange / total_shares > 0.05);
+                
+                if (isVerySmall) {
+                  const action = buySign ? '소량 취득' : (sellSign ? '소량 매도' : '변동');
+                  return `[단발성 소량] ${filer}님이 ${corp_name} 주식을 ${action}(${obj.change_label || '수량 미정'})했습니다. 주가에 미치는 직접적인 영향은 미미할 것으로 보입니다.`;
+                }
+
+                if (isMassive || isSignificant) {
+                  if (buySign) {
+                    return `[대량 구매 포착] ${corp_name}에 거대 자본이 유입되었습니다. ${filer}님이 지분율을 대폭 끌어올린 것은 실적 개선에 대한 강력한 자신감의 표현입니다.`;
+                  } else if (sellSign) {
+                    return `[대규모 매도 발생] ${corp_name}에서 대량의 자금이 회수되었습니다. ${filer}님의 비중 축소는 단기 차익 실현이거나 리스크 관리 차원의 움직임일 수 있습니다.`;
+                  }
+                }
+
+                if (report_nm.includes('정정') || report_nm.includes('보고')) {
+                  return `[지속 매집 신호] ${corp_name}의 지분이 꾸준히 변동되고 있습니다. 단순 일회성 매매가 아닌, 특정 세력이 조용히 지배력을 강화하거나 포지션을 조정하는 과정으로 해석됩니다.`;
+                }
+                
+                return `${corp_name}의 지분 변동 공시가 접수되었습니다. 상세 내역을 통해 정확한 변동 목적을 확인하세요.`;
+              };
 
               return (
-                <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="bg-surface-container border border-white/5 rounded-[2.5rem] p-6 md:p-8 hover:bg-surface-container-high hover:border-primary/50 transition-all duration-300 group flex flex-col justify-between shadow-2xl relative overflow-hidden">
-                  <div className={`absolute top-0 right-0 w-48 h-48 ${verdict.bg} rounded-full blur-[80px] -mr-24 -mt-24 group-hover:opacity-100 transition-opacity opacity-30`}></div>
-                  
-                  <div className="relative z-10">
-                    <div className="flex justify-between items-center mb-6">
-                      <div className="flex items-center gap-2">
-                        <span className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-tighter border shadow-xl ${verdict.bg} ${verdict.color} ${verdict.border}`}>
-                          {verdict.text}
+                <a 
+                  key={i} 
+                  href={item.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="bg-surface-container/40 backdrop-blur-sm border border-white/5 rounded-[2rem] p-5 md:p-6 hover:bg-surface-container-high hover:border-primary/40 transition-all duration-500 group flex flex-col md:flex-row md:items-center gap-6 shadow-xl hover:shadow-primary/5 relative overflow-hidden"
+                >
+                  <div className="flex flex-row md:flex-col items-center justify-center md:w-24 shrink-0 relative z-10">
+                    <div className={`w-12 h-12 md:w-16 md:h-16 rounded-3xl ${theme.bg} flex items-center justify-center border ${theme.border} transition-all shadow-inner`}>
+                      <span className={`material-symbols-outlined text-2xl md:text-3xl ${theme.color}`}>{theme.icon}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-w-0 relative z-10">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                       <span className="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tight border bg-white/5 text-on-surface-variant/70 border-white/10">
+                          {category}
                         </span>
-                        <div className="flex flex-col">
-                           <span className="text-[8px] font-black text-on-surface-variant uppercase tracking-widest opacity-50">Signal Strength</span>
-                           <span className={`text-xs font-black ${verdict.color}`}>{verdict.score}%</span>
-                        </div>
-                      </div>
-                      <span className="text-[11px] font-bold text-on-surface-variant/40">{item.date.slice(0,4)}.{item.date.slice(4,6)}.{item.date.slice(6,8)}</span>
+                        <span className="text-[10px] font-bold text-on-surface-variant/40">
+                          {item.date.slice(0,4)}.{item.date.slice(4,6)}.{item.date.slice(6,8)}
+                        </span>
                     </div>
-
-                    <div className="mb-8">
-                      <h3 className="text-2xl font-black font-headline mb-2 text-on-surface group-hover:text-primary transition-colors">{item.corp_name}</h3>
-                      <div className="flex items-center gap-2 text-on-surface-variant font-bold">
-                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-                          <span className="material-symbols-outlined text-sm">person</span>
+                    <h3 className="text-xl md:text-2xl font-black font-headline mb-2 text-on-surface group-hover:text-primary transition-colors tracking-tight truncate">
+                      {item.corp_name}
+                    </h3>
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[12px] text-primary">person</span>
                         </div>
-                        <span className="text-base">{item.filer}</span>
+                        <span className="text-xs font-bold text-on-surface/80 truncate">{item.filer}</span>
+                        {item.change_label ? (
+                          <span className={`ml-1 px-2 py-0.5 rounded-md text-[10px] font-black ${item.change_shares > 0 ? 'bg-red-500/10 text-red-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                            {item.change_label}
+                          </span>
+                        ) : (
+                          <span className="ml-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/5 text-on-surface-variant/60">
+                            상세 리포트 참조
+                          </span>
+                        )}
                       </div>
-                    </div>
-
-                    <div className={`p-5 rounded-3xl bg-black/40 border border-white/5 mb-6 relative overflow-hidden`}>
-                      <div className={`absolute top-0 left-0 w-1 h-full ${verdict.bg}`}></div>
-                      <div className="flex items-start gap-3">
-                        <span className={`material-symbols-outlined text-xl mt-0.5 ${verdict.color}`}>{verdict.icon}</span>
-                        <div>
-                          <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1 opacity-50">AI 시그널 판정</p>
-                          <p className="text-[13px] font-bold leading-relaxed text-on-surface/90">{interpretation}</p>
-                        </div>
+                      <div className="flex items-center gap-2 opacity-50">
+                        <span className="material-symbols-outlined text-[12px]">description</span>
+                        <span className="text-[10px] font-medium truncate">{item.report_nm}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-[10px] font-bold text-on-surface-variant/30 mt-auto relative z-10 pt-4 border-t border-white/5">
-                    <span className="truncate max-w-[200px]">{item.report_nm}</span>
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  <div className="md:w-[350px] lg:w-[450px] shrink-0 relative z-10">
+                    <div className="p-4 md:p-5 rounded-2xl bg-black/40 border border-white/5 group-hover:border-primary/20 transition-all h-full flex flex-col justify-center">
+                      <p className="text-[12px] md:text-[13px] font-medium leading-relaxed text-on-surface-variant group-hover:text-on-surface/90 transition-colors">
+                        {getInterpretation(item)}
+                      </p>
+                      <div className="flex items-center justify-end mt-3 text-[9px] font-black text-primary opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                         상세 공시 보기 <span className="material-symbols-outlined text-[10px] ml-1">arrow_forward</span>
+                      </div>
+                    </div>
                   </div>
                 </a>
               );
@@ -554,7 +603,7 @@ export default function InvestmentInsights({ subTab }) {
             </div>
             <p className="text-[11px] text-on-surface-variant leading-relaxed relative z-10">
               국민연금은 국민의 노후 자금을 굴리기 때문에 매우 보수적이고 신중하게 종목을 고릅니다. 
-              <span className="text-blue-400 font-bold ml-1">"그들이 비중을 늘리는 종목은 기업의 펀더멘탈이 탄탄하고 장기 성장이 담보된 '국가대표급 우량주'라는 증거입니다."</span>
+              <span className="text-blue-400 font-bold ml-1">"그들이 비중을 늘리는 종목은 기업의 펀더멘털이 탄탄하고 장기 성장이 담보된 '국가대표급 우량주'라는 증거입니다."</span>
             </p>
           </div>
         </div>
@@ -617,7 +666,7 @@ export default function InvestmentInsights({ subTab }) {
                         {item.ticker && <span className="text-[10px] text-on-surface-variant font-medium bg-white/5 px-1.5 py-0.5 rounded">#{item.ticker}</span>}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border shrink-0 ${item.trend === '비중확대' ? 'bg-red-500/10 text-red-400 border-red-500/20' : item.trend === '비중축소' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-on-surface-variant border-white/10'}`}>
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border shrink-0 ${item.trend === '비중확대' ? 'bg-red-500/10 text-red-400' : item.trend === '비중축소' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-on-surface-variant border-white/10'}`}>
                           {item.trend}
                         </span>
                         <p className="text-[11px] text-on-surface-variant truncate opacity-70 group-hover:opacity-100 transition-opacity">{item.reason}</p>
@@ -640,7 +689,6 @@ export default function InvestmentInsights({ subTab }) {
   if (subTab === 'legends') {
     return (
       <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 scrollbar-hide">
-        {/* ... (existing header code) */}
         <div className="mb-8 md:mb-10">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">

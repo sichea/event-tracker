@@ -304,7 +304,6 @@ function App() {
   const [selectedProvider, setSelectedProvider] = useState(null); 
   const [selectedStatus, setSelectedStatus] = useState("전체 보기"); 
   const [toast, setToast] = useState({ message: "", visible: false, type: "success" });
-  const [searchQuery, setSearchQuery] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [newAliasName, setNewAliasName] = useState("");
   const [scrapingStatus, setScrapingStatus] = useState(null);
@@ -652,7 +651,6 @@ function App() {
   };
 
   let displayEvents = uniqueEvents.filter(e => {
-    if (searchQuery && !e.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     if (selectedProvider && e.provider !== selectedProvider) return false;
     if (selectedStatus === "참여 목록") {
       const hasAnyCheck = Object.values(e.checkedAliases || {}).some((v) => v);
@@ -699,15 +697,6 @@ function App() {
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-6">
-            <div className="relative hidden lg:block">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
-              <input 
-                className="bg-surface-container-highest border-none outline-none rounded-full pl-10 pr-4 py-1.5 text-sm focus:ring-1 focus:ring-primary w-64 text-on-surface" 
-                placeholder="이벤트 검색..." 
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-              />
-            </div>
             <div className="flex items-center gap-2">
               <button onClick={() => setShowSettings(!showSettings)} className={`hover:bg-[#262c3a]/50 p-2 rounded-full transition-all active:scale-95 duration-200 ${showSettings?'text-primary':'text-on-surface'}`}>
                 <span className="material-symbols-outlined">settings</span>
@@ -996,7 +985,7 @@ function App() {
             aptLoading ? (
               <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
             ) : (
-              <AptCalendar aptEvents={aptEvents} searchQuery={searchQuery} />
+              <AptCalendar aptEvents={aptEvents} />
             )
           )
         ) : activeTab === "parking" ? (
@@ -1080,7 +1069,7 @@ function App() {
             {loading && events.length === 0 ? (
               <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
             ) : (
-              (selectedProvider === null && (selectedStatus === "전체 보기" || selectedStatus === "전체 이벤트")) && !searchQuery ? (
+              (selectedProvider === null && (selectedStatus === "전체 보기" || selectedStatus === "전체 이벤트")) ? (
                 <section className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <div className="lg:col-span-2 bg-surface-container border border-white/5 rounded-3xl p-8 overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
