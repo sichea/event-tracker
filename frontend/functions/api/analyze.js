@@ -48,8 +48,8 @@ export async function onRequestPost(context) {
 
     const prompt = `사용자가 입력한 시장 상황: "${scenario}"\n\n위 상황에 대해 5단계 사고 체인 분석을 수행하고, 지정된 JSON 형식으로만 답변하세요.`;
 
-    // 2. Gemini API 호출 (안정적인 v1 버전과 gemini-1.5-flash 모델 사용)
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    // 2. Gemini API 호출 (v1beta + gemini-2.0-flash: REST API에서 가장 안정적인 조합)
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
