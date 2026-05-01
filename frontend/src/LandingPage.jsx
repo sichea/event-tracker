@@ -142,7 +142,6 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                 <span className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-blue-500/40" /> Real-time Insight</span>
               </div>
             </div>
-          </div>
         ) : (
           <div className="w-full max-w-5xl flex flex-col relative pt-8">
             <div className="fixed bottom-12 left-8 md:left-24 opacity-10 pointer-events-none hidden lg:block">
