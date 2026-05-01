@@ -223,15 +223,38 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                         <h3 className="text-xl md:text-2xl font-black text-[#ebedfb]">추천 섹터: {analysisResult.sector}</h3>
                       </div>
                       <div className="space-y-4">
-                        {analysisResult.stocks?.map((s, i) => (
-                          <div key={i} className="group p-5 bg-white/5 rounded-3xl border border-white/5 hover:border-primary/30 transition-all">
-                            <div className="flex justify-between items-center mb-1">
-                              <p className="font-black text-[#ebedfb] text-lg">{s.name}</p>
-                              <span className="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+                        {analysisResult.stocks?.map((s, i) => {
+                          const name = s.name;
+                          const krCodeMatch = name.match(/\((\d{6})\)/);
+                          const globalCodeMatch = name.match(/\(([A-Z]{1,5})\)/);
+
+                          let link = "";
+                          if (krCodeMatch) {
+                            link = `https://finance.naver.com/item/main.naver?code=${krCodeMatch[1]}`;
+                          } else if (globalCodeMatch) {
+                            link = `https://finance.naver.com/world/item.naver?symbol=${globalCodeMatch[1]}`;
+                          } else {
+                            const cleanName = name.split('(')[0].trim();
+                            link = `https://search.naver.com/search.naver?query=${encodeURIComponent(cleanName + ' 주가')}`;
+                          }
+                          
+                          return (
+                            <div 
+                              key={i} 
+                              onClick={() => window.open(link, '_blank')}
+                              className="group p-5 bg-white/5 rounded-3xl border border-white/5 hover:border-primary/30 transition-all cursor-pointer active:scale-[0.98]"
+                            >
+                              <div className="flex justify-between items-center mb-1">
+                                <p className="font-black text-[#ebedfb] text-lg group-hover:text-primary transition-colors">{name}</p>
+                                <span className="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">arrow_forward</span>
+                              </div>
+                              <p className="text-sm text-on-surface-variant leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">{s.reason}</p>
+                              <div className="mt-2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+                                <span className="text-[9px] font-black text-primary/60 uppercase">네이버 증권에서 확인하기</span>
+                              </div>
                             </div>
-                            <p className="text-sm text-on-surface-variant leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">{s.reason}</p>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                     <div className="flex flex-col justify-between space-y-8">
