@@ -1,3 +1,4 @@
+// Cloudflare Pages Function: AI Market Scenario Analysis (Quota Tracking Enabled)
 export async function onRequestPost(context) {
   const { request, env } = context;
 
