@@ -97,7 +97,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                 relative flex items-center transition-all duration-500 rounded-full border border-white/10
                 bg-transparent group-hover:bg-white/[0.05] group-hover:backdrop-blur-3xl group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
                 ${scenario.trim() ? 'bg-white/[0.03] backdrop-blur-xl' : ''}
-                focus-within:bg-white/[0.08] focus-within:backdrop-blur-3xl focus-within:border-primary/30 focus-within:shadow-[0_0_30px_rgba(var(--primary-rgb),0.1)]
+                focus-within:bg-white/[0.08] focus-within:backdrop-blur-3xl focus-within:outline-none focus-within:shadow-[0_0_30px_rgba(var(--primary-rgb),0.1)]
               `}>
                 <div className="pl-4 md:pl-6 text-primary/60">
                   <span className="material-symbols-outlined text-2xl">psychology</span>
