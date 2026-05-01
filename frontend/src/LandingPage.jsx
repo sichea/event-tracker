@@ -106,9 +106,15 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                 <div className="flex-1 flex items-center h-14 md:h-16 relative">
                   <input 
                     type="text"
+                    id="scenario-input"
                     value={scenario} 
                     onChange={(e) => setScenario(e.target.value)} 
-                    onKeyDown={(e) => e.key === 'Enter' && scenario.trim() && !isAnalyzing && onAnalyze(scenario)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && scenario.trim() && !isAnalyzing) {
+                        e.target.blur();
+                        onAnalyze(scenario);
+                      }
+                    }}
                     placeholder="시장의 흐름을 바꿀 소식을 입력하세요..." 
                     className="flex-1 bg-transparent border-none pl-2 pr-14 md:pl-4 md:pr-16 text-white text-base md:text-xl focus:outline-none placeholder:text-white/10 font-medium appearance-none" 
                     style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -116,10 +122,22 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                 </div>
               </div>
 
-              {/* ULTIMATE FIX: Button moved outside the input container and boosted with z-index */}
+              {/* ULTIMATE FIX: Added onTouchStart and manual focus blur for maximum mobile reliability */}
               <button 
                 type="button"
-                onClick={() => scenario.trim() && !isAnalyzing && onAnalyze(scenario)}
+                onMouseDown={(e) => e.preventDefault()}
+                onTouchStart={(e) => {
+                  if (scenario.trim() && !isAnalyzing) {
+                    document.getElementById('scenario-input')?.blur();
+                    onAnalyze(scenario);
+                  }
+                }}
+                onClick={() => {
+                  if (scenario.trim() && !isAnalyzing) {
+                    document.getElementById('scenario-input')?.blur();
+                    onAnalyze(scenario);
+                  }
+                }}
                 disabled={isAnalyzing || !scenario.trim()} 
                 className={`
                   absolute right-6 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 z-[9999]
