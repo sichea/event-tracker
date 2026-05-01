@@ -70,16 +70,24 @@ export async function onRequestPost(context) {
 
     const data = await response.json();
     
-    // API 응답 파싱
+    // API 응답 파싱 및 마크다운 백틱 제거 로직 추가
     if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
-      const resultText = data.candidates[0].content.parts[0].text;
+      let resultText = data.candidates[0].content.parts[0].text;
+      
+      // 만약 AI가 ```json ... ``` 형식으로 감싸서 주면 순수 JSON만 추출
+      const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        resultText = jsonMatch[0];
+      }
+      
       const resultJson = JSON.parse(resultText);
       
       return new Response(JSON.stringify(resultJson), {
         headers: { "Content-Type": "application/json" }
       });
     } else {
-      throw new Error("Gemini API 응답 형식이 올바르지 않습니다.");
+      console.error("Gemini API Error Data:", data);
+      throw new Error(data.error?.message || "Gemini API 응답 형식이 올바르지 않습니다.");
     }
 
   } catch (error) {
