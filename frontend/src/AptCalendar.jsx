@@ -68,8 +68,17 @@ export default function AptCalendar({ aptEvents }) {
   return (
     <div className="animate-in fade-in duration-700 max-w-[1600px] mx-auto">
       <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
-        <div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4">
           <h1 className="text-4xl font-black tracking-tighter text-on-surface font-headline mb-1">아파트 청약 캘린더</h1>
+          <a 
+            href="https://www.applyhome.co.kr/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary rounded-2xl font-black text-sm hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/20 w-fit"
+          >
+            <span className="material-symbols-outlined text-lg">open_in_new</span>
+            청약홈 바로가기
+          </a>
         </div>
         <div className="flex items-center gap-4 bg-surface-container p-1.5 rounded-2xl border border-white/5 shadow-lg">
           <button onClick={prevMonth} className="w-8 h-8 rounded-xl bg-surface-container-highest hover:bg-primary hover:text-on-primary flex items-center justify-center transition-all">
