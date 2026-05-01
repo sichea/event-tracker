@@ -74,9 +74,9 @@ export default function AptCalendar({ aptEvents }) {
             href="https://www.applyhome.co.kr/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary rounded-2xl font-black text-sm hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/20 w-fit"
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-on-surface-variant hover:text-on-surface hover:bg-white/10 rounded-xl font-bold text-xs transition-all w-fit"
           >
-            <span className="material-symbols-outlined text-lg">open_in_new</span>
+            <span className="material-symbols-outlined text-base">open_in_new</span>
             청약홈 바로가기
           </a>
         </div>
