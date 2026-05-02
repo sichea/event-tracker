@@ -310,9 +310,10 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
   const [activeTab, setActiveTab] = useState("landing");
-  const [subscriptionSubTab, setSubscriptionSubTab] = useState("ipo"); // "ipo" or "apt" // "landing" | "insights" | "dashboard" | "ipo" | "apt" | "parking"
-  const [insightSubTab, setInsightSubTab] = useState("macro"); // "macro", "dart", "nps", "legends"
-  const [parkingFilter, setParkingFilter] = useState('all'); // 'all', 'no_conditions', 'high_yield', 'major'
+  const [subscriptionSubTab, setSubscriptionSubTab] = useState("ipo");
+  const [zzantecSubTab, setZzantecSubTab] = useState("parking"); // "parking" or "card"
+  const [insightSubTab, setInsightSubTab] = useState("macro");
+  const [parkingFilter, setParkingFilter] = useState('all');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [ipoEvents, setIpoEvents] = useState([]);
   const [ipoLoading, setIpoLoading] = useState(false);
@@ -694,6 +695,7 @@ function App() {
                             <button className={`pb-1 font-headline transition-colors ${activeTab === 'landing' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("landing"); setAnalysisResult(null);}}>투자 인사이트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>이벤트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'subscription' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("subscription"); setSubscriptionSubTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents(session?.user?.id).then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>청약</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'zzantec' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("zzantec"); setZzantecSubTab("parking"); }}>짠테크</button>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-6">
@@ -782,24 +784,44 @@ function App() {
                 ))}
               </div>
             </>
-          ) : activeTab === 'parking' ? (
+          ) : activeTab === 'zzantec' ? (
             <>
-              <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-4">금리 필터</p>
-              {[
-                { id: 'all', label: '전체 상품', icon: 'list' },
-                { id: 'no_conditions', label: '우대조건 없음', icon: 'verified_user' },
-                { id: 'high_yield', label: '실수령액 순', icon: 'payments' },
-                { id: 'major', label: '1금융권/대형사', icon: 'account_balance' }
-              ].map(f => (
-                <button 
-                  key={f.id}
-                  onClick={() => { setParkingFilter(f.id); window.scrollTo(0,0); }} 
-                  className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${parkingFilter === f.id ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
-                >
-                  <span className="material-symbols-outlined text-xl">{f.icon}</span>
-                  <span className="font-medium text-sm">{f.label}</span>
-                </button>
-              ))}
+              <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-4">짠테크 종류</p>
+              <button 
+                onClick={() => { setZzantecSubTab("parking"); window.scrollTo(0,0); }} 
+                className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${zzantecSubTab === 'parking' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
+              >
+                <span className="material-symbols-outlined text-xl">account_balance_wallet</span>
+                <span className="font-medium text-sm">파킹통장</span>
+              </button>
+              <button 
+                onClick={() => { setZzantecSubTab("card"); window.scrollTo(0,0); }} 
+                className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${zzantecSubTab === 'card' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
+              >
+                <span className="material-symbols-outlined text-xl">credit_card</span>
+                <span className="font-medium text-sm">카테크 (준비중)</span>
+              </button>
+
+              {zzantecSubTab === 'parking' && (
+                <>
+                  <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-6">금리 필터</p>
+                  {[
+                    { id: 'all', label: '전체 상품', icon: 'list' },
+                    { id: 'no_conditions', label: '우대조건 없음', icon: 'verified_user' },
+                    { id: 'high_yield', label: '실수령액 순', icon: 'payments' },
+                    { id: 'major', label: '1금융권/대형사', icon: 'account_balance' }
+                  ].map(f => (
+                    <button 
+                      key={f.id}
+                      onClick={() => { setParkingFilter(f.id); window.scrollTo(0,0); }} 
+                      className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2 transition-all duration-300 ${parkingFilter === f.id ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
+                    >
+                      <span className="material-symbols-outlined text-lg">{f.icon}</span>
+                      <span className="font-medium text-xs">{f.label}</span>
+                    </button>
+                  ))}
+                </>
+              )}
             </>
           ) : (
             <div className="text-center py-10 text-on-surface-variant/50 text-xs">
@@ -1008,8 +1030,40 @@ function App() {
               )
             )}
           </div>
-        ) : activeTab === "parking" ? (
-          <ParkingCmaComparison parkingFilter={parkingFilter} />
+        ) : activeTab === "zzantec" ? (
+          <div className="flex flex-col h-full">
+            <div className="mb-8">
+              <div className="flex items-center gap-2 bg-surface-container/30 p-1.5 rounded-2xl border border-white/5 w-fit">
+                {[
+                  { id: 'parking', label: '파킹통장', icon: 'account_balance_wallet' },
+                  { id: 'card', label: '카테크', icon: 'credit_card' }
+                ].map(tab => (
+                  <button 
+                    key={tab.id}
+                    onClick={() => setZzantecSubTab(tab.id)}
+                    className={`px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-300 font-bold text-sm ${zzantecSubTab === tab.id ? 'bg-[#73ffba] text-[#0a0e17] shadow-lg shadow-[#73ffba]/20' : 'text-[#ebedfb]/60 hover:text-[#ebedfb] hover:bg-white/5'}`}
+                  >
+                    <span className="material-symbols-outlined text-lg">{tab.icon}</span>
+                    <span>{tab.label}</span>
+                    {tab.id === 'card' && <span className="ml-1 text-[8px] bg-[#0a0e17]/20 px-1 rounded">Soon</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {zzantecSubTab === "parking" ? (
+              <ParkingCmaComparison parkingFilter={parkingFilter} />
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center py-20 bg-surface-container/10 rounded-[3rem] border border-dashed border-white/10">
+                <div className="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center mb-6 animate-pulse">
+                  <span className="material-symbols-outlined text-primary text-5xl">credit_card</span>
+                </div>
+                <h3 className="text-2xl font-black font-headline mb-2">카테크 섹션 준비 중</h3>
+                <p className="text-on-surface-variant text-sm max-w-xs text-center leading-relaxed">
+                  카드 발급 혜택, 캐시백 이벤트 등 알짜배기 카테크 정보를 수집하고 있습니다. 잠시만 기다려 주세요!
+                </p>
+              </div>
+            )}
+          </div>
         ) : (
           <>
             {/* Dashboard Header */}
@@ -1197,9 +1251,9 @@ function App() {
           <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'subscription' ? 'fill' : 'normal'}>assignment</span>
           <span className="text-[10px] font-bold text-center">청약</span>
         </button>
-        <button onClick={() => { setActiveTab("parking"); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 ${activeTab === 'parking' ? 'text-primary' : 'text-on-surface-variant'}`}>
-          <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'parking' ? 'fill' : 'normal'}>account_balance</span>
-          <span className="text-[10px] font-bold text-center">금리 비교</span>
+        <button onClick={() => { setActiveTab("zzantec"); setZzantecSubTab("parking"); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 ${activeTab === 'zzantec' ? 'text-primary' : 'text-on-surface-variant'}`}>
+          <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'zzantec' ? 'fill' : 'normal'}>account_balance_wallet</span>
+          <span className="text-[10px] font-bold text-center">짠테크</span>
         </button>
         <button onClick={() => setShowSettings(!showSettings)} className={`flex flex-col items-center gap-1 ${showSettings ? 'text-primary' : 'text-on-surface-variant'}`}>
           <span className="material-symbols-outlined text-2xl" data-weight={showSettings ? 'fill' : 'normal'}>person</span>
