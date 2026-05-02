@@ -7,7 +7,6 @@
       "date": "20260430",
       "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001927",
       "change_shares": 195,
-      "total_shares": 866,
       "change_label": "+195주"
     },
     {
@@ -17,7 +16,6 @@
       "date": "20260430",
       "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001923",
       "change_shares": 224,
-      "total_shares": 7731,
       "change_label": "+224주"
     },
     {
@@ -26,9 +24,8 @@
       "filer": "베이스",
       "date": "20260430",
       "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001916",
-      "change_shares": 2080000,
-      "total_shares": 32082368,
-      "change_label": "+2,080,000주"
+      "change_shares": 0,
+      "change_label": "0주 (변동없음)"
     },
     {
       "corp_name": "미래에셋증권",
@@ -37,7 +34,6 @@
       "date": "20260430",
       "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001911",
       "change_shares": 592,
-      "total_shares": 81697,
       "change_label": "+592주"
     },
     {
@@ -47,7 +43,6 @@
       "date": "20260430",
       "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001909",
       "change_shares": -600334,
-      "total_shares": 0,
       "change_label": "-600,334주"
     },
     {
@@ -57,7 +52,6 @@
       "date": "20260430",
       "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001903",
       "change_shares": 100,
-      "total_shares": 100,
       "change_label": "+100주"
     },
     {
@@ -67,7 +61,6 @@
       "date": "20260430",
       "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001900",
       "change_shares": 100,
-      "total_shares": 0,
       "change_label": "+100주"
     },
     {
@@ -77,7 +70,6 @@
       "date": "20260430",
       "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001899",
       "change_shares": 370000,
-      "total_shares": 0,
       "change_label": "+370,000주"
     },
     {
@@ -87,7 +79,6 @@
       "date": "20260430",
       "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001896",
       "change_shares": -4200000,
-      "total_shares": 0,
       "change_label": "-4,200,000주"
     },
     {
@@ -97,7 +88,6 @@
       "date": "20260430",
       "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001891",
       "change_shares": 370000,
-      "total_shares": 370000,
       "change_label": "+370,000주"
     }
   ],
@@ -106,216 +96,285 @@
       "corp_name": "삼성전자",
       "ownership_pct": 7.42,
       "trend": "유지",
-      "reason": "반도체 사이클 회복 및 HBM 경쟁력",
+      "reason": "HBM 경쟁력 강화",
       "type": "국내"
     },
     {
       "corp_name": "SK하이닉스",
       "ownership_pct": 7.9,
       "trend": "비중확대",
-      "reason": "HBM 시장 주도권 및 실적 턴어라운드",
+      "reason": "AI 반도체 주도권",
+      "type": "국내"
+    },
+    {
+      "corp_name": "LG에너지솔루션",
+      "ownership_pct": 5.01,
+      "trend": "유지",
+      "reason": "배터리 시장 점유율",
+      "type": "국내"
+    },
+    {
+      "corp_name": "삼성바이오로직스",
+      "ownership_pct": 6.32,
+      "trend": "비중확대",
+      "reason": "CDMO 수주 증가",
       "type": "국내"
     },
     {
       "corp_name": "현대차",
       "ownership_pct": 7.35,
       "trend": "비중확대",
-      "reason": "호실적 지속 및 주주환원 정책 강화",
+      "reason": "글로벌 실적 호조",
       "type": "국내"
     },
     {
-      "corp_name": "Apple",
-      "ticker": "AAPL",
-      "ownership_pct": 0.85,
+      "corp_name": "기아",
+      "ownership_pct": 7.12,
+      "trend": "비중확대",
+      "reason": "수익성 개선",
+      "type": "국내"
+    },
+    {
+      "corp_name": "NAVER",
+      "ownership_pct": 8.02,
       "trend": "유지",
-      "reason": "아이폰 생태계 기반 안정적 현금 흐름",
-      "type": "해외"
+      "reason": "AI 검색 고도화",
+      "type": "국내"
     },
     {
       "corp_name": "NVIDIA",
       "ticker": "NVDA",
       "ownership_pct": 0.68,
       "trend": "비중확대",
-      "reason": "AI 가속기 시장 독점적 지위",
+      "reason": "AI 가속기 독점",
+      "type": "해외"
+    },
+    {
+      "corp_name": "Apple",
+      "ticker": "AAPL",
+      "ownership_pct": 0.55,
+      "trend": "비중확대",
+      "reason": "아이폰 생태계",
       "type": "해외"
     }
   ],
   "legends": [
     {
-      "investor": "워런 버핏 (Warren Buffett)",
-      "corp_name": "유니온 퍼시픽",
-      "ticker": "UNP",
-      "action": "신규매수",
-      "portfolio_pct": 3.5,
-      "reason": "미국 핵심 인프라 산업의 꾸준한 성장과 안정적인 현금 흐름에 대한 워런 버핏의 장기적인 믿음이 엿보입니다.",
+      "investor": "워런 버핏 (Berkshire)",
+      "report_date": "2026-02-15",
+      "corp_name": "애플 (AAPL)",
+      "ticker": "AAPL",
+      "action": "비중축소",
+      "portfolio_pct": 30.1,
+      "reason": "포트폴리오 리스크 관리",
       "top_holdings": [
         {
-          "name": "애플",
+          "name": "Apple",
           "ticker": "AAPL",
-          "pct": 40.5
+          "pct": 30.1
         },
         {
-          "name": "뱅크 오브 아메리카",
-          "ticker": "BAC",
-          "pct": 8.9
-        },
-        {
-          "name": "아메리칸 익스프레스",
+          "name": "American Express",
           "ticker": "AXP",
-          "pct": 7.1
+          "pct": 12.8
         },
         {
-          "name": "코카콜라",
+          "name": "Bank of America",
+          "ticker": "BAC",
+          "pct": 10.3
+        },
+        {
+          "name": "Coca-Cola",
           "ticker": "KO",
-          "pct": 6.3
+          "pct": 9.1
         },
         {
-          "name": "옥시덴탈 페트롤리움",
-          "ticker": "OXY",
-          "pct": 4.8
+          "name": "Chevron",
+          "ticker": "CVX",
+          "pct": 6.2
         }
       ]
     },
     {
-      "investor": "레이 달리오 (Ray Dalio)",
-      "corp_name": "아이셰어즈 코어 MSCI 신흥시장 ETF",
-      "ticker": "IEMG",
+      "investor": "레이 달리오 (Bridgewater)",
+      "report_date": "2026-02-15",
+      "corp_name": "엔비디아 (NVDA)",
+      "ticker": "NVDA",
       "action": "비중확대",
-      "portfolio_pct": 8.0,
-      "reason": "글로벌 경제의 분산된 성장 잠재력과 인플레이션 헤지 전략의 일환으로 신흥 시장에 대한 노출을 확대하는 움직임입니다.",
+      "portfolio_pct": 1.5,
+      "reason": "AI 하이퍼 사이클 대응",
       "top_holdings": [
         {
-          "name": "SPDR S&P 500 ETF",
-          "ticker": "SPY",
-          "pct": 12.5
+          "name": "IVV ETF",
+          "ticker": "IVV",
+          "pct": 5.6
         },
         {
-          "name": "아이셰어즈 코어 MSCI 신흥시장 ETF",
+          "name": "IEMG ETF",
           "ticker": "IEMG",
-          "pct": 8.0
+          "pct": 4.5
         },
         {
-          "name": "프록터 앤드 갬블",
+          "name": "P&G",
           "ticker": "PG",
-          "pct": 4.7
+          "pct": 3.8
         },
         {
-          "name": "코카콜라",
-          "ticker": "KO",
-          "pct": 3.9
+          "name": "NVIDIA",
+          "ticker": "NVDA",
+          "pct": 1.5
         },
         {
-          "name": "월마트",
-          "ticker": "WMT",
+          "name": "Meta",
+          "ticker": "META",
+          "pct": 1.3
+        }
+      ]
+    },
+    {
+      "investor": "마이클 버리 (Scion)",
+      "report_date": "2026-02-15",
+      "corp_name": "알리바바 (BABA)",
+      "ticker": "BABA",
+      "action": "신규매수",
+      "portfolio_pct": 8.2,
+      "reason": "중국 빅테크 저평가",
+      "top_holdings": [
+        {
+          "name": "Alibaba",
+          "ticker": "BABA",
+          "pct": 8.2
+        },
+        {
+          "name": "JD.com",
+          "ticker": "JD",
+          "pct": 7.5
+        },
+        {
+          "name": "HCA Healthcare",
+          "ticker": "HCA",
+          "pct": 4.9
+        },
+        {
+          "name": "Citigroup",
+          "ticker": "C",
+          "pct": 3.6
+        },
+        {
+          "name": "Oracle",
+          "ticker": "ORCL",
           "pct": 3.2
         }
       ]
     },
     {
-      "investor": "빌 애크먼 (Bill Ackman)",
-      "corp_name": "스타벅스",
-      "ticker": "SBUX",
-      "action": "신규매수",
-      "portfolio_pct": 9.5,
-      "reason": "강력한 글로벌 브랜드 파워와 팬데믹 이후의 회복력을 바탕으로 한 스타벅스의 장기적인 성장 잠재력을 높이 평가한 것으로 보입니다.",
+      "investor": "빌 애크먼 (Pershing)",
+      "report_date": "2026-02-15",
+      "corp_name": "힐튼 (HLT)",
+      "ticker": "HLT",
+      "action": "유지",
+      "portfolio_pct": 18.4,
+      "reason": "브랜드 가치 집중",
       "top_holdings": [
         {
-          "name": "치폴레 멕시칸 그릴",
-          "ticker": "CMG",
-          "pct": 19.8
-        },
-        {
-          "name": "힐튼 월드와이드",
+          "name": "Hilton",
           "ticker": "HLT",
-          "pct": 16.5
+          "pct": 18.4
         },
         {
-          "name": "레스토랑 브랜드 인터내셔널",
-          "ticker": "RBI",
+          "name": "Alphabet (Google)",
+          "ticker": "GOOGL",
           "pct": 14.2
         },
         {
-          "name": "로우즈",
-          "ticker": "LOW",
-          "pct": 12.0
+          "name": "Chipotle",
+          "ticker": "CMG",
+          "pct": 13.5
         },
         {
-          "name": "스타벅스",
-          "ticker": "SBUX",
-          "pct": 9.5
+          "name": "Restaurant Brands",
+          "ticker": "QSR",
+          "pct": 11.2
+        },
+        {
+          "name": "Howard Hughes",
+          "ticker": "HHH",
+          "pct": 9.8
         }
       ]
     },
     {
-      "investor": "마이클 버리 (Michael Burry)",
-      "corp_name": "아르셀로미탈",
-      "ticker": "MT",
-      "action": "신규매수",
-      "portfolio_pct": 2.8,
-      "reason": "글로벌 경기 둔화 우려 속에서 저평가된 세계 최대 철강 기업이 향후 인프라 투자 확대로 회복할 것에 베팅하는 것으로 보입니다.",
-      "top_holdings": [
-        {
-          "name": "젠코 쉬핑 앤 트레이딩",
-          "ticker": "GNK",
-          "pct": 3.5
-        },
-        {
-          "name": "바이탈 에너지",
-          "ticker": "VTLE",
-          "pct": 3.1
-        },
-        {
-          "name": "아르셀로미탈",
-          "ticker": "MT",
-          "pct": 2.8
-        },
-        {
-          "name": "바슈 헬스 컴퍼니즈",
-          "ticker": "BHC",
-          "pct": 2.5
-        },
-        {
-          "name": "스텔란티스",
-          "ticker": "STLA",
-          "pct": 2.2
-        }
-      ]
-    },
-    {
-      "investor": "켄 그리핀 (Ken Griffin)",
-      "corp_name": "인베스코 QQQ 트러스트",
-      "ticker": "QQQ",
+      "investor": "캐시 우드 (ARK)",
+      "report_date": "2026-02-15",
+      "corp_name": "테슬라 (TSLA)",
+      "ticker": "TSLA",
       "action": "비중확대",
-      "portfolio_pct": 4.0,
-      "reason": "기술주의 지속적인 강세와 인공지능 관련 산업의 성장에 대한 시장 전반의 낙관론을 반영하여 기술 섹터 노출을 늘린 것으로 분석됩니다.",
+      "portfolio_pct": 11.2,
+      "reason": "AI 및 미래 모빌리티",
       "top_holdings": [
         {
-          "name": "마이크로소프트",
+          "name": "Tesla",
+          "ticker": "TSLA",
+          "pct": 11.2
+        },
+        {
+          "name": "Roku",
+          "ticker": "ROKU",
+          "pct": 8.5
+        },
+        {
+          "name": "Coinbase",
+          "ticker": "COIN",
+          "pct": 7.9
+        },
+        {
+          "name": "Roblox",
+          "ticker": "RBLX",
+          "pct": 6.2
+        },
+        {
+          "name": "Zoom",
+          "ticker": "ZM",
+          "pct": 5.4
+        }
+      ]
+    },
+    {
+      "investor": "켄 그리핀 (Citadel)",
+      "report_date": "2026-02-15",
+      "corp_name": "마이크로소프트 (MSFT)",
+      "ticker": "MSFT",
+      "action": "비중확대",
+      "portfolio_pct": 1.2,
+      "reason": "기업용 AI 수혜",
+      "top_holdings": [
+        {
+          "name": "Microsoft",
           "ticker": "MSFT",
+          "pct": 1.2
+        },
+        {
+          "name": "Amazon",
+          "ticker": "AMZN",
+          "pct": 1.1
+        },
+        {
+          "name": "Meta",
+          "ticker": "META",
+          "pct": 0.9
+        },
+        {
+          "name": "NVIDIA",
+          "ticker": "NVDA",
           "pct": 0.8
         },
         {
-          "name": "애플",
-          "ticker": "AAPL",
+          "name": "Alphabet",
+          "ticker": "GOOGL",
           "pct": 0.7
-        },
-        {
-          "name": "엔비디아",
-          "ticker": "NVDA",
-          "pct": 0.6
-        },
-        {
-          "name": "아마존",
-          "ticker": "AMZN",
-          "pct": 0.5
-        },
-        {
-          "name": "인베스코 QQQ 트러스트",
-          "ticker": "QQQ",
-          "pct": 0.4
         }
       ]
     }
   ],
-  "updated_at": "2026-05-01T13:29:12.910052"
+  "updated_at": "2026-05-03T00:57:19.095475"
 }

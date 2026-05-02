@@ -43,21 +43,17 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
 export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, onReset }) {
   const [scenario, setScenario] = useState('');
   const [visibleSteps, setVisibleSteps] = useState(0);
-  const [remainingQuota, setRemainingQuota] = useState(1500);
+  const [remainingQuota, setRemainingQuota] = useState(500);
+  const [userRemaining, setUserRemaining] = useState(5);
 
   // 초기 쿼터 정보 가져오기
   useEffect(() => {
     async function fetchQuota() {
       try {
-        const { data, error } = await supabase
-          .from('api_usage')
-          .select('remaining_count')
-          .eq('id', 'gemini_daily')
-          .single();
-        
-        if (!error && data) {
-          setRemainingQuota(data.remaining_count);
-        }
+        const res = await fetch('/api/quota');
+        const data = await res.json();
+        setRemainingQuota(data.global_remaining);
+        setUserRemaining(data.user_remaining);
       } catch (err) {
         console.error("Failed to fetch quota:", err);
       }
@@ -65,10 +61,10 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
     fetchQuota();
   }, []);
 
-  // 분석 결과에 포함된 최신 쿼터 정보 반영
   useEffect(() => {
-    if (analysisResult && analysisResult.remaining !== undefined) {
-      setRemainingQuota(analysisResult.remaining);
+    if (analysisResult) {
+      if (analysisResult.remaining !== undefined) setRemainingQuota(analysisResult.remaining);
+      if (analysisResult.user_remaining !== undefined) setUserRemaining(analysisResult.user_remaining);
     }
   }, [analysisResult]);
 
@@ -152,35 +148,37 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
               </div>
 
               {/* ULTIMATE FIX: Added onTouchStart and manual focus blur for maximum mobile reliability */}
-              <button 
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onTouchStart={(e) => {
-                  if (scenario.trim() && !isAnalyzing) {
-                    document.getElementById('scenario-input')?.blur();
-                    onAnalyze(scenario);
-                  }
-                }}
-                onClick={() => {
-                  if (scenario.trim() && !isAnalyzing) {
-                    document.getElementById('scenario-input')?.blur();
-                    onAnalyze(scenario);
-                  }
-                }}
-                disabled={isAnalyzing || !scenario.trim()} 
-                className={`
-                  absolute right-6 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 z-[9999]
-                  ${scenario.trim() ? 'bg-primary text-on-primary scale-110 shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]' : 'bg-white/5 text-white/20 scale-90'}
-                  active:scale-95 touch-manipulation cursor-pointer
-                `}
-                style={{ WebkitTapHighlightColor: 'transparent', padding: '10px' }}
-              >
-                {isAnalyzing ? (
-                  <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
-                ) : (
-                  <span className="material-symbols-outlined text-xl md:text-2xl">arrow_forward</span>
-                )}
-              </button>
+                <button 
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onTouchStart={(e) => {
+                    if (scenario.trim() && !isAnalyzing && userRemaining > 0) {
+                      document.getElementById('scenario-input')?.blur();
+                      onAnalyze(scenario);
+                    }
+                  }}
+                  onClick={() => {
+                    if (scenario.trim() && !isAnalyzing && userRemaining > 0) {
+                      document.getElementById('scenario-input')?.blur();
+                      onAnalyze(scenario);
+                    }
+                  }}
+                  disabled={isAnalyzing || !scenario.trim() || userRemaining <= 0} 
+                  className={`
+                    absolute right-6 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 z-[9999]
+                    ${scenario.trim() && userRemaining > 0 ? 'bg-primary text-on-primary scale-110 shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]' : 'bg-white/5 text-white/20 scale-90'}
+                    active:scale-95 touch-manipulation cursor-pointer
+                  `}
+                  style={{ WebkitTapHighlightColor: 'transparent', padding: '10px' }}
+                >
+                  {isAnalyzing ? (
+                    <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
+                  ) : userRemaining <= 0 ? (
+                    <span className="material-symbols-outlined text-xl md:text-2xl text-error">lock</span>
+                  ) : (
+                    <span className="material-symbols-outlined text-xl md:text-2xl">arrow_forward</span>
+                  )}
+                </button>
             </div>
 
               {/* Minimalist Description below the bar */}
@@ -191,16 +189,34 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                 </div>
                 
                 {/* API Quota Display */}
-                <div className="flex flex-col items-center gap-1.5 opacity-40 hover:opacity-80 transition-opacity duration-500">
-                  <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase">
-                    <span className="text-white/40">Daily Insight Energy</span>
-                    <span className="text-primary">{remainingQuota !== null ? remainingQuota.toLocaleString() : '---'} / 1,500</span>
+                <div className="flex flex-col items-center gap-2.5 opacity-40 hover:opacity-100 transition-all duration-500">
+                  {/* Personal Quota (Dots) */}
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex items-center gap-2 text-[9px] font-black tracking-[0.2em] uppercase text-white/60">
+                      My Energy
+                    </div>
+                    <div className="flex gap-1.5">
+                      {[...Array(5)].map((_, i) => (
+                        <div 
+                          key={i} 
+                          className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${i < userRemaining ? 'bg-primary shadow-[0_0_8px_rgba(115,255,186,0.6)]' : 'bg-white/10'}`} 
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <div className="w-32 h-0.5 bg-white/5 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary shadow-[0_0_8px_#73ffba] transition-all duration-1000 ease-out"
-                      style={{ width: `${(remainingQuota / 1500) * 100}%` }}
-                    />
+
+                  {/* Global Quota (Bar) */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase">
+                      <span className="text-white/30">System Energy</span>
+                      <span className="text-primary/60">{remainingQuota !== null ? remainingQuota.toLocaleString() : '---'} / 500</span>
+                    </div>
+                    <div className="w-32 h-0.5 bg-white/5 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary/40 shadow-[0_0_8px_rgba(115,255,186,0.2)] transition-all duration-1000 ease-out"
+                        style={{ width: `${(remainingQuota / 500) * 100}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

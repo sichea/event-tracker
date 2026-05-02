@@ -8,4 +8,5 @@ httpx==0.27.0
 supabase==2.13.0
 pywebpush==2.3.0
 python-dotenv==1.0.1
-google-generativeai==0.8.4
+# AI library removed for cost optimization
+# google-generativeai==0.8.4

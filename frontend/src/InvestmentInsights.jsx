@@ -707,7 +707,14 @@ export default function InvestmentInsights({ subTab }) {
               <span className="material-symbols-outlined text-purple-400 text-2xl" data-weight="fill">workspace_premium</span>
             </div>
             <div>
-              <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline">글로벌 투자 전설</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline">글로벌 투자 전설</h1>
+                {whaleData?.legends?.[0]?.report_date && (
+                  <span className="mt-1 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-[11px] font-black border border-purple-500/20">
+                    📅 {whaleData.legends[0].report_date} 공시 기준
+                  </span>
+                )}
+              </div>
               <p className="text-on-surface-variant text-sm md:text-base">워런 버핏, 레이 달리오 등 '거인'들의 포트폴리오 전략을 훔쳐보세요.</p>
             </div>
           </div>
@@ -760,9 +767,9 @@ export default function InvestmentInsights({ subTab }) {
                           <span className="material-symbols-outlined text-purple-400 text-2xl">person</span>
                         </div>
                       )}
-                      <div>
-                        <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">{item.investor}</p>
-                        <h3 className="text-xl font-bold font-headline">{item.corp_name} <span className="text-xs text-on-surface-variant font-medium ml-1">({item.ticker})</span></h3>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest truncate">{item.investor}</p>
+                        <h3 className="text-xl font-bold font-headline truncate">{item.corp_name} <span className="text-xs text-on-surface-variant font-medium ml-1">({item.ticker})</span></h3>
                       </div>
                     </div>
                     
