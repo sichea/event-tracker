@@ -112,8 +112,8 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                 통찰력을 기르는 한 문장을 적어보세요.
               </p>
               <p className="text-white/40 text-sm md:text-base font-medium max-w-xl leading-relaxed">
-                글로벌 전설적 투자자들의 포트폴리오와 월스트리트 리서치 데이터를 학습한 AI가<br className="hidden md:block"/> 
-                <span className="text-primary/80 font-bold">자금의 이동 경로</span>를 정밀 추적합니다.
+                글로벌 전설적 투자자들의 포트폴리오와 월스트리트 리서치 데이터를<br/> 
+                학습한 AI가 <span className="text-primary/80 font-bold">자금의 이동 경로</span>를 정밀 추적합니다.
               </p>
             </div>
 
