@@ -173,9 +173,27 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                 </button>
             </div>
 
-            <div className="flex flex-col items-center gap-6 pt-4">
-              <div className="flex gap-1.5">{[...Array(5)].map((_, i) => <div key={i} className={`w-1 h-1 rounded-full ${i < userRemaining ? 'bg-primary/60 shadow-[0_0_8px_rgba(115,255,186,0.3)]' : 'bg-white/10'}`} />)}</div>
-              <div className="text-[10px] font-bold tracking-[0.2em] text-white/20 uppercase">My Energy: {Math.max(0, userRemaining)} / 5</div>
+            <div className="flex flex-col items-center gap-4 pt-6">
+              {/* My Energy Area */}
+              <div className="flex items-center gap-5">
+                <span className="text-[10px] font-black text-primary/50 uppercase tracking-[0.2em]">My Energy</span>
+                <div className="flex gap-1.5">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-700 ${i < userRemaining ? 'bg-primary/60 shadow-[0_0_10px_rgba(115,255,186,0.3)]' : 'bg-white/5'}`} />
+                  ))}
+                </div>
+                <span className="text-[10px] font-bold text-white/40 tracking-widest">{Math.max(0, userRemaining)} / 5</span>
+              </div>
+
+              {/* Total Energy Pool */}
+              <div className="flex items-center gap-3 opacity-30 group hover:opacity-50 transition-opacity">
+                <div className="h-px w-8 bg-gradient-to-r from-transparent to-white/20" />
+                <div className="text-[9px] font-black text-white/60 uppercase tracking-[0.3em] flex gap-2">
+                  <span>Total Energy Pool</span>
+                  <span className="text-white/40">{remainingQuota?.toLocaleString()} / 500</span>
+                </div>
+                <div className="h-px w-8 bg-gradient-to-l from-transparent to-white/20" />
+              </div>
             </div>
           </div>
         ) : (
