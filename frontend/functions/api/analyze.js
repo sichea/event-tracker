@@ -101,15 +101,35 @@ export async function onRequestPost(context) {
     });
 
     const aiData = await apiResponse.json();
-    const resultJson = JSON.parse(aiData.candidates[0].content.parts[0].text);
+    
+    // AI 응답 유효성 검사 (보안 필터링 등 대응)
+    if (!aiData.candidates || aiData.candidates.length === 0 || !aiData.candidates[0].content) {
+      const finishReason = aiData.candidates?.[0]?.finishReason;
+      throw new Error(`AI가 답변을 생성할 수 없습니다. (사유: ${finishReason || '알 수 없음'})`);
+    }
+
+    const responseText = aiData.candidates[0].content.parts[0].text;
+    if (!responseText) throw new Error('AI 응답 내용이 비어 있습니다.');
+
+    let resultJson;
+    try {
+      resultJson = JSON.parse(responseText);
+    } catch (e) {
+      throw new Error('AI 응답 데이터 구조가 올바르지 않습니다.');
+    }
 
     // [4] 데이터 저장 및 업데이트
     const newUserCount = userCount + 1;
-    await Promise.all([
-      supabase.from('ai_analysis_cache').insert([{ scenario_text: cleanScenario, result: resultJson }]),
-      supabase.from('api_usage').update({ remaining_count: globalRemaining - 1 }).eq('id', 'gemini_daily'),
-      supabase.from('user_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount })
-    ]);
+    try {
+      await Promise.all([
+        supabase.from('ai_analysis_cache').insert([{ scenario_text: cleanScenario, result: resultJson }]),
+        supabase.from('api_usage').update({ remaining_count: globalRemaining - 1 }).eq('id', 'gemini_daily'),
+        supabase.from('user_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount })
+      ]);
+    } catch (dbError) {
+      console.error('DB Update Error:', dbError);
+      // DB 저장 실패해도 결과는 보여줌
+    }
 
     return new Response(JSON.stringify({
       ...resultJson,
@@ -122,6 +142,13 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: "분석 실패", details: error.message }), { status: 500 });
+    console.error('Analysis error:', error);
+    return new Response(JSON.stringify({ 
+      error: error.message || '분석 중 예기치 못한 오류가 발생했습니다.',
+      user_remaining: 50 - (userCount || 0) 
+    }), { 
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 }

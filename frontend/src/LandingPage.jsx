@@ -16,8 +16,9 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
     const labels = ["현상의 본질", "자본의 의도", "시장의 변곡점", "전략적 판단", "최종 제언"];
     return labels[index] || "심층 분석";
   };
-  // 1. , 1단계: , 2. , 2단계: 등 번호 및 서두 패턴 제거
-  const cleanText = text
+  // 어떤 데이터가 오든 강제로 문자열로 변환하여 에러 방지
+  const safeText = String(text || "");
+  const cleanText = safeText
     .replace(/^\d+[\.\s단계:]+\s*/, '') // 시작 부분의 숫자/단계 표시 제거
     .replace(/\*\*/g, ''); // 굵은 글씨 제거
 
