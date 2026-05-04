@@ -94,13 +94,13 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
       <div className="absolute bottom-[-5%] left-[-5%] w-[40%] h-[40%] bg-blue-500/5 blur-[100px] rounded-full pointer-events-none" />
 
       <main className="flex-1 flex flex-col items-center py-8 md:py-16 px-6 relative z-10 max-w-6xl mx-auto w-full">
-        {/* THE KICK: Thinking Robot Background - Restored & Enhanced */}
+        {/* THE KICK: Thinking Robot Background - Refined & Blended */}
         {!analysisResult && (
-          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-[0.25] animate-in fade-in duration-1000">
+          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-[0.1] animate-in fade-in duration-1000">
             <img 
               src="/images/thinking_robot.png" 
               alt="" 
-              className="w-full max-w-5xl h-[80vh] object-contain"
+              className="w-full max-w-5xl h-[80vh] object-contain filter invert grayscale brightness-150 contrast-125"
             />
           </div>
         )}
