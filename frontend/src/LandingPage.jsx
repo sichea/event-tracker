@@ -17,13 +17,13 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
         <div className="absolute -top-3 left-6 px-3 py-1 bg-black/40 backdrop-blur-xl border border-white/5 rounded-full text-[10px] font-black text-primary uppercase tracking-widest">
           {(() => {
             const labels = [
-              "[분석 01] 거시경제 시그널 감지",
-              "[분석 02] 투자 논리 인과 관계 분석",
-              "[분석 03] 시장 역학 및 변동성 진단",
-              "[분석 04] 기관 자본 순환 경로 추적",
-              "[분석 05] 최종 투자 전략 리포트 도출"
+              "거시경제 시그널 감지",
+              "투자 논리 인과 관계 분석",
+              "시장 역학 및 변동성 진단",
+              "기관 자본 순환 경로 추적",
+              "최종 투자 전략 리포트 도출"
             ];
-            return labels[index] || `[단계 ${index + 1}] 분석 진행 중`;
+            return labels[index] || "데이터 심층 분석 중";
           })()}
         </div>
         
