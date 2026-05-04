@@ -104,16 +104,58 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
               </p>
             </div>
 
-            <div className="relative group">
-              <div className="relative flex items-center transition-all duration-500 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl focus-within:border-primary/40 focus-within:bg-white/[0.05]">
-                <div className="pl-5 text-primary/40"><span className="material-symbols-outlined text-2xl">psychology</span></div>
-                <div className="flex-1 h-14 md:h-16">
-                  <input type="text" id="scenario-input" value={scenario} onChange={(e) => setScenario(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && scenario.trim() && !isAnalyzing) { onAnalyze(scenario); } }} className="w-full h-full bg-transparent border-none px-4 pr-24 text-white text-base md:text-lg !outline-none placeholder:text-white/10 font-medium" />
+            {/* Google Search Style Single-Line Input */}
+            <div className="w-full max-w-xl mx-auto relative group px-4">
+              <div className={`
+                relative flex items-center transition-all duration-500 rounded-full border border-white/10
+                bg-transparent group-hover:bg-white/[0.05] group-hover:backdrop-blur-3xl group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
+                ${scenario.trim() ? 'bg-white/[0.03] backdrop-blur-xl' : ''}
+                focus-within:bg-white/[0.08] focus-within:backdrop-blur-3xl focus-within:outline-none focus-within:shadow-[0_0_30px_rgba(var(--primary-rgb),0.1)]
+              `}>
+                <div className="pl-4 md:pl-6 text-primary/60">
+                  <span className="material-symbols-outlined text-2xl">psychology</span>
                 </div>
-                <button type="button" onClick={() => { if (scenario.trim() && !isAnalyzing && userRemaining > 0) onAnalyze(scenario); }} disabled={isAnalyzing || !scenario.trim() || userRemaining <= 0} className={`absolute right-3 top-1/2 -translate-y-1/2 px-5 h-10 md:h-12 rounded-xl flex items-center justify-center gap-2 transition-all ${scenario.trim() && userRemaining > 0 ? 'bg-primary text-[#0a0e17] font-black' : 'bg-white/5 text-white/20'} active:scale-95`}>
-                  {isAnalyzing ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <><span className="text-sm">분석 시작</span><span className="material-symbols-outlined text-lg">arrow_forward</span></>}
-                </button>
+                
+                <div className="flex-1 flex items-center h-14 md:h-16 relative">
+                  <input 
+                    type="text"
+                    id="scenario-input"
+                    value={scenario} 
+                    onChange={(e) => setScenario(e.target.value)} 
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && scenario.trim() && !isAnalyzing) {
+                        e.target.blur();
+                        onAnalyze(scenario);
+                      }
+                    }}
+                    className="flex-1 bg-transparent border-none pl-2 pr-20 md:pl-4 md:pr-28 text-white text-base md:text-xl !outline-none focus:!outline-none focus:ring-0 placeholder:text-white/20 font-medium appearance-none" 
+                    style={{ WebkitTapHighlightColor: 'transparent', outline: 'none', boxShadow: 'none' }}
+                  />
+                </div>
               </div>
+
+                <button 
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    if (scenario.trim() && !isAnalyzing && userRemaining > 0) {
+                      document.getElementById('scenario-input')?.blur();
+                      onAnalyze(scenario);
+                    }
+                  }}
+                  disabled={isAnalyzing || !scenario.trim() || userRemaining <= 0} 
+                  className={`
+                    absolute right-6 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 z-[9999]
+                    ${scenario.trim() && userRemaining > 0 ? 'bg-primary text-[#0a0e17] scale-110 shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]' : 'bg-white/5 text-white/20 scale-90'}
+                    active:scale-95 touch-manipulation cursor-pointer
+                  `}
+                >
+                  {isAnalyzing ? (
+                    <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
+                  ) : (
+                    <span className="material-symbols-outlined text-xl md:text-2xl">arrow_forward</span>
+                  )}
+                </button>
             </div>
 
             <div className="flex flex-col items-center gap-6 pt-4">
