@@ -633,13 +633,22 @@ function App() {
   events.forEach(e => { if (!uniqueEventsMap.has(e.id)) uniqueEventsMap.set(e.id, e); });
   const uniqueEvents = Array.from(uniqueEventsMap.values());
 
-  const activeEventsCount = uniqueEvents.filter(e => e.status === "진행중").length;
+  const isExpired = (endDateStr) => {
+    if (!endDateStr) return false;
+    const end = new Date(endDateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    return end < today;
+  };
+
+  const activeEventsCount = uniqueEvents.filter(e => e.status === "진행중" && !isExpired(e.end_date)).length;
   const participatedCount = uniqueEvents.filter(e => Object.values(e.checkedAliases || {}).some(Boolean)).length;
   const totalChecks = events.reduce((acc, e) => acc + Object.values(e.checkedAliases || {}).filter(Boolean).length, 0);
   const maxPossibleChecks = events.length * Math.max(aliases.length, 1);
   const checkPercent = maxPossibleChecks > 0 ? Math.round((totalChecks / maxPossibleChecks) * 100) : 0;
   
-  const upcomingEvents = uniqueEvents.filter(e => e.status === "진행중" && e.d_day >= 0 && e.d_day <= 3).length;
+  const upcomingEvents = uniqueEvents.filter(e => e.status === "진행중" && !isExpired(e.end_date) && e.d_day >= 0 && e.d_day <= 3).length;
 
   // 참여 목록 탭에서 쓸 '종료 후 경과 일수' 계산 헬퍼
   const daysAfterEndOf = (e) => {
@@ -662,9 +671,9 @@ function App() {
         if (dae === null || dae > 30) return false;
       }
     } else if (selectedStatus === "마감 임박") {
-      if (e.status !== "진행중" || e.d_day === null || e.d_day === undefined || e.d_day < 0 || e.d_day > 3) return false;
+      if (e.status !== "진행중" || isExpired(e.end_date) || e.d_day === null || e.d_day === undefined || e.d_day < 0 || e.d_day > 3) return false;
     } else {
-      if (e.status !== "진행중") return false;
+      if (e.status !== "진행중" || isExpired(e.end_date)) return false;
     }
     return true;
   }).sort((a, b) => {

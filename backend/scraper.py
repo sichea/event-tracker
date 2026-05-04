@@ -990,23 +990,25 @@ async def run_scrape_and_save():
             if e["id"] in active_map:
                 del active_map[e["id"]]
 
-        # 이번 수집에 없었으나 DB에는 '진행중'인 것들 처리
-        # ★ 핵심: 수집 실패(0건)한 provider의 이벤트는 종료 처리하지 않고 보존
-        protected_count = 0
-        terminated_count = 0
+        # 4. 종료 처리: 이번 수집에서 사라졌거나 날짜가 지난 것들 처리
         for old_id, old_evt in active_map.items():
             provider = old_evt.get("provider", "")
             
-            if provider in failed_providers:
-                # 이 provider는 수집 실패 → 기존 데이터 보존 (종료 처리 안함)
-                protected_count += 1
+            # 수집 성공한 provider인데 이번에 안 잡힌 이벤트 -> 실제 종료
+            # 수집 실패한 provider더라도 날짜가 지났으면 -> 강제 종료
+            is_expired_in_db = False
+            if old_evt.get("end_date"):
                 try:
-                    print(f"[보호] {provider} 이벤트 보존: {old_evt['title'][:30]}")
-                except UnicodeEncodeError:
-                    print(f"[보호] {provider} 이벤트 보존: (제목 출력 불가)")
-                continue  # records에 추가하지 않음 → DB 변경 없음
+                    ed = datetime.strptime(old_evt["end_date"], "%Y-%m-%d").date()
+                    if ed < today: is_expired_in_db = True
+                except: pass
+
+            if provider in failed_providers and not is_expired_in_db:
+                # 수집 실패한 provider인데 날짜도 아직 안 지났다면 -> 보존
+                protected_count += 1
+                continue
             
-            # 수집 성공한 provider인데 이번에 안 잡힌 이벤트 → 실제 종료
+            # 그 외 (수집 성공했는데 안 잡혔거나, 날짜가 지났거나) -> 종료 처리
             terminated_count += 1
             records.append({
                 "id": old_evt["id"],
@@ -1022,18 +1024,12 @@ async def run_scrape_and_save():
         
         print(f"\n[DB 동기화] 보존: {protected_count}건, 종료 처리: {terminated_count}건")
 
-        # 4. 전체 DB 점검: 날짜가 지난 것이 있다면 최종적으로 종료 처리 (강제 보정)
+        # 5. D-Day 최신화 (진행중인 것들 대상)
         for r in records:
             if r.get("status") == "진행중" and r.get("end_date"):
                 try:
-                    # yyyy-mm-dd 형식 가정
                     end_date = datetime.strptime(r["end_date"], "%Y-%m-%d").date()
-                    if end_date < today:
-                        r["status"] = "종료"
-                        r["d_day"] = -1
-                    else:
-                        # D-Day 최신화 (수집 시점과 실제 동기화 시점 차이 보정)
-                        r["d_day"] = (end_date - today).days
+                    r["d_day"] = (end_date - today).days
                 except: pass
 
         if records:
