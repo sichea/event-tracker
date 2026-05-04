@@ -173,18 +173,22 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
               {steps.map((step, i) => <ThoughtBubble key={i} index={i} text={step.text} show={visibleSteps > i} isFinal={i === steps.length - 1} />)}
             </div>
             
-            {visibleSteps >= steps.length && (
+            {visibleSteps >= steps.length && steps.length > 0 && (
               <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                {/* Sector Hero Card - Refined */}
+                {/* Sector Hero Card - Refined with Safety */}
                 <div className="bg-[#1e2533]/40 backdrop-blur-3xl p-8 md:p-10 rounded-[32px] border border-white/5 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-[80px] -mr-24 -mt-24" />
                   <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
                     <div className="flex-1 space-y-6">
                       <div className="space-y-1">
                         <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Investment Recommendation</p>
-                        <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">{analysisResult.sector}</h3>
+                        <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                          {analysisResult?.sector || "잠재적 수혜 섹터 분석 중"}
+                        </h3>
                       </div>
-                      <p className="text-[14px] md:text-[15px] text-white/60 leading-relaxed max-w-2xl">{analysisResult.advice}</p>
+                      <p className="text-[14px] md:text-[15px] text-white/60 leading-relaxed max-w-2xl">
+                        {analysisResult?.advice || "데이터에 기반한 심층 제언을 도출하고 있습니다."}
+                      </p>
                     </div>
                     <div className="w-16 h-16 md:w-20 md:h-20 bg-primary/10 rounded-2xl border border-primary/20 flex items-center justify-center flex-shrink-0">
                       <span className="material-symbols-outlined text-primary text-3xl md:text-4xl">insights</span>
@@ -193,13 +197,15 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Stocks Column */}
+                  {/* Stocks Column with Safety */}
                   <div className="lg:col-span-2 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {analysisResult.stocks?.map((s, i) => {
-                        const krMatch = s.name.match(/\((\d{6})\)/);
-                        const globalMatch = s.name.match(/\(([A-Z]+)\)/);
-                        const link = krMatch ? `https://finance.naver.com/item/main.naver?code=${krMatch[1]}` : globalMatch ? `https://finance.naver.com/world/search.naver?query=${globalMatch[1]}` : `https://search.naver.com/search.naver?query=${encodeURIComponent(s.name.split('(')[0].trim())}`;
+                      {analysisResult?.stocks?.map((s, i) => {
+                        const sName = s?.name || "알 수 없는 종목";
+                        const sReason = s?.reason || "분석 정보를 불러오는 중입니다.";
+                        const krMatch = sName.match(/\((\d{6})\)/);
+                        const globalMatch = sName.match(/\(([A-Z]+)\)/);
+                        const link = krMatch ? `https://finance.naver.com/item/main.naver?code=${krMatch[1]}` : globalMatch ? `https://finance.naver.com/world/search.naver?query=${globalMatch[1]}` : `https://search.naver.com/search.naver?query=${encodeURIComponent(sName.split('(')[0].trim())}`;
 
                         return (
                           <div key={i} onClick={() => window.open(link, '_blank')} className="group p-6 bg-[#1e2533]/30 hover:bg-white/[0.04] rounded-3xl border border-white/5 hover:border-primary/30 transition-all cursor-pointer">
@@ -207,11 +213,15 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                               <span className="text-[10px] font-black text-white/30 uppercase tracking-wider group-hover:text-primary transition-colors">{krMatch || globalMatch ? (krMatch ? krMatch[1] : globalMatch[1]) : 'Stock'}</span>
                               <span className="material-symbols-outlined text-white/20 group-hover:text-primary transition-all text-lg group-hover:translate-x-1 group-hover:-translate-y-1">arrow_outward</span>
                             </div>
-                            <h4 className="font-bold text-white text-lg mb-2 group-hover:text-primary transition-colors">{s.name}</h4>
-                            <p className="text-xs text-white/40 leading-relaxed line-clamp-3 group-hover:text-white/60">{s.reason}</p>
+                            <h4 className="font-bold text-white text-lg mb-2 group-hover:text-primary transition-colors">{sName}</h4>
+                            <p className="text-xs text-white/40 leading-relaxed line-clamp-3 group-hover:text-white/60">{sReason}</p>
                           </div>
                         );
-                      })}
+                      }) || (
+                        <div className="col-span-2 p-10 text-center text-white/20 border border-dashed border-white/10 rounded-3xl">
+                          종목 추천 정보를 불러올 수 없습니다.
+                        </div>
+                      )}
                       {/* Reset Card */}
                       <button onClick={onReset} className="p-6 md:p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:border-primary/20 transition-all flex flex-col items-center justify-center gap-3 group">
                         <span className="material-symbols-outlined text-white/20 group-hover:rotate-180 transition-transform duration-700 text-3xl">refresh</span>
@@ -220,19 +230,19 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                     </div>
                   </div>
 
-                  {/* Risk Column */}
+                  {/* Risk Column with Safety */}
                   <div className="bg-[#1e2533]/20 p-6 md:p-8 rounded-[32px] border border-white/5 space-y-6">
                     <div className="flex items-center gap-2.5">
                       <span className="material-symbols-outlined text-orange-400 text-lg">warning</span>
                       <h4 className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Risk Management</h4>
                     </div>
                     <div className="space-y-6">
-                      {analysisResult.caution?.map((c, i) => (
+                      {analysisResult?.caution?.map((c, i) => (
                         <div key={i} className="space-y-1.5">
                           <p className="text-[9px] font-black text-white/20 uppercase tracking-tighter">Issue 0{i+1}</p>
-                          <p className="text-[13px] text-white/50 leading-relaxed">{c}</p>
+                          <p className="text-[13px] text-white/50 leading-relaxed">{c || "주의사항 분석 중"}</p>
                         </div>
-                      ))}
+                      )) || <p className="text-xs text-white/20">리스크 분석 정보를 불러올 수 없습니다.</p>}
                     </div>
                   </div>
                 </div>
