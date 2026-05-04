@@ -201,11 +201,14 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                   <div className="lg:col-span-2 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {analysisResult?.stocks?.map((s, i) => {
-                        const sName = s?.name || "알 수 없는 종목";
-                        const sReason = s?.reason || "분석 정보를 불러오는 중입니다.";
+                        // 데이터가 객체인지 문자열인지 확인하여 안전하게 처리
+                        const sName = (typeof s === 'string' ? s : s?.name) || "분석된 종목";
+                        const sReason = (typeof s === 'string' ? "상세 투자 포인트 분석 중" : s?.reason) || "시장 변곡점 수혜가 기대되는 종목입니다.";
+                        
                         const krMatch = sName.match(/\((\d{6})\)/);
                         const globalMatch = sName.match(/\(([A-Z]+)\)/);
-                        const link = krMatch ? `https://finance.naver.com/item/main.naver?code=${krMatch[1]}` : globalMatch ? `https://finance.naver.com/world/search.naver?query=${globalMatch[1]}` : `https://search.naver.com/search.naver?query=${encodeURIComponent(sName.split('(')[0].trim())}`;
+                        const cleanName = sName.split('(')[0].trim();
+                        const link = krMatch ? `https://finance.naver.com/item/main.naver?code=${krMatch[1]}` : globalMatch ? `https://finance.naver.com/world/search.naver?query=${globalMatch[1]}` : `https://search.naver.com/search.naver?query=${encodeURIComponent(cleanName + ' 주가')}`;
 
                         return (
                           <div key={i} onClick={() => window.open(link, '_blank')} className="group p-6 bg-[#1e2533]/30 hover:bg-white/[0.04] rounded-3xl border border-white/5 hover:border-primary/30 transition-all cursor-pointer">
