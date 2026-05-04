@@ -11,13 +11,11 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
     }
   }, [show]);
 
-  const phases = [
-    { label: "거시경제 시그널 감지", icon: "sensors" },
-    { label: "투자 논리 인과 관계 분석", icon: "account_tree" },
-    { label: "시장 역학 및 변동성 진단", icon: "query_stats" },
-    { label: "기관 자본 순환 경로 추적", icon: "currency_exchange" },
-    { label: "최종 투자 전략 리포트 도출", icon: "description" }
-  ];
+  // 고정된 단계 명칭 제거
+  const getPhaseLabel = (index) => {
+    const labels = ["현상의 본질", "자본의 의도", "시장의 변곡점", "전략적 판단", "최종 제언"];
+    return labels[index] || "심층 분석";
+  };
   // 1. , 1단계: , 2. , 2단계: 등 번호 및 서두 패턴 제거
   const cleanText = text
     .replace(/^\d+[\.\s단계:]+\s*/, '') // 시작 부분의 숫자/단계 표시 제거
