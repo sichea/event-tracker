@@ -363,7 +363,7 @@ function App() {
       sections: [
         {
           title: '공식 이메일',
-          content: 'support@remember.invest\n제휴 제안 및 기능 건의는 이메일로 보내주시면 24시간 이내에 답변 드립니다.'
+          content: 'aikks3782@gmail.com\n제휴 제안 및 기능 건의는 이메일로 보내주시면 24시간 이내에 답변 드립니다.'
         },
         {
           title: '운영 시간',
