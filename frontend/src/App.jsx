@@ -337,30 +337,59 @@ function App() {
   const INFO_CONTENT = {
     about: {
       title: 'About RE:MEMBER',
-      icon: 'info',
-      content: `RE:MEMBER는 복잡한 데이터의 홍수 속에서 유의미한 '투자 시그널'을 포착하고 기록하는 스마트한 투자자들을 위한 공간입니다. 
-      우리는 AI 기반의 시나리오 분석 엔진과 실시간 데이터 수집 기술을 결합하여, 거시경제의 흐름부터 세부적인 청약 일정까지 한눈에 파악할 수 있는 통합 인사이트를 제공합니다. 
-      당신의 투자가 단순한 기억을 넘어 기록이 되고, 기록이 곧 수익이 되는 여정을 함께합니다.`
+      subtitle: 'Premium Investment Insights',
+      icon: 'insights',
+      accent: 'bg-primary/20 text-primary',
+      sections: [
+        {
+          title: '우리의 미션',
+          content: 'RE:MEMBER는 정보의 홍수 속에서 길을 잃은 투자자들에게 "정확한 시그널"을 제공하기 위해 탄생했습니다. 단순한 데이터 수집을 넘어, 기록이 수익이 되는 경험을 선사합니다.'
+        },
+        {
+          title: '핵심 기능',
+          content: 'AI 기반 매크로 시나리오 분석, 실시간 ETF 이벤트 추적, 그리고 짠테크 자산 최적화 도구까지. 전문 투자자의 관점을 대중에게 전달합니다.'
+        },
+        {
+          title: '데이터 철학',
+          content: '우리는 "Zero-AI / Zero-Cost" 운영을 지향하며, 복잡한 로직보다는 사용자가 즉각적으로 이해하고 행동할 수 있는 직관적인 지표를 최우선으로 합니다.'
+        }
+      ]
     },
     contact: {
-      title: 'Contact Us',
-      icon: 'mail',
-      content: `서비스 이용 중 불편한 점이나 제휴 제안, 기능 건의사항이 있으시면 언제든 연락주세요. 
-      가장 빠른 답변을 드릴 수 있도록 노력하겠습니다.
-      
-      • Email: support@remember.invest
-      • 운영시간: 평일 10:00 - 18:00 (주말/공휴일 제외)`
+      title: 'Contact Support',
+      subtitle: '언제나 열려있는 소통 창구',
+      icon: 'contact_support',
+      accent: 'bg-tertiary/20 text-tertiary',
+      sections: [
+        {
+          title: '공식 이메일',
+          content: 'support@remember.invest\n제휴 제안 및 기능 건의는 이메일로 보내주시면 24시간 이내에 답변 드립니다.'
+        },
+        {
+          title: '운영 시간',
+          content: '평일: 10:00 - 18:00 (KST)\n주말 및 공휴일은 휴무이나, 긴급한 시스템 문의는 실시간 모니터링 중입니다.'
+        }
+      ]
     },
     privacy: {
       title: 'Privacy Policy',
-      icon: 'shield_lock',
-      content: `RE:MEMBER는 사용자의 개인정보를 소중히 보호하며 투명하게 운영합니다.
-      
-      1. 수집 항목: 방문자 통계 분석을 위한 익명의 접속 로그 (IP 등 개인 식별 정보는 별도로 저장하지 않습니다.)
-      2. 수집 목적: 서비스 이용량 분석 및 안정적인 서버 운영
-      3. 보유 및 파기: 서비스 제공 기간 동안 보유하며, 통계 목적 달성 시 안전하게 파기됩니다.
-      
-      우리는 사용자의 명시적인 동의 없이 어떠한 개인식별정보도 수집하거나 제3자에게 제공하지 않습니다.`
+      subtitle: '당신의 정보는 안전합니다',
+      icon: 'verified_user',
+      accent: 'bg-blue-400/20 text-blue-400',
+      sections: [
+        {
+          title: '개인정보 보호 원칙',
+          content: 'RE:MEMBER는 회원가입 시 최소한의 정보만을 요구하며, 수집된 이메일과 별명 정보는 서비스 제공 목적 외에 어떠한 경우에도 제3자에게 제공되지 않습니다.'
+        },
+        {
+          title: '데이터 보안',
+          content: '모든 데이터는 암호화되어 관리되며, 구글 및 수파베이스(Supabase)의 보안 표준을 준수합니다.'
+        },
+        {
+          title: '접속 로그 활용',
+          content: '서비스 개선을 위한 통계 목적으로만 익명의 접속 기록(IP, 브라우저 유형)을 활용하며, 이는 정기적으로 자동 파기됩니다.'
+        }
+      ]
     }
   };
 
@@ -369,21 +398,56 @@ function App() {
     const data = INFO_CONTENT[type];
     
     return (
-      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in" onClick={onClose}>
-        <div className="bg-surface-container rounded-[2.5rem] w-full max-w-lg border border-white/10 shadow-2xl overflow-hidden p-8 md:p-10 relative" onClick={e => e.stopPropagation()}>
-          <button onClick={onClose} className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-            <span className="material-symbols-outlined text-xl">close</span>
-          </button>
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 mb-8">
-            <span className="material-symbols-outlined text-primary text-3xl">{data.icon}</span>
+      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-2xl animate-in fade-in duration-300" onClick={onClose}>
+        <div className="bg-surface-container rounded-[3rem] w-full max-w-xl border border-white/10 shadow-[0_32px_64px_rgba(0,0,0,0.6)] overflow-hidden relative flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+          {/* Header Area */}
+          <div className="p-8 md:p-10 pb-4 flex items-start justify-between">
+            <div className="flex items-center gap-5">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner ${data.accent}`}>
+                <span className="material-symbols-outlined text-3xl">{data.icon}</span>
+              </div>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-black font-headline tracking-tighter">{data.title}</h2>
+                <p className="text-xs font-bold opacity-50 uppercase tracking-widest mt-1">{data.subtitle}</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all active:scale-90 border border-white/5">
+              <span className="material-symbols-outlined text-xl">close</span>
+            </button>
           </div>
-          <h2 className="text-3xl font-black font-headline mb-6">{data.title}</h2>
-          <div className="text-on-surface-variant leading-relaxed space-y-4 whitespace-pre-wrap font-medium">
-            {data.content}
+
+          {/* Content Area - Scrollable */}
+          <div className="px-8 md:px-10 pb-10 overflow-y-auto scrollbar-hide space-y-8">
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8"></div>
+            
+            {data.sections.map((section, idx) => (
+              <div key={idx} className="group">
+                <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_#73ffba]"></span>
+                  {section.title}
+                </h4>
+                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/5 group-hover:bg-white/[0.05] transition-colors">
+                  <p className="text-on-surface-variant text-sm leading-relaxed whitespace-pre-wrap font-medium opacity-90">
+                    {section.content}
+                  </p>
+                </div>
+              </div>
+            ))}
+            
+            <div className="pt-4">
+              <button 
+                onClick={onClose} 
+                className={`w-full py-5 rounded-2xl font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 
+                  ${type === 'privacy' ? 'bg-surface-container-highest text-on-surface border border-white/10 hover:bg-white/5' : 'bg-primary text-on-primary hover:shadow-primary/20'}`}
+              >
+                {type === 'privacy' ? '내용을 확인했습니다' : '닫기'}
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </button>
+            </div>
           </div>
-          <button onClick={onClose} className="w-full mt-10 py-4 bg-primary text-on-primary font-black rounded-2xl hover:opacity-90 active:scale-95 transition-all">
-            확인했습니다
-          </button>
+          
+          {/* Footer Decoration */}
+          <div className="h-2 w-full bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0"></div>
         </div>
       </div>
     );
@@ -1223,26 +1287,57 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className={`border-t border-white/5 bg-[#0a0e17] ${activeTab === 'landing' ? 'py-4' : 'py-10'} px-6 md:px-12 transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
-            <span className="text-lg font-black text-primary tracking-tighter font-headline">RE:MEMBER</span>
-            <p className="text-sm text-on-surface-variant mt-2 leading-relaxed">수익 시그널을 포착하고 기록하는 모두의 공간입니다.</p>
+      <footer className={`border-t border-white/5 bg-[#0a0e17] ${activeTab === 'landing' ? 'py-8' : 'py-20'} px-6 md:px-12 transition-all duration-300 ${isDrawerOpen ? 'md:ml-64' : 'ml-0'}`}>
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
+          <div className="max-w-xs">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-[0_0_20px_rgba(115,255,186,0.05)]">
+                <span className="material-symbols-outlined text-primary text-2xl" data-weight="fill">sensors</span>
+              </div>
+              <span className="text-2xl font-black text-[#ebedfb] tracking-tighter font-headline uppercase">RE:MEMBER</span>
+            </div>
+            <p className="text-sm text-on-surface-variant leading-relaxed opacity-60 font-medium">
+              투자 시그널을 포착하고 기록하는 스마트한 투자자의 공간. 거시경제 분석부터 짠테크 자산 관리까지 통합 인사이트를 제공합니다.
+            </p>
           </div>
           
-          <div className="flex items-center gap-3 mb-6 text-base">
-            <span className="text-primary font-black">오늘 <span className="text-xl">{visitorCount.today}</span>명</span>
-            <span className="text-white/20">|</span>
-            <span className="text-on-surface-variant font-bold">누적 <span className="text-xl text-white">{visitorCount.total.toLocaleString()}</span>명</span>
-          </div>
+          <div className="flex flex-col items-start md:items-end gap-8">
+            <div className="flex items-center gap-3 p-2 bg-white/[0.02] rounded-2xl border border-white/5 shadow-inner">
+              <div className="px-5 py-2 rounded-xl bg-primary/10 border border-primary/20 flex items-center gap-2.5">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#73ffba]"></span>
+                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Live</span>
+                <span className="text-sm font-bold text-on-surface">오늘 {visitorCount.today}명</span>
+              </div>
+              <div className="px-5 py-2 rounded-xl bg-white/[0.04] border border-white/5 flex items-center gap-2.5">
+                <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Total</span>
+                <span className="text-sm font-bold text-on-surface">{visitorCount.total.toLocaleString()}명</span>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-6 mb-6 text-sm font-bold text-on-surface-variant">
-            <button className="hover:text-primary transition-colors" onClick={() => setShowAbout(true)}>About</button>
-            <button className="hover:text-primary transition-colors" onClick={() => setShowContact(true)}>Contact</button>
-            <button className="hover:text-primary transition-colors" onClick={() => setShowPrivacy(true)}>Privacy</button>
+            <div className="flex items-center gap-10 text-xs font-black uppercase tracking-[0.25em] text-on-surface-variant">
+              <button className="hover:text-primary transition-all relative group py-1" onClick={() => setShowAbout(true)}>
+                About
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>
+              </button>
+              <button className="hover:text-primary transition-all relative group py-1" onClick={() => setShowContact(true)}>
+                Contact
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>
+              </button>
+              <button className="hover:text-primary transition-all relative group py-1" onClick={() => setShowPrivacy(true)}>
+                Privacy
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>
+              </button>
+            </div>
+            
+            <div className="flex flex-col items-start md:items-end gap-1">
+              <p className="text-[10px] text-white/20 font-bold tracking-widest uppercase">
+                © 2026 RE:MEMBER Ecosystem. All rights reserved.
+              </p>
+              <p className="text-[9px] text-white/5 font-medium tracking-[0.3em] uppercase italic">
+                Captured in signals, Recorded in returns.
+              </p>
+            </div>
           </div>
-
-          <p className="text-xs text-white/20 font-medium">© 2026 RE:MEMBER. All rights reserved.</p>
         </div>
       </footer>
 
