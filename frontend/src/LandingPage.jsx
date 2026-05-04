@@ -141,7 +141,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                         onAnalyze(scenario);
                       }
                     }}
-                    placeholder="분석할 시장 이벤트나 시나리오를 입력하세요 (예: 연준의 금리 인하 가속화, 유가 급등 등)..." 
+                    placeholder="분석할 시장 시나리오를 입력하세요 (예: 금리 인하, 유가 급등 등)" 
                     className="flex-1 bg-transparent border-none pl-2 pr-14 md:pl-4 md:pr-16 text-white text-base md:text-xl !outline-none focus:!outline-none focus:ring-0 placeholder:text-white/20 font-medium appearance-none" 
                     style={{ WebkitTapHighlightColor: 'transparent', outline: 'none', boxShadow: 'none' }}
                   />
