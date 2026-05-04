@@ -11,10 +11,16 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
     }
   }, [show]);
 
-  // 고정된 단계 명칭 제거
+  // 사용자 요청 소제목으로 복구 (아이콘 제외)
   const getPhaseLabel = (index) => {
-    const labels = ["현상의 본질", "자본의 의도", "시장의 변곡점", "전략적 판단", "최종 제언"];
-    return labels[index] || "심층 분석";
+    const labels = [
+      "거시경제 시그널 감지",
+      "투자 논리 인과 관계 분석",
+      "시장 역학 및 변동성 진단",
+      "기관 자본 순환 경로 추적",
+      "최종 투자 전략 제언"
+    ];
+    return labels[index] || "심층 분석 인사이트";
   };
   // 어떤 데이터가 오든 강제로 문자열로 변환하여 에러 방지
   const safeText = String(text || "");
@@ -25,6 +31,10 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
   return (
     <div className={`relative flex flex-col items-center transition-all duration-1000 transform ${show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mx-auto mb-10 w-full max-w-2xl`}>
       <div className={`relative z-10 w-full bg-[#1e2533]/40 backdrop-blur-3xl border border-white/5 p-6 md:p-8 rounded-[32px] shadow-2xl ${isFinal ? 'border-primary/40 bg-primary/5' : ''}`}>
+        <div className="mb-3">
+          <span className="text-[11px] font-black text-primary/70 uppercase tracking-widest">{getPhaseLabel(index)}</span>
+        </div>
+        
         {isTyping && show ? (
           <div className="flex gap-1 py-2">
             <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce"></div>
