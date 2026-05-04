@@ -1116,7 +1116,7 @@ function App() {
                 <h3 className="text-lg md:text-4xl font-extrabold text-on-surface font-headline">{activeEventsCount}</h3>
                 <p className="mt-1 text-[7px] md:text-xs text-primary flex items-center gap-0.5 md:gap-1">
                   <span className="material-symbols-outlined text-[10px] md:text-[14px]">sync</span>
-                  {scrapingStatus?.last_run ? new Date(scrapingStatus.last_run).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '오늘'}
+                  {scrapingStatus?.last_run ? new Date(scrapingStatus.last_run).toLocaleDateString('ko-KR', {month: '2-digit', day: '2-digit'}).replace('.','') + ' ' + new Date(scrapingStatus.last_run).toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'}) : '오늘'}
                 </p>
               </div>
 
