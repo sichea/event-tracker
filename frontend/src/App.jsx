@@ -333,6 +333,7 @@ function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [showContact, setShowContact] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const INFO_CONTENT = {
     about: {
@@ -388,6 +389,26 @@ function App() {
         {
           title: '접속 로그 활용',
           content: '서비스 개선을 위한 통계 목적으로만 익명의 접속 기록(IP, 브라우저 유형)을 활용하며, 이는 정기적으로 자동 파기됩니다.'
+        }
+      ]
+    },
+    terms: {
+      title: 'Terms of Service',
+      subtitle: '이용 약관 및 서비스 규칙',
+      icon: 'gavel',
+      accent: 'bg-amber-400/20 text-amber-400',
+      sections: [
+        {
+          title: '서비스의 목적',
+          content: 'RE:MEMBER는 투자 참고용 데이터를 제공하는 플랫폼입니다. 모든 정보는 실시간성이나 정확성을 100% 보장하지 않으며, 최종적인 투자 결정과 그에 따른 책임은 사용자 본인에게 있습니다.'
+        },
+        {
+          title: '이용 제한 및 금지사항',
+          content: '본 서비스가 제공하는 콘텐츠의 무단 복제, 배포 또는 비정상적인 수단을 이용한 데이터 수집(크롤링 등) 행위는 엄격히 금지됩니다.'
+        },
+        {
+          title: '면책 조항',
+          content: '시스템 점검, 서버 오류 또는 데이터 소스의 문제로 발생한 정보의 지연이나 누락에 대해 운영 측은 어떠한 법적 책임도 지지 않습니다.'
         }
       ]
     }
@@ -1327,6 +1348,10 @@ function App() {
                 Privacy
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>
               </button>
+              <button className="hover:text-primary transition-all relative group py-1" onClick={() => setShowTerms(true)}>
+                Terms
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>
+              </button>
             </div>
             
             <div className="flex flex-col items-start md:items-end gap-1">
@@ -1372,6 +1397,7 @@ function App() {
       <InfoModal isOpen={showAbout} onClose={() => setShowAbout(false)} type="about" />
       <InfoModal isOpen={showContact} onClose={() => setShowContact(false)} type="contact" />
       <InfoModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} type="privacy" />
+      <InfoModal isOpen={showTerms} onClose={() => setShowTerms(false)} type="terms" />
 
       {/* FAB */}
       {(selectedProvider || selectedStatus === "참여 목록" || selectedStatus === "마감 임박") && (
