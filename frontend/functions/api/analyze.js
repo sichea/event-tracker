@@ -39,7 +39,7 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({
         ...cachedResult.result,
         is_cached: true,
-        user_remaining: 5 - uCount,
+        user_remaining: 50 - uCount,
         model: "Cached"
       }), {
         headers: { "Content-Type": "application/json" }
@@ -62,7 +62,7 @@ export async function onRequestPost(context) {
     
     // 에러 응답 시에도 현재 남은 횟수를 알려줌
     if (globalRemaining <= 0) {
-      return new Response(JSON.stringify({ error: "시스템 에너지가 부족합니다.", user_remaining: 5 - userCount }), { status: 429 });
+      return new Response(JSON.stringify({ error: "시스템 에너지가 부족합니다.", user_remaining: 50 - userCount }), { status: 429 });
     }
     if (userCount >= 50) {
       return new Response(JSON.stringify({ error: "내 에너지가 부족합니다. (일 50회)", user_remaining: 0 }), { status: 429 });
@@ -109,7 +109,7 @@ export async function onRequestPost(context) {
       ...resultJson,
       is_cached: false,
       remaining: globalRemaining - 1,
-      user_remaining: 5 - newUserCount,
+      user_remaining: 50 - newUserCount,
       model: "Gemini 2.5 Flash"
     }), {
       headers: { "Content-Type": "application/json" }
