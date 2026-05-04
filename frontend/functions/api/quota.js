@@ -19,12 +19,12 @@ export async function onRequestGet(context) {
 
     return new Response(JSON.stringify({
       global_remaining: globalData ? globalData.remaining_count : 500,
-      user_remaining: 50 - (userData ? userData.count : 0)
+      user_remaining: 5 - (userData ? userData.count : 0)
     }), {
       headers: { "Content-Type": "application/json" }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ global_remaining: 500, user_remaining: 50 }), {
+    return new Response(JSON.stringify({ global_remaining: 500, user_remaining: 5 }), {
       headers: { "Content-Type": "application/json" }
     });
   }
