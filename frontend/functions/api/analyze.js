@@ -64,8 +64,8 @@ export async function onRequestPost(context) {
     if (globalRemaining <= 0) {
       return new Response(JSON.stringify({ error: "시스템 에너지가 부족합니다.", user_remaining: 5 - userCount }), { status: 429 });
     }
-    if (userCount >= 5) {
-      return new Response(JSON.stringify({ error: "내 에너지가 부족합니다. (일 5회)", user_remaining: 0 }), { status: 429 });
+    if (userCount >= 50) {
+      return new Response(JSON.stringify({ error: "내 에너지가 부족합니다. (일 50회)", user_remaining: 0 }), { status: 429 });
     }
 
     // [3] AI 호출

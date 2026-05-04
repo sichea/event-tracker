@@ -137,7 +137,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
               <div className="flex flex-col items-center gap-2.5 opacity-40 hover:opacity-100 transition-all duration-500">
                 <div className="flex flex-col items-center gap-1.5">
                   <div className="flex items-center gap-2 text-[9px] font-black tracking-[0.2em] uppercase text-white/60">My Energy</div>
-                  <div className="flex gap-1.5">{[...Array(5)].map((_, i) => <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${i < userRemaining ? 'bg-primary shadow-[0_0_8px_rgba(115,255,186,0.6)]' : 'bg-white/10'}`} />)}</div>
+                  <div className="flex gap-1">{[...Array(10)].map((_, i) => <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${i < (userRemaining / 5) ? 'bg-primary shadow-[0_0_8px_rgba(115,255,186,0.6)]' : 'bg-white/10'}`} />)}</div>
                 </div>
                 <div className="flex flex-col items-center gap-1">
                   <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase">
