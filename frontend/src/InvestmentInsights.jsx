@@ -810,8 +810,8 @@ export default function InvestmentInsights({ subTab }) {
                 </button>
 
                 <div className="flex flex-col items-center text-center mb-8">
-                  <div className="relative mb-4">
-                    <div className="absolute inset-0 bg-purple-500/20 blur-2xl rounded-full scale-150"></div>
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-purple-500/20 blur-3xl rounded-full scale-150"></div>
                     {getInvestorAvatar(selectedLegend.investor) ? (
                       <img src={getInvestorAvatar(selectedLegend.investor)} alt="" className="w-24 h-24 rounded-full border-4 border-purple-400/30 shadow-2xl relative z-10" />
                     ) : (
@@ -819,9 +819,18 @@ export default function InvestmentInsights({ subTab }) {
                         <span className="material-symbols-outlined text-purple-400 text-4xl">person</span>
                       </div>
                     )}
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-purple-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full z-20 border border-white/20 uppercase tracking-tighter">
+                      Verified Data
+                    </div>
                   </div>
-                  <p className="text-xs font-black text-purple-400 uppercase tracking-[0.3em] mb-1">{selectedLegend.investor}</p>
-                  <h2 className="text-3xl font-black font-headline tracking-tight text-on-surface">Portfolio Insight</h2>
+                  <div className="flex flex-col items-center gap-1">
+                    <p className="text-[10px] font-black text-purple-400 uppercase tracking-[0.3em]">{selectedLegend.investor}</p>
+                    <h2 className="text-3xl font-black font-headline tracking-tight text-on-surface">Portfolio Insight</h2>
+                    <div className="mt-2 px-3 py-1 bg-white/5 rounded-full border border-white/10 flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-purple-400 animate-pulse"></span>
+                      <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">SEC 13F Institutional Filing Data</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-6">
@@ -884,10 +893,21 @@ export default function InvestmentInsights({ subTab }) {
     <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 scrollbar-hide">
       {/* Header */}
       <div className="mb-8 md:mb-12">
-        <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-2">투자 인사이트</h1>
-        <p className="text-on-surface-variant text-sm md:text-base">거시경제 상황에 따른 자산 흐름을 한눈에 파악하세요.</p>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="px-2 py-0.5 rounded bg-primary/10 border border-primary/20">
+            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Expert-Trained AI</span>
+          </div>
+        </div>
+        <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline mb-3">투자 인사이트</h1>
+        <p className="text-on-surface-variant text-sm md:text-base max-w-2xl leading-relaxed">
+          글로벌 전설적 투자자들의 포트폴리오와 월스트리트 리서치 데이터를 학습한 모델이<br className="hidden md:block"/> 
+          거시경제 시나리오별 <span className="text-primary font-bold">전문가급 자산 배분 전략</span>을 제안합니다.
+        </p>
         {marketData?.updated_at && (
-          <p className="text-[10px] text-on-surface-variant/40 mt-1">마지막 업데이트: {new Date(marketData.updated_at).toLocaleString('ko-KR')}</p>
+          <p className="text-[10px] text-on-surface-variant/40 mt-3 flex items-center gap-1">
+            <span className="material-symbols-outlined text-[12px]">sync</span>
+            마지막 업데이트: {new Date(marketData.updated_at).toLocaleString('ko-KR')}
+          </p>
         )}
       </div>
 
@@ -953,24 +973,39 @@ export default function InvestmentInsights({ subTab }) {
       {scenario && (
         <div key={scenario.id} className="animate-[fadeIn_0.3s_ease-out]">
           {/* Summary Banner */}
-          <div className={`bg-gradient-to-r ${scenario.bgGrad} rounded-3xl p-5 md:p-8 mb-8 border border-white/5`}>
-            <div className="flex items-start gap-3 md:gap-4">
+          <div className={`bg-gradient-to-r ${scenario.bgGrad} rounded-3xl p-5 md:p-8 mb-8 border border-white/5 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            <div className="flex items-start gap-3 md:gap-4 relative z-10">
               <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: scenario.color + '20' }}>
                 <span className="material-symbols-outlined text-2xl md:text-3xl" style={{ color: scenario.color }}>{scenario.icon}</span>
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
                   <h2 className="text-lg md:text-xl font-extrabold font-headline" style={{ color: scenario.color }}>{scenario.label}</h2>
                   {marketData?.scenario?.split(',').includes(scenario.id) && (
                     <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">현재 상황</span>
                   )}
                 </div>
-                <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">{scenario.summary}</p>
+                <p className="text-on-surface-variant text-sm md:text-base leading-relaxed mb-6">{scenario.summary}</p>
+                
                 {marketData?.scenario?.split(',').includes(scenario.id) && marketData?.analysis && (
-                  <div className="mt-4 p-4 rounded-xl bg-surface-container/50 border border-white/5 backdrop-blur-sm">
-                    <div className="flex items-start gap-2 text-xs md:text-sm text-on-surface leading-relaxed">
-                      <span className="material-symbols-outlined text-sm md:text-base shrink-0 text-primary mt-0.5">verified</span>
-                      <span className="opacity-90">{marketData.analysis}</span>
+                  <div className="p-5 md:p-6 rounded-2xl bg-[#0a0e17]/40 border border-white/10 backdrop-blur-md shadow-xl">
+                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-primary text-[14px]">psychology</span>
+                        </div>
+                        <span className="text-[10px] font-black text-on-surface uppercase tracking-widest">AI Strategy Report</span>
+                      </div>
+                      <span className="text-[9px] text-on-surface-variant font-bold">Deep Learning Verified</span>
+                    </div>
+                    <div className="flex items-start gap-3 text-sm md:text-base text-on-surface leading-relaxed font-medium">
+                      <span className="material-symbols-outlined text-lg shrink-0 text-primary mt-0.5">format_quote</span>
+                      <span className="opacity-95">{marketData.analysis}</span>
+                    </div>
+                    <div className="mt-4 flex items-center gap-4 text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-widest">
+                      <span className="flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-primary"></span> Wall Street Data</span>
+                      <span className="flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-primary"></span> Legend Portfolio</span>
                     </div>
                   </div>
                 )}

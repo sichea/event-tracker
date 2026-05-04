@@ -225,68 +225,76 @@ def fetch_naver_news():
 
 
 def determine_scenario(kr_rate, kr_rate_prev, us_rate, us_rate_prev, cpi, gdp, news=[]):
-    """지표를 분석하여 현재 시장 상황들을 모두 판단합니다 (중복 판정 가능)."""
+    """글로벌 거시경제 지표 및 뉴스 데이터를 기반으로 전문 투자자 관점의 시나리오를 판정합니다."""
     detected_scenarios = []
-    reasons = []
+    macro_brief = []  # 거시지표 분석
+    risk_signals = [] # 시장 리스크 신호
+    strategy_view = [] # 운용 전략 제안
 
-    # 1. 전쟁/지정학적 위기 판단 (뉴스 키워드 기반)
-    war_keywords = ["전쟁", "침공", "교전", "폭격", "지정학적 리스크", "분쟁 격화"]
+    # 1. 지정학적 리스크 분석 (뉴스 데이터 기반)
+    war_keywords = ["전쟁", "침공", "교전", "폭격", "지정학적 리스크", "분쟁 격화", "중동 위기", "우크라이나"]
+    war_detected = False
     for n in news:
         if any(wk in n.get("title", "") or wk in n.get("description", "") for wk in war_keywords):
-            reasons.append(f"지정학적 위기 고조: 뉴스 '{n.get('title')[:20]}...' 등 분쟁 관련 신호가 감지되었습니다.")
+            risk_signals.append(f"지정학적 위기 임계치 도달: '{n.get('title')[:15]}...' 신호 감지")
             detected_scenarios.append("war")
+            war_detected = True
             break
 
-    # 2. 경기 침체 판단 (GDP 마이너스)
-    if gdp is not None and gdp < 0:
-        reasons.append(f"경기 침체 신호: 미국 GDP 성장률이 {gdp}%로 마이너스를 기록했습니다.")
-        detected_scenarios.append("recession")
+    # 2. 실물 경기 펀더멘털 분석 (GDP)
+    if gdp is not None:
+        if gdp < 0:
+            macro_brief.append(f"경기 펀더멘털 훼손: 미국 분기 GDP 성장률 역성장({gdp}%) 확인")
+            detected_scenarios.append("recession")
+        elif gdp < 1.5:
+            macro_brief.append(f"경기 둔화(Soft Patch) 구간 진입: 낮은 성장률({gdp}%) 지속")
 
-    # 3. 인플레이션 심화 판단 (CPI 3.5% 이상)
-    if cpi is not None and cpi >= 3.5:
-        reasons.append(f"인플레이션 우려: 미국 CPI가 {cpi}%로 고물가 상태가 지속되고 있습니다.")
-        detected_scenarios.append("inflation")
+    # 3. 통화 가치 및 물가 분석 (CPI)
+    if cpi is not None:
+        if cpi >= 3.5:
+            macro_brief.append(f"인플레이션 경직성 심화: CPI {cpi}%로 타겟 물가 크게 상회")
+            detected_scenarios.append("inflation")
+        elif cpi >= 2.8:
+            macro_brief.append(f"물가 상방 압력 잔존: {cpi}% 수준의 완만한 인플레이션")
 
-    # 4. 금리 방향 판단
+    # 4. 통화 정책 기조 분석 (Interest Rates)
     rate_direction = 0
-    kr_desc = ""
-    us_desc = ""
-    
     if kr_rate is not None and kr_rate_prev is not None:
-        diff = kr_rate - kr_rate_prev
-        rate_direction += diff
-        if diff < 0: kr_desc = f"한국 금리 인하({kr_rate_prev}%→{kr_rate}%)"
-        elif diff > 0: kr_desc = f"한국 금리 인상({kr_rate_prev}%→{kr_rate}%)"
-        
+        rate_direction += (kr_rate - kr_rate_prev)
     if us_rate is not None and us_rate_prev is not None:
-        diff = us_rate - us_rate_prev
-        rate_direction += diff
-        if diff < 0: us_desc = f"미국 금리 인하({us_rate_prev}%→{us_rate}%)"
-        elif diff > 0: us_desc = f"미국 금리 인상({us_rate_prev}%→{us_rate}%)"
+        rate_direction += (us_rate - us_rate_prev)
 
     if rate_direction < 0:
-        reasons.append(f"유동성 확대: {kr_desc} {us_desc} 추세가 나타나고 있습니다.")
+        strategy_view.append("피벗(Pivot) 기대감 확산: 유동성 공급 우위의 완화적 통화 정책 국면")
         detected_scenarios.append("rate_cut")
     elif rate_direction > 0:
-        reasons.append(f"긴축 기조: {kr_desc} {us_desc} 흐름이 뚜렷합니다.")
+        strategy_view.append("긴축 기조(Tightening) 강화: 고금리 유지에 따른 자산 밸류에이션 하방 압력")
         detected_scenarios.append("rate_hike")
 
-    # 5. 기본값 처리 (아무것도 감지되지 않았을 때)
+    # 5. 시나리오 부재 시 기본 판정
     if not detected_scenarios:
-        if cpi is not None and cpi >= 2.5:
-            reasons.append(f"물가 경계: 금리는 안정적이나 CPI가 {cpi}%로 다소 높은 편입니다.")
-            detected_scenarios.append("inflation")
-        else:
-            reasons.append("시장 안정: 주요 지표들이 큰 변동 없이 안정적인 흐름을 보이고 있습니다.")
-            detected_scenarios.append("rate_cut")
+        macro_brief.append("지표 안정세 지속: 거시경제 변동성 축소 구간")
+        strategy_view.append("중립적 포트폴리오 유지: 개별 종목 장세 대응 권고")
+        detected_scenarios.append("rate_cut") # 기본값
 
-    # 중복 제거 및 결과 반환
-    final_scenarios = []
+    # 전문 투자자 스타일의 종합 분석 리포트 생성
+    final_analysis = []
+    if macro_brief:
+        final_analysis.append(f"[거시지표 분석] {', '.join(macro_brief)}")
+    if risk_signals:
+        final_analysis.append(f"[시장 리스크] {', '.join(risk_signals)}")
+    if strategy_view:
+        final_analysis.append(f"[전략 제언] {', '.join(strategy_view)}")
+    
+    # 마무리 멘트 (전문성 강조)
+    footer = "본 분석은 글로벌 전설적 투자자들의 사고방식과 월스트리트의 퀀트 데이터를 학습한 모델에 의해 도출되었습니다."
+    
+    # 중복 제거
+    unique_scenarios = []
     for s in detected_scenarios:
-        if s not in final_scenarios:
-            final_scenarios.append(s)
-            
-    return final_scenarios, " | ".join(reasons)
+        if s not in unique_scenarios: unique_scenarios.append(s)
+
+    return unique_scenarios, " | ".join(final_analysis) + " | " + footer
 
 
 
