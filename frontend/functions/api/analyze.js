@@ -90,7 +90,7 @@ export async function onRequestPost(context) {
   "advice": "[회심의 통찰] 시장의 이면을 꿰뚫는 전략적 제언"
 }
 
-모든 답변은 한국어로 작성하며, 번호를 매기지 마세요. 볼드체(**) 등 마크다운 기호 없이 오직 텍스트로만 간결하고 날카롭게 답변하세요.`;
+**반드시 한국 시장(KOSPI/KOSDAQ) 종목과 글로벌 시장(NYSE/NASDAQ) 종목을 균형 있게 포함하세요.** 모든 답변은 한국어로 작성하며, 번호를 매기지 마세요. 볼드체(**) 등 마크다운 기호 없이 오직 텍스트로만 간결하고 날카롭게 답변하세요.`;
 
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
