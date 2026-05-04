@@ -79,7 +79,7 @@ export async function onRequestPost(context) {
 4. caution: 대중이 열광할 때 나타나는 '심리적 함정'이나 시장이 간과하고 있는 결정적 리스크 변수 2개를 지적하세요.
 5. advice: **[회심의 통찰]** 대중의 시각과 완전히 차별화되는 역발상적 제언을 한 문장으로 시작하여, 시장의 이면을 꿰뚫는 전략적 리포트를 작성하세요. 아무도 생각지 못한 날카로운 'Edge'를 반드시 포함하세요.
 
-모든 답변은 한국어로 작성하며, 날카롭고 직관적이며 전문가다운 격조 있는 문체를 유지하세요. 사용자에게 '머리를 탁 치는' 깨달음을 주는 것이 목표입니다.`;
+모든 답변은 한국어로 작성하며, 날카롭고 직관적이며 전문가다운 격조 있는 문체를 유지하세요. **강조를 위한 볼드체(**)나 기타 마크다운 기호는 절대 사용하지 마세요.** 오직 텍스트로만 답변하여 사용자에게 '머리를 탁 치는' 깨달음을 주는 것이 목표입니다.`;
 
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',

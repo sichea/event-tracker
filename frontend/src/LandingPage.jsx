@@ -20,10 +20,12 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
   ];
   const currentPhase = phases[index] || { label: "데이터 심층 분석", icon: "psychology" };
 
+  const cleanText = text.replace(/\*\*/g, '');
+
   return (
     <div className={`relative flex flex-col items-center transition-all duration-1000 transform ${show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mx-auto mb-8 w-full max-w-2xl`}>
-      <div className={`relative z-10 w-full bg-[#1e2533]/40 backdrop-blur-3xl border border-white/5 p-6 md:p-8 rounded-[24px] shadow-2xl ${isFinal ? 'border-primary/40 bg-primary/5' : ''}`}>
-        <div className="flex items-center gap-2.5 mb-4">
+      <div className={`relative z-10 w-full bg-[#1e2533]/40 backdrop-blur-3xl border border-white/5 p-5 md:p-6 rounded-[24px] shadow-2xl ${isFinal ? 'border-primary/40 bg-primary/5' : ''}`}>
+        <div className="flex items-center gap-2.5 mb-2.5">
           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
             <span className="material-symbols-outlined text-primary text-[14px] animate-pulse">{currentPhase.icon}</span>
           </div>
@@ -38,7 +40,7 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
           </div>
         ) : (
           <p className={`text-sm md:text-[15px] font-medium leading-relaxed tracking-tight ${isFinal ? 'text-primary' : 'text-white/80'}`}>
-            {text}
+            {cleanText}
           </p>
         )}
       </div>
