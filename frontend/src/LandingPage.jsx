@@ -167,6 +167,8 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                 >
                   {isAnalyzing ? (
                     <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
+                  ) : userRemaining <= 0 ? (
+                    <span className="material-symbols-outlined text-xl md:text-2xl opacity-40">lock</span>
                   ) : (
                     <span className="material-symbols-outlined text-xl md:text-2xl">arrow_forward</span>
                   )}
