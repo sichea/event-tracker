@@ -175,7 +175,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
 
             <div className="flex flex-col items-center gap-6 pt-4">
               <div className="flex gap-1.5">{[...Array(5)].map((_, i) => <div key={i} className={`w-1 h-1 rounded-full ${i < userRemaining ? 'bg-primary/60 shadow-[0_0_8px_rgba(115,255,186,0.3)]' : 'bg-white/10'}`} />)}</div>
-              <div className="text-[10px] font-bold tracking-[0.2em] text-white/20 uppercase">Available Energy: {userRemaining} / 5</div>
+              <div className="text-[10px] font-bold tracking-[0.2em] text-white/20 uppercase">My Energy: {Math.max(0, userRemaining)} / 5</div>
             </div>
           </div>
         ) : (
