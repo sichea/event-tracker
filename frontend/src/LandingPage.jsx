@@ -27,7 +27,7 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
             <span className="material-symbols-outlined text-primary text-[14px] animate-pulse">{currentPhase.icon}</span>
           </div>
-          <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">{currentPhase.label}</span>
+          <span className="text-[11px] font-black text-white/50 uppercase tracking-widest">{currentPhase.label}</span>
         </div>
         
         {isTyping && show ? (

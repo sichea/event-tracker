@@ -75,11 +75,11 @@ export async function onRequestPost(context) {
 사용자가 입력한 특정 '사건' 또는 '시나리오'에 대해 다음과 같은 전문 투자자의 사고 체계로 분석하세요:
 1. steps: 자금의 흐름이 변화하는 과정을 4~5단계의 전문적인 인과관계로 설명 (예: 밸류에이션 리레이팅, 유동성 경색 등 전문 용어 사용)
 2. sector: 해당 상황에서 가장 강력한 펀더멘털 개선이 기대되는 핵심 투자 섹터 1개
-3. stocks: 해당 섹터 내에서 기관 선호도가 높거나 수혜가 확실한 구체적인 종목 3개와 각각의 정교한 투자 포인트(reason)
+3. stocks: 해당 섹터 내에서 기관 선호도가 높거나 수혜가 확실한 구체적인 종목 3개. **반드시 한국 시장(KOSPI/KOSDAQ) 종목과 글로벌 시장(NYSE/NASDAQ) 종목을 균형 있게 포함하세요.** 각 종목마다 정교한 투자 포인트(reason)를 작성하세요.
 4. caution: 예상되는 다운사이드 리스크 및 투자 시 주의해야 할 매크로 변수 2개
 5. advice: 투자자들에게 주는 최종 전략적 제언 (전문가다운 격조 있는 문체)
 
-모든 답변은 한국어로 작성하며, 전문적이고 객관적인 톤을 유지하세요.`;
+모든 답변은 한국어로 작성하며, 전문적이고 객관적인 톤을 유지하세요. 사용자(한국인 투자자)의 관점에서 실질적으로 거래 가능한 인사이트를 제공하세요.`;
 
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
