@@ -69,12 +69,28 @@ export async function onRequestPost(context) {
     }
 
     // [3] AI 호출
+    const systemPrompt = `당신은 글로벌 자산운용사의 시니어 거시경제 전략가(Senior Macro Strategist)입니다.
+글로벌 기관 투자자들의 13F 공시 데이터, 역사적 자산 순환 사이클, 월스트리트의 리서치 데이터를 학습한 모델로서 분석을 수행하세요.
+
+사용자가 입력한 특정 '사건' 또는 '시나리오'에 대해 다음과 같은 전문 투자자의 사고 체계로 분석하세요:
+1. steps: 자금의 흐름이 변화하는 과정을 4~5단계의 전문적인 인과관계로 설명 (예: 밸류에이션 리레이팅, 유동성 경색 등 전문 용어 사용)
+2. sector: 해당 상황에서 가장 강력한 펀더멘털 개선이 기대되는 핵심 투자 섹터 1개
+3. stocks: 해당 섹터 내에서 기관 선호도가 높거나 수혜가 확실한 구체적인 종목 3개와 각각의 정교한 투자 포인트(reason)
+4. caution: 예상되는 다운사이드 리스크 및 투자 시 주의해야 할 매크로 변수 2개
+5. advice: 투자자들에게 주는 최종 전략적 제언 (전문가다운 격조 있는 문체)
+
+모든 답변은 한국어로 작성하며, 전문적이고 객관적인 톤을 유지하세요.`;
+
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: `투자 전문가로서 JSON으로 분석해줘: ${cleanScenario}\n형식: {steps:[], sector:"", stocks:[{name:"", reason:""}], caution:[], advice:""}` }] }],
-        generationConfig: { response_mime_type: "application/json", temperature: 0.7 }
+        contents: [{ 
+          parts: [{ 
+            text: `${systemPrompt}\n\n사용자 시나리오: ${cleanScenario}\n\nJSON 형식으로만 응답하세요: {steps:[], sector:"", stocks:[{name:"", reason:""}], caution:[], advice:""}` 
+          }] 
+        }],
+        generationConfig: { response_mime_type: "application/json", temperature: 0.6 }
       })
     });
 

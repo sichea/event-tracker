@@ -108,11 +108,15 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
             
             {/* Description Text */}
             <div className="flex flex-col items-center text-center space-y-4">
-              <p className="text-white/90 text-xl md:text-2xl font-black tracking-tight drop-shadow-2xl">
-                통찰력을 기르는 한 문장을 적어보세요.
+              <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-2 animate-pulse">
+                <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Institutional-Grade Analysis</span>
+              </div>
+              <p className="text-white/90 text-2xl md:text-3xl font-black tracking-tighter drop-shadow-2xl font-headline">
+                전문 투자자의 시각으로<br className="md:hidden"/> 시장의 변곡점을 분석하세요.
               </p>
-              <p className="text-white/40 text-sm md:text-base font-medium max-w-lg leading-relaxed">
-                AI가 복잡한 자금의 흐름을 추적하여 최적의 시나리오를 설계합니다.
+              <p className="text-white/40 text-sm md:text-base font-medium max-w-xl leading-relaxed">
+                글로벌 전설적 투자자들의 포트폴리오와 월스트리트 리서치 데이터를 학습한 AI가<br className="hidden md:block"/> 
+                당신이 입력한 시나리오에 따른 <span className="text-primary/80 font-bold">자금의 이동 경로</span>를 정밀 추적합니다.
               </p>
             </div>
 
@@ -140,8 +144,8 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                         onAnalyze(scenario);
                       }
                     }}
-                    placeholder="시장의 흐름을 바꿀 소식을 입력하세요..." 
-                    className="flex-1 bg-transparent border-none pl-2 pr-14 md:pl-4 md:pr-16 text-white text-base md:text-xl !outline-none focus:!outline-none focus:ring-0 placeholder:text-white/10 font-medium appearance-none" 
+                    placeholder="분석할 시장 이벤트나 시나리오를 입력하세요 (예: 연준의 금리 인하 가속화, 유가 급등 등)..." 
+                    className="flex-1 bg-transparent border-none pl-2 pr-14 md:pl-4 md:pr-16 text-white text-base md:text-xl !outline-none focus:!outline-none focus:ring-0 placeholder:text-white/20 font-medium appearance-none" 
                     style={{ WebkitTapHighlightColor: 'transparent', outline: 'none', boxShadow: 'none' }}
                   />
                 </div>
