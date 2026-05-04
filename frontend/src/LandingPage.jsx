@@ -18,28 +18,22 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
     { label: "기관 자본 순환 경로 추적", icon: "currency_exchange" },
     { label: "최종 투자 전략 리포트 도출", icon: "description" }
   ];
-  const currentPhase = phases[index] || { label: "데이터 심층 분석", icon: "psychology" };
-
-  const cleanText = text.replace(/\*\*/g, '');
+  // 1. , 1단계: , 2. , 2단계: 등 번호 및 서두 패턴 제거
+  const cleanText = text
+    .replace(/^\d+[\.\s단계:]+\s*/, '') // 시작 부분의 숫자/단계 표시 제거
+    .replace(/\*\*/g, ''); // 굵은 글씨 제거
 
   return (
-    <div className={`relative flex flex-col items-center transition-all duration-1000 transform ${show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mx-auto mb-8 w-full max-w-2xl`}>
-      <div className={`relative z-10 w-full bg-[#1e2533]/40 backdrop-blur-3xl border border-white/5 p-5 md:p-6 rounded-[24px] shadow-2xl ${isFinal ? 'border-primary/40 bg-primary/5' : ''}`}>
-        <div className="flex items-center gap-2.5 mb-2.5">
-          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
-            <span className="material-symbols-outlined text-primary text-[14px] animate-pulse">{currentPhase.icon}</span>
-          </div>
-          <span className="text-[11px] font-black text-white/50 uppercase tracking-widest">{currentPhase.label}</span>
-        </div>
-        
+    <div className={`relative flex flex-col items-center transition-all duration-1000 transform ${show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mx-auto mb-10 w-full max-w-2xl`}>
+      <div className={`relative z-10 w-full bg-[#1e2533]/40 backdrop-blur-3xl border border-white/5 p-6 md:p-8 rounded-[32px] shadow-2xl ${isFinal ? 'border-primary/40 bg-primary/5' : ''}`}>
         {isTyping && show ? (
-          <div className="flex gap-1 py-1">
-            <div className="w-1 h-1 bg-primary/60 rounded-full animate-bounce"></div>
-            <div className="w-1 h-1 bg-primary/60 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-            <div className="w-1 h-1 bg-primary/60 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+          <div className="flex gap-1 py-2">
+            <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce"></div>
+            <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+            <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0.4s]"></div>
           </div>
         ) : (
-          <p className={`text-sm md:text-[15px] font-medium leading-relaxed tracking-tight ${isFinal ? 'text-primary' : 'text-white/80'}`}>
+          <p className={`text-[16px] md:text-[18px] font-medium leading-relaxed tracking-tight ${isFinal ? 'text-primary' : 'text-white/90'}`}>
             {cleanText}
           </p>
         )}
