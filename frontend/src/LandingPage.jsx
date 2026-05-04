@@ -15,7 +15,16 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
     <div className={`relative flex flex-col items-center transition-all duration-1000 transform ${show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mx-auto mb-10 w-full max-w-sm md:max-w-lg`}>
       <div className={`relative z-10 w-full bg-[#1e2533]/80 backdrop-blur-3xl border border-white/10 p-5 md:p-6 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] ${isFinal ? 'border-primary/50 bg-primary/5 ring-4 ring-primary/10' : ''}`}>
         <div className="absolute -top-3 left-6 px-3 py-1 bg-black/40 backdrop-blur-xl border border-white/5 rounded-full text-[10px] font-black text-primary uppercase tracking-widest">
-          Step {index + 1}
+          {(() => {
+            const labels = [
+              "Phase 01: Macro Signal",
+              "Phase 02: Logic Chain",
+              "Phase 03: Market Dynamics",
+              "Phase 04: Capital Flow",
+              "Phase 05: Strategic View"
+            ];
+            return labels[index] || `Phase ${index + 1}`;
+          })()}
         </div>
         
         {isTyping && show ? (
