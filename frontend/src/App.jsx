@@ -684,31 +684,207 @@ function App() {
 
   if (!session) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-6">
-        <div className="bg-surface-container rounded-3xl p-8 w-full max-w-sm shadow-2xl">
-          <h1 className="text-2xl font-bold font-headline mb-6 text-center text-primary">ETF Event Tracker</h1>
-          <Auth 
-            supabaseClient={supabase} 
-            appearance={{ 
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: '#73ffba',
-                    brandAccent: '#64f0ac',
-                    inputText: '#ebedfb',
-                    inputPlaceholder: '#727581',
-                    inputLabelText: '#a7abb7',
-                    inputBackground: '#202633',
-                    inputBorder: '#444852',
+      <div className="min-h-screen bg-[#0a0e17] text-on-surface">
+        {/* ===== HERO SECTION ===== */}
+        <header className="relative overflow-hidden">
+          <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 blur-[100px] rounded-full pointer-events-none" />
+          
+          <nav className="relative z-10 flex justify-between items-center px-6 md:px-12 py-5">
+            <span className="text-2xl font-black tracking-tighter font-headline text-on-surface">RE:MEMBER</span>
+            <button onClick={() => document.getElementById('login-section')?.scrollIntoView({ behavior: 'smooth' })} className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-bold text-sm hover:shadow-[0_0_20px_rgba(115,255,186,0.3)] transition-all active:scale-95">
+              시작하기
+            </button>
+          </nav>
+
+          <div className="relative z-10 max-w-5xl mx-auto px-6 pt-16 pb-24 md:pt-24 md:pb-32 text-center">
+            <p className="text-[11px] font-black text-primary uppercase tracking-[0.3em] mb-6">Premium Investment Insights Platform</p>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black font-headline tracking-tight leading-[1.1] mb-8">
+              기록이 수익이 되는<br />
+              <span className="text-primary">투자 인사이트</span> 플랫폼
+            </h1>
+            <p className="text-base md:text-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed mb-10">
+              글로벌 전설적 투자자들의 포트폴리오와 월스트리트 리서치 데이터를 학습한 AI가 
+              시장의 변곡점과 자금의 이동 경로를 정밀 추적합니다. 
+              ETF 이벤트 관리부터 공모주 청약, 짠테크 자산 최적화까지 — 
+              스마트한 투자자를 위한 통합 인사이트를 경험하세요.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button onClick={() => document.getElementById('login-section')?.scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 bg-primary text-on-primary rounded-2xl font-bold text-base hover:shadow-[0_0_30px_rgba(115,255,186,0.3)] transition-all active:scale-95 flex items-center justify-center gap-2">
+                무료로 시작하기 <span className="material-symbols-outlined text-lg">arrow_forward</span>
+              </button>
+              <button onClick={() => document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 bg-white/5 text-on-surface rounded-2xl font-bold text-base border border-white/10 hover:bg-white/10 transition-all">
+                기능 둘러보기
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* ===== FEATURES SECTION ===== */}
+        <section id="features-section" className="relative py-20 md:py-28 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4">Core Features</p>
+              <h2 className="text-3xl md:text-4xl font-black font-headline tracking-tight mb-4">투자의 모든 순간을 함께합니다</h2>
+              <p className="text-on-surface-variant max-w-xl mx-auto">복잡한 투자 환경에서 가장 필요한 도구들을 하나의 플랫폼에 통합했습니다.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { icon: 'psychology', title: 'AI 매크로 분석', desc: '거시경제 시나리오를 입력하면 AI가 투자 논리, 시장 역학, 자본 순환 경로를 4단계로 분석하여 한국 및 글로벌 종목을 추천합니다.', accent: 'bg-primary/10 text-primary border-primary/20' },
+                { icon: 'monitoring', title: 'ETF 이벤트 트래커', desc: 'TIGER, KODEX, ACE 등 10개 운용사의 ETF 이벤트를 실시간으로 추적합니다. 계좌별 참여 관리와 마감 임박 알림으로 단 한 건도 놓치지 않습니다.', accent: 'bg-blue-400/10 text-blue-400 border-blue-400/20' },
+                { icon: 'payments', title: '공모주·아파트 청약', desc: '공모주의 청약 일정, 확정 공모가, 기관 경쟁률, 균등 청약 최소 증거금을 한눈에 확인합니다. 아파트 청약 일정까지 통합 관리합니다.', accent: 'bg-amber-400/10 text-amber-400 border-amber-400/20' },
+                { icon: 'account_balance_wallet', title: '짠테크 자산 최적화', desc: '파킹통장·CMA·MMF 등 무위험 자산의 금리를 실시간 비교하고, 최적의 파킹 전략을 도출합니다. 소액부터 시작하는 스마트 재테크의 시작입니다.', accent: 'bg-purple-400/10 text-purple-400 border-purple-400/20' },
+              ].map((f, i) => (
+                <article key={i} className="bg-surface-container rounded-3xl p-7 border border-white/5 hover:border-white/10 transition-all group">
+                  <div className={`w-12 h-12 rounded-2xl ${f.accent} border flex items-center justify-center mb-5`}>
+                    <span className="material-symbols-outlined text-2xl">{f.icon}</span>
+                  </div>
+                  <h3 className="text-lg font-bold font-headline mb-3">{f.title}</h3>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">{f.desc}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== INSIGHTS SAMPLE SECTION ===== */}
+        <section className="relative py-20 md:py-28 px-6 bg-surface-container/30">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-16">
+              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4">AI-Powered Analysis</p>
+              <h2 className="text-3xl md:text-4xl font-black font-headline tracking-tight mb-4">AI가 포착한 시장의 시그널</h2>
+              <p className="text-on-surface-variant max-w-xl mx-auto">Gemini 2.5 Flash 모델이 글로벌 매크로 데이터를 실시간 분석하여 투자 인사이트를 제공합니다.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { phase: '거시경제 시그널 감지', content: '미국 연준의 금리 정책, 글로벌 인플레이션 지표, 주요국 통화 정책 변화를 실시간으로 모니터링합니다. 금리 인하/인상 사이클의 전환점을 조기에 포착하여 선제적 포트폴리오 조정 기회를 제공합니다.' },
+                { phase: '투자 논리 인과 관계 분석', content: '거시경제 변수 간의 인과 관계를 AI가 추론합니다. 예를 들어 "달러 약세 → 원자재 강세 → 신흥국 수혜"와 같은 논리 체인을 자동 구성하여 투자 시나리오의 타당성을 검증합니다.' },
+                { phase: '시장 역학 및 변동성 진단', content: 'VIX 지수, 옵션 시장의 풋/콜 비율, 신용 스프레드 등 다양한 변동성 지표를 종합 진단합니다. 시장의 공포와 탐욕 수준을 정량화하여 진입/이탈 타이밍 판단을 보조합니다.' },
+                { phase: '기관 자본 순환 경로 추적', content: '국민연금, 블랙록 등 글로벌 기관 투자자의 자금 흐름을 추적합니다. 섹터별 순매수/순매도 데이터를 분석하여 "스마트 머니"가 향하는 방향을 시각화합니다.' },
+              ].map((item, i) => (
+                <article key={i} className="bg-[#1e2533]/40 backdrop-blur-xl rounded-3xl p-7 border border-white/5">
+                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-3">Phase {i + 1}</p>
+                  <h3 className="text-base font-bold font-headline mb-3">{item.phase}</h3>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">{item.content}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== HOW IT WORKS ===== */}
+        <section className="relative py-20 md:py-28 px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4">How It Works</p>
+              <h2 className="text-3xl md:text-4xl font-black font-headline tracking-tight mb-4">3단계로 시작하는 스마트 투자</h2>
+            </div>
+
+            <div className="space-y-8">
+              {[
+                { step: '01', title: '무료 계정 생성', desc: '이메일 하나로 30초 만에 가입이 완료됩니다. 별도의 개인정보 수집 없이 바로 서비스를 이용할 수 있습니다.' },
+                { step: '02', title: '투자 시나리오 입력', desc: '"미국 금리 인하 시 반도체 섹터 전망은?" 같은 한 문장을 입력하면 AI가 4단계 심층 분석을 시작합니다.' },
+                { step: '03', title: '인사이트 확인 및 행동', desc: '거시경제 진단부터 구체적인 종목 추천까지, 한국(KOSPI/KOSDAQ)과 글로벌(NYSE/NASDAQ) 시장을 아우르는 균형 잡힌 분석 결과를 확인하세요.' },
+              ].map((s, i) => (
+                <div key={i} className="flex gap-6 items-start">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                    <span className="text-primary font-black text-lg font-headline">{s.step}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold font-headline mb-2">{s.title}</h3>
+                    <p className="text-sm text-on-surface-variant leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== FAQ SECTION ===== */}
+        <section className="relative py-20 md:py-28 px-6 bg-surface-container/30">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-16">
+              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4">FAQ</p>
+              <h2 className="text-3xl md:text-4xl font-black font-headline tracking-tight mb-4">자주 묻는 질문</h2>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                { q: 'RE:MEMBER는 무료인가요?', a: '네, 기본 기능은 완전히 무료입니다. AI 분석 기능은 하루 5회까지 무료로 제공되며, 시스템 전체적으로 하루 500회의 분석 리소스가 운영됩니다.' },
+                { q: 'AI 분석의 정확도는 어느 정도인가요?', a: 'RE:MEMBER의 AI는 Google Gemini 2.5 Flash 모델을 기반으로 하며, 글로벌 매크로 데이터와 월스트리트 리서치를 학습하여 인사이트를 제공합니다. 다만 모든 투자 결정의 최종 책임은 사용자에게 있으며, AI 분석은 참고 자료로 활용하시기를 권장합니다.' },
+                { q: '어떤 종목을 추천하나요?', a: '한국 시장(KOSPI/KOSDAQ)과 글로벌 시장(NYSE/NASDAQ)의 종목을 균형 있게 추천합니다. 입력하신 매크로 시나리오에 가장 수혜를 받을 수 있는 섹터와 개별 종목을 AI가 선별합니다.' },
+                { q: 'ETF 이벤트 알림은 어떻게 받나요?', a: '계정 설정에서 푸시 알림을 활성화하면, 관심 있는 이벤트의 마감 임박 알림을 실시간으로 받을 수 있습니다. 현재 TIGER, KODEX, ACE 등 10개 주요 운용사를 지원합니다.' },
+                { q: '개인정보는 안전한가요?', a: '회원가입 시 최소한의 정보만을 요구하며, 수집된 이메일과 별명 정보는 서비스 제공 목적 외에 어떠한 경우에도 제3자에게 제공되지 않습니다. 모든 데이터는 암호화되어 관리됩니다.' },
+              ].map((faq, i) => (
+                <details key={i} className="bg-surface-container rounded-2xl border border-white/5 group">
+                  <summary className="p-5 cursor-pointer font-bold text-sm md:text-base flex items-center justify-between list-none">
+                    {faq.q}
+                    <span className="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
+                  </summary>
+                  <p className="px-5 pb-5 text-sm text-on-surface-variant leading-relaxed">{faq.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== LOGIN SECTION ===== */}
+        <section id="login-section" className="relative py-20 md:py-28 px-6">
+          <div className="max-w-sm mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-black font-headline tracking-tight mb-3">지금 시작하세요</h2>
+              <p className="text-sm text-on-surface-variant">이메일 하나로 프리미엄 투자 인사이트를 경험하세요.</p>
+            </div>
+            <div className="bg-surface-container rounded-3xl p-8 shadow-2xl border border-white/5">
+              <Auth 
+                supabaseClient={supabase} 
+                appearance={{ 
+                  theme: ThemeSupa,
+                  variables: {
+                    default: {
+                      colors: {
+                        brand: '#73ffba',
+                        brandAccent: '#64f0ac',
+                        inputText: '#ebedfb',
+                        inputPlaceholder: '#727581',
+                        inputLabelText: '#a7abb7',
+                        inputBackground: '#202633',
+                        inputBorder: '#444852',
+                      }
+                    }
                   }
-                }
-              }
-            }} 
-            theme="dark"
-            providers={[]} 
-          />
-        </div>
+                }} 
+                theme="dark"
+                providers={[]} 
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ===== PUBLIC FOOTER ===== */}
+        <footer className="border-t border-white/5 px-6 py-12">
+          <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div>
+              <p className="text-xl font-black font-headline tracking-tighter mb-2">RE:MEMBER</p>
+              <p className="text-xs text-on-surface-variant">기록이 수익이 되는 프리미엄 투자 인사이트 플랫폼</p>
+            </div>
+            <div className="flex items-center gap-8 text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+              <button className="hover:text-primary transition-colors" onClick={() => setShowAbout(true)}>About</button>
+              <button className="hover:text-primary transition-colors" onClick={() => setShowContact(true)}>Contact</button>
+              <button className="hover:text-primary transition-colors" onClick={() => setShowPrivacy(true)}>Privacy</button>
+              <button className="hover:text-primary transition-colors" onClick={() => setShowTerms(true)}>Terms</button>
+            </div>
+            <p className="text-[10px] text-white/20 font-bold tracking-widest uppercase">© 2026 RE:MEMBER. All rights reserved.</p>
+          </div>
+        </footer>
+
+        {/* Public Page Modals */}
+        <InfoModal isOpen={showAbout} onClose={() => setShowAbout(false)} type="about" />
+        <InfoModal isOpen={showContact} onClose={() => setShowContact(false)} type="contact" />
+        <InfoModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} type="privacy" />
+        <InfoModal isOpen={showTerms} onClose={() => setShowTerms(false)} type="terms" />
       </div>
     );
   }
