@@ -840,6 +840,44 @@ function App() {
             <div className="bg-surface-container rounded-3xl p-8 shadow-2xl border border-white/5">
               <Auth 
                 supabaseClient={supabase} 
+                localization={{
+                  variables: {
+                    sign_in: {
+                      email_label: '이메일 주소',
+                      password_label: '비밀번호',
+                      email_input_placeholder: '이메일을 입력하세요',
+                      password_input_placeholder: '비밀번호를 입력하세요',
+                      button_label: '로그인',
+                      loading_button_label: '로그인 중...',
+                      social_provider_text: '{{provider}} 계정으로 로그인',
+                      link_text: '이미 계정이 있으신가요? 로그인',
+                    },
+                    sign_up: {
+                      email_label: '이메일 주소',
+                      password_label: '비밀번호',
+                      email_input_placeholder: '이메일을 입력하세요',
+                      password_input_placeholder: '비밀번호를 입력하세요',
+                      button_label: '회원가입',
+                      loading_button_label: '가입 중...',
+                      social_provider_text: '{{provider}} 계정으로 가입',
+                      link_text: '계정이 없으신가요? 회원가입',
+                    },
+                    forgotten_password: {
+                      email_label: '이메일 주소',
+                      password_label: '비밀번호',
+                      email_input_placeholder: '이메일을 입력하세요',
+                      button_label: '비밀번호 재설정 메일 보내기',
+                      loading_button_label: '메일 발송 중...',
+                      link_text: '비밀번호를 잊으셨나요?',
+                    },
+                    update_password: {
+                      password_label: '새 비밀번호',
+                      password_input_placeholder: '새 비밀번호를 입력하세요',
+                      button_label: '비밀번호 업데이트',
+                      loading_button_label: '업데이트 중...',
+                    },
+                  },
+                }}
                 appearance={{ 
                   theme: ThemeSupa,
                   variables: {
