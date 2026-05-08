@@ -75,10 +75,10 @@ export async function onRequestPost(context) {
 사용자가 입력한 특정 '사건' 또는 '시나리오'에 대해 다음과 같은 4단계 구조의 JSON으로 분석 결과를 반환하세요:
 {
   "steps": [
-    "거시경제 시그널 감지 결과 (간결한 2문장)",
-    "투자 논리 인과 관계 분석 결과 (간결한 2문장)",
-    "시장 역학 및 변동성 진단 결과 (간결한 2문장)",
-    "기관 자본 순환 경로 추적 결과 (간결한 2문장)"
+    "단계별 분석 본문 (간결한 2문장)",
+    "단계별 분석 본문 (간결한 2문장)",
+    "단계별 분석 본문 (간결한 2문장)",
+    "단계별 분석 본문 (간결한 2문장)"
   ],
   "sector": "가장 유망한 섹터명",
   "stocks": [
@@ -90,7 +90,10 @@ export async function onRequestPost(context) {
   "advice": "[회심의 통찰] 시장의 이면을 꿰뚫는 전략적 제언"
 }
 
-**반드시 한국 시장(KOSPI/KOSDAQ) 종목과 글로벌 시장(NYSE/NASDAQ) 종목을 균형 있게 포함하세요.** 모든 답변은 한국어로 작성하며, 번호를 매기지 마세요. 볼드체(**) 등 마크다운 기호 없이 오직 텍스트로만 간결하고 날카롭게 답변하세요.`;
+**중요 지침:**
+1. 각 step의 본문 처음에 '거시경제 시그널 감지 결과:'와 같은 제목을 **절대로 포함하지 마세요.** 오직 핵심 분석 내용만 작성하세요.
+2. 반드시 한국 시장(KOSPI/KOSDAQ) 종목과 글로벌 시장(NYSE/NASDAQ) 종목을 균형 있게 포함하세요.
+3. 모든 답변은 한국어로 작성하며, 번호를 매기지 마세요. 볼드체(**) 등 마크다운 기호 없이 오직 텍스트로만 간결하고 날카롭게 답변하세요.`;
 
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
