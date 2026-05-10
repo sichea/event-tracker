@@ -287,8 +287,10 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                   <div className="flex gap-4">
                     <button 
                       onClick={() => {
-                        const text = `🦅 RE:MEMBER AI 투자 통찰\n\n🎯 유망 섹터: ${analysisResult?.sector}\n💡 제언: ${analysisResult?.advice?.slice(0, 60)}...\n\n#리멤버 #AI투자 #인사이트\n🔗 https://event-tracker-74j.pages.dev`;
-                        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                        const sectorName = analysisResult?.sector || '시장 분석';
+                        const text = `🎯 AI가 포착한 유망 섹터: ${sectorName}\n\nRE:MEMBER의 AI 투자 통찰로 확인해보세요.\n\n#리멤버 #AI투자 #투자인사이트`;
+                        const url = 'https://event-tracker-74j.pages.dev';
+                        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
                       }}
                       className="flex items-center gap-3 px-6 py-3 bg-white/[0.03] hover:bg-white/[0.08] rounded-2xl border border-white/10 transition-all group"
                     >
