@@ -279,6 +279,33 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                       )) || <p className="text-xs text-white/20">리스크 분석 정보를 불러올 수 없습니다.</p>}
                     </div>
                   </div>
+                {/* Share Section */}
+                <div className="flex flex-col items-center gap-6 pt-10 pb-20 border-t border-white/5">
+                  <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Share Insights</p>
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={() => {
+                        const text = `🦅 RE:MEMBER AI 투자 통찰\n\n🎯 유망 섹터: ${analysisResult?.sector}\n💡 제언: ${analysisResult?.advice?.slice(0, 60)}...\n\n#리멤버 #AI투자 #인사이트\n🔗 https://event-tracker-74j.pages.dev`;
+                        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                      }}
+                      className="flex items-center gap-3 px-6 py-3 bg-white/[0.03] hover:bg-white/[0.08] rounded-2xl border border-white/10 transition-all group"
+                    >
+                      <svg className="w-4 h-4 fill-white/40 group-hover:fill-white" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                      <span className="text-xs font-bold text-white/40 group-hover:text-white">Share on X</span>
+                    </button>
+                    
+                    <button 
+                      onClick={() => {
+                        const text = `[RE:MEMBER AI 투자 리포트]\n\n■ 분석 시나리오: ${scenario}\n■ 유망 섹터: ${analysisResult?.sector}\n■ 핵심 제언: ${analysisResult?.advice}\n\n추천 종목:\n${analysisResult?.stocks?.map(s => `- ${typeof s === 'string' ? s : s.name}: ${typeof s === 'string' ? '' : s.reason}`).join('\n')}\n\n🔗 자세히 보기: https://event-tracker-74j.pages.dev`;
+                        navigator.clipboard.writeText(text);
+                        alert("분석 결과가 클립보드에 복사되었습니다.");
+                      }}
+                      className="flex items-center gap-3 px-6 py-3 bg-white/[0.03] hover:bg-white/[0.08] rounded-2xl border border-white/10 transition-all group"
+                    >
+                      <span className="material-symbols-outlined text-white/40 group-hover:text-white text-lg">content_copy</span>
+                      <span className="text-xs font-bold text-white/40 group-hover:text-white">Copy Report</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
