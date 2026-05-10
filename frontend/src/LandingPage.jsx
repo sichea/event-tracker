@@ -279,8 +279,10 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                       )) || <p className="text-xs text-white/20">리스크 분석 정보를 불러올 수 없습니다.</p>}
                     </div>
                   </div>
+                </div>
+
                 {/* Share Section */}
-                <div className="flex flex-col items-center gap-6 pt-10 pb-20 border-t border-white/5">
+                <div className="flex flex-col items-center gap-6 pt-10 pb-20 border-t border-white/5 mt-10">
                   <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Share Insights</p>
                   <div className="flex gap-4">
                     <button 
