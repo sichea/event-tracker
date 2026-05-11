@@ -467,31 +467,6 @@ function OilExpertAnalyzer() {
             </div>
           </div>
 
-          {/* Evidence Links */}
-          <div className="bg-surface-container border border-white/5 rounded-[2.5rem] p-8 shadow-xl">
-            <h3 className="text-lg font-black font-headline mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">link</span> 근거 자료 및 링크
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {analysisData.links.map((link, i) => (
-                <a 
-                  key={i} 
-                  href={link.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="p-5 rounded-2xl bg-surface-container-highest border border-white/5 hover:border-primary/40 hover:bg-primary/5 transition-all group flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/20">
-                      <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary">description</span>
-                    </div>
-                    <span className="text-sm font-bold text-on-surface">{link.label}</span>
-                  </div>
-                  <span className="material-symbols-outlined text-on-surface-variant/30 group-hover:text-primary group-hover:translate-x-1 transition-all">arrow_forward</span>
-                </a>
-              ))}
-            </div>
-          </div>
 
           {/* Source & Disclaimer */}
           <div className="mt-12 pt-8 border-t border-white/5 space-y-6">
