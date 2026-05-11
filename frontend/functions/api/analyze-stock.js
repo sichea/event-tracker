@@ -48,43 +48,43 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "오늘 분석 횟수(5회)를 모두 사용하셨습니다." }), { status: 429 });
     }
 
-    // [3] AI 호출 (Gemini 2.5 Flash)
-    const systemPrompt = `당신은 '오일전문가'의 투자 철학을 완벽하게 학습한 가치투자 분석가입니다.
-사용자가 입력한 '기업명'에 대해 다음 13가지 평가 기준을 바탕으로 [저평가 우량주] 여부를 판독하세요.
+    // [3] AI 호출 (Gemini 2.5 Flash + Real-time Search)
+    const systemPrompt = `당신은 '오일전문가'의 투자 철학을 가진 전문 퀀트 분석가입니다.
+반드시 **실시간 웹 검색(Google Search)**을 수행하여 해당 기업의 최신 재무 지표와 최근 1년 내 공시(배당, 자사주 소각 등)를 확인한 후 분석하세요.
 
-**평가 기준 및 가중치:**
-1. PER (20점): <5(20), <8(15), <10(10), >10(5)
-2. PBR (5점): <0.3(5), <0.6(4), <1.0(3), >1.0(0)
-3. 이익지속가능성 (5점): 지속가능(5), 불안정(0)
-4. 중복상장여부 (5점): 단독상장(5), 중복상장(0)
-5. 배당수익률 (10점): >7%(10), >5%(7), >3%(5), <3%(2)
-6. 분기배당여부 (5점): 실시(5), 미실시(0)
-7. 배당연속인상 (5점): 10년+(5), 5년+(4), 3년+(3), 해당없음(0)
-8. 자사주 매입/소각 (7점): 실시(7), 미실시(0)
-9. 연간 소각비율 (8점): >2%(8), >1.5%(5), >0.5%(3), <0.5%(0)
-10. 자사주 보유비율 (5점): 없음(5), <2%(4), <5%(2), >5%(0)
-11. 미래 성장 잠재력 (10점): 매우높음(10), 높음(7), 보통(5), 낮음(3)
-12. 기업 경영 (10점): 우수(10), 전문경영(5), 오너리스크(0)
-13. 세계적 브랜드 (5점): 보유(5), 미보유(0)
+**분석 필수 항목:**
+1. PER/PBR: 최신 분기 실적 및 현재 주가 기준
+2. 배당: 최근 결산 배당금 및 분기 배당 실시 여부, 연속 인상 연수
+3. 자사주: 최근 1년 내 매입/소각 공시 금액 및 발행주식수 대비 비율
+4. 기업 경영: 오너 리스크 여부 및 경영진 평가
+5. 브랜드: 글로벌 시장 점유율 및 브랜드 인지도
 
-**응답 형식 (JSON):**
+**응답 형식 (반드시 다음 키 명칭을 엄격히 준수할 것):**
 {
   "name": "기업명",
   "scores": {
-    "per": {"val": "실제값", "opt": "선택지텍스트", "score": 점수},
-    ... (13개 항목 모두 포함)
+    "per": {"val": "수치", "opt": "선택지", "score": 점수},
+    "pbr": {"val": "수치", "opt": "선택지", "score": 점수},
+    "sustainability": {"val": "설명", "opt": "선택지", "score": 점수},
+    "double_listing": {"val": "설명", "opt": "선택지", "score": 점수},
+    "dividend_yield": {"val": "수치%", "opt": "선택지", "score": 점수},
+    "quarterly_dividend": {"val": "실시여부", "opt": "선택지", "score": 점수},
+    "dividend_growth": {"val": "연수", "opt": "선택지", "score": 점수},
+    "buyback_cancellation": {"val": "실시여부", "opt": "선택지", "score": 점수},
+    "cancellation_ratio": {"val": "비율%", "opt": "선택지", "score": 점수},
+    "treasury_ratio": {"val": "비율%", "opt": "선택지", "score": 점수},
+    "growth": {"val": "설명", "opt": "선택지", "score": 점수},
+    "management": {"val": "설명", "opt": "선택지", "score": 점수},
+    "brand": {"val": "설명", "opt": "선택지", "score": 점수}
   },
   "links": [
-    {"label": "재무제표 (네이버증권)", "url": "https://finance.naver.com/item/main.naver?code=종목코드"},
-    {"label": "공시정보 (DART)", "url": "https://dart.fss.or.kr/"},
-    {"label": "최신 뉴스 분석", "url": "https://search.naver.com/search.naver?query=기업명+분석"}
+    {"label": "네이버증권 상세", "url": "정확한 상세페이지 URL"},
+    {"label": "DART 공시지표", "url": "DART 검색결과 URL"},
+    {"label": "기업 분석 리포트", "url": "최신 뉴스 또는 리서치 URL"}
   ]
 }
 
-**주의:** 
-- 반드시 실시간 재무 지표와 최근 공시(자사주 소각 등)를 바탕으로 분석하세요.
-- 종목 코드를 모를 경우 검색 결과에 기반하여 정확한 네이버 증권 링크를 생성하세요.
-- JSON 형식으로만 응답하세요.`;
+**주의:** '데이터 없음'이라는 답변은 절대 금지입니다. 검색을 통해 최대한 근접한 수치를 찾아내어 점수를 부여하세요.`;
 
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -92,10 +92,11 @@ export async function onRequestPost(context) {
       body: JSON.stringify({
         contents: [{ 
           parts: [{ 
-            text: `${systemPrompt}\n\n분석할 기업명: ${cleanName}` 
+            text: `${systemPrompt}\n\n분석 대상 기업: ${cleanName}` 
           }] 
         }],
-        generationConfig: { response_mime_type: "application/json", temperature: 0.2 }
+        tools: [{ google_search_retrieval: {} }],
+        generationConfig: { response_mime_type: "application/json", temperature: 0.1 }
       })
     });
 
