@@ -303,20 +303,17 @@ function OilExpertAnalyzer() {
     e?.preventDefault();
     if (!companyName.trim()) return;
     setIsLoading(true);
-    
     try {
       const response = await fetch('/api/analyze-stock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: companyName, expert: 'oil' })
       });
-      
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || '분석 실패');
       setAnalysisData(data);
     } catch (err) {
-      console.error(err);
-      alert(`분석 중 오류가 발생했습니다: ${err.message}`);
+      alert(`분석 오류: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -333,36 +330,24 @@ function OilExpertAnalyzer() {
 
   const copySummary = () => {
     if (!analysisData || !analysisData.scores) return;
-    try {
-      const s = analysisData.scores;
-      const summary = `[${analysisData.name}] 결과: PER ${s.per?.val || '-'} | PBR ${s.pbr?.val || '-'} | 이익지속성 ${s.sustainability?.opt || '-'} | 중복상장 ${s.double_listing?.opt || '-'} | 배당수익률 ${s.dividend_yield?.val || '-'} | 분기배당 ${s.quarterly_dividend?.opt || '-'} | 배당인상연수 ${s.dividend_growth?.opt || '-'} | 자사주매입소각 ${s.buyback_cancellation?.opt || '-'} | 연간소각비율 ${s.cancellation_ratio?.opt || '-'} | 자사주보유비율 ${s.treasury_ratio?.opt || '-'} | 미래성장 ${s.growth?.opt || '-'} | 기업경영 ${s.management?.opt || '-'} | 브랜드 ${s.brand?.opt || '-'}`;
-      navigator.clipboard.writeText(summary);
-      alert("분석 결과가 클립보드에 복사되었습니다.");
-    } catch (e) {
-      alert("요약 복사 중 오류가 발생했습니다.");
-    }
+    const s = analysisData.scores;
+    const text = "[" + analysisData.name + "] 결과: PER " + (s.per?.val || '-') + " | PBR " + (s.pbr?.val || '-') + " | 배당수익률 " + (s.dividend_yield?.val || '-') + " | 점수: " + totalScore + "점";
+    navigator.clipboard.writeText(text).then(() => alert("요약 정보가 복사되었습니다.")).catch(() => alert("복사 실패"));
   };
 
   return (
     <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 relative">
-      {/* Background Effects (Matching Insights Style) */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 blur-[120px] rounded-full" />
-        
         {!analysisData && !isLoading && (
           <div className="absolute inset-0 flex items-center justify-center opacity-[0.08] animate-in fade-in duration-1000">
-            <img 
-              src="/images/stock_robot.png" 
-              alt="" 
-              className="w-full max-w-4xl h-[60vh] object-contain filter invert grayscale brightness-150 contrast-125"
-            />
+            <img src="/images/stock_robot.png" alt="" className="w-full max-w-4xl h-[60vh] object-contain filter invert grayscale brightness-150 contrast-125" />
           </div>
         )}
       </div>
 
       <div className="relative z-10">
-        {/* Header */}
         <div className="mb-8 md:mb-12">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
@@ -373,61 +358,29 @@ function OilExpertAnalyzer() {
               <p className="text-on-surface-variant text-sm md:text-base">오일전문가님의 100점 만점 투자평가표 기준 자동 분석</p>
             </div>
           </div>
-
-          <form onSubmit={handleAnalyze} className="relative max-w-xl group">
-            <input 
-              type="text" 
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="기업명을 입력하세요 (예: 삼성전자, 현대차)" 
-              className="w-full bg-surface-container rounded-[2rem] px-8 py-5 pr-16 text-lg font-bold focus:ring-2 focus:ring-primary/50 outline-none border border-white/5 focus:border-primary transition-all shadow-2xl"
-            />
-            <button 
-              type="submit"
-              disabled={isLoading}
-              className="absolute right-3 top-3 w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg"
-            >
-              {isLoading ? (
-                <div className="w-6 h-6 border-3 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
-              ) : (
-                <span className="material-symbols-outlined">search</span>
-              )}
+          <form onSubmit={handleAnalyze} className="relative max-w-xl">
+            <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="기업명을 입력하세요 (예: 삼성전자, 현대차)" className="w-full bg-surface-container rounded-[2rem] px-8 py-5 pr-16 text-lg font-bold focus:ring-2 focus:ring-primary/50 outline-none border border-white/5 shadow-2xl" />
+            <button type="submit" disabled={isLoading} className="absolute right-3 top-3 w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center hover:scale-105 transition-all">
+              {isLoading ? <div className="w-6 h-6 border-3 border-on-primary/30 border-t-on-primary rounded-full animate-spin" /> : <span className="material-symbols-outlined">search</span>}
             </button>
           </form>
         </div>
 
         {analysisData && analysisData.scores && (
           <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-            {/* Summary Line */}
             <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 relative group/summary">
               <div className="overflow-x-auto scrollbar-hide pr-12">
                 <p className="text-sm font-bold text-primary whitespace-nowrap">
-                  [{analysisData.name}] 결과: 
-                  PER {analysisData.scores.per?.val || '-'} | 
-                  PBR {analysisData.scores.pbr?.val || '-'} | 
-                  이익지속성 {analysisData.scores.sustainability?.opt || '-'} | 
-                  중복상장 {analysisData.scores.double_listing?.opt || '-'} | 
-                  배당수익률 {analysisData.scores.dividend_yield?.val || '-'} | 
-                  분기배당 {analysisData.scores.quarterly_dividend?.opt || '-'} | 
-                  배당인상연수 {analysisData.scores.dividend_growth?.opt || '-'} | 
-                  자사주매입소각 {analysisData.scores.buyback_cancellation?.opt || '-'} | 
-                  연간소각비율 {analysisData.scores.cancellation_ratio?.opt || '-'} | 
-                  자사주보유비율 {analysisData.scores.treasury_ratio?.opt || '-'} | 
-                  미래성장 {analysisData.scores.growth?.opt || '-'} | 
-                  경영 {analysisData.scores.management?.opt || '-'} | 
-                  브랜드 {analysisData.scores.brand?.opt || '-'}
+                  [{analysisData.name}] 결과: PER {analysisData.scores.per?.val || '-'} | PBR {analysisData.scores.pbr?.val || '-'} | 배당수익률 {analysisData.scores.dividend_yield?.val || '-'} | 총점: {totalScore}점
                 </p>
               </div>
-              <button 
-                onClick={() => setAnalysisData(null)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-primary/40 hover:text-primary transition-colors"
-              >
-                <span className="material-symbols-outlined text-xl">close</span>
-              </button>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <button onClick={copySummary} className="text-primary/40 hover:text-primary transition-colors"><span className="material-symbols-outlined text-xl">content_copy</span></button>
+                <button onClick={() => setAnalysisData(null)} className="text-primary/40 hover:text-primary transition-colors"><span className="material-symbols-outlined text-xl">close</span></button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Score Card */}
               <div className="bg-surface-container border border-white/5 rounded-[2.5rem] p-8 shadow-xl flex flex-col items-center justify-center text-center">
                 <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-8">Investment Grade</p>
                 <div className="relative mb-8">
@@ -441,7 +394,6 @@ function OilExpertAnalyzer() {
                 <p className="text-sm font-bold text-on-surface leading-relaxed px-4">{gradeLabel}</p>
               </div>
 
-              {/* Detail Scores */}
               <div className="md:col-span-2 bg-surface-container border border-white/5 rounded-[2.5rem] p-8 shadow-xl">
                 <h3 className="text-lg font-black font-headline mb-6 flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">analytics</span> 항목별 세부 점수
@@ -466,29 +418,21 @@ function OilExpertAnalyzer() {
               </div>
             </div>
 
-            {/* Source & Disclaimer */}
             <div className="mt-12 pt-8 border-t border-white/5 space-y-6">
               <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12">
                 <div className="flex flex-col items-center">
                   <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-3">Analysis Source</p>
                   <div className="flex items-center gap-4">
-                    <a href="https://www.youtube.com/@oilprof" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-red-400 transition-colors">
-                      <span className="material-symbols-outlined text-base">video_library</span> YouTube
-                    </a>
-                    <a href="https://blog.naver.com/oilpro1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-green-400 transition-colors">
-                      <span className="material-symbols-outlined text-base">rss_feed</span> Blog
-                    </a>
-                    <a href="https://cafe.naver.com/oilpro1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-blue-400 transition-colors">
-                      <span className="material-symbols-outlined text-base">groups</span> Cafe
-                    </a>
+                    <a href="https://www.youtube.com/@oilprof" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-red-400">YouTube</a>
+                    <a href="https://blog.naver.com/oilpro1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-green-400">Blog</a>
+                    <a href="https://cafe.naver.com/oilpro1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-blue-400">Cafe</a>
                   </div>
                 </div>
               </div>
-
               <div className="max-w-2xl mx-auto p-5 rounded-2xl bg-error/5 border border-error/10">
                 <p className="text-[10px] md:text-xs text-on-surface-variant/80 text-center leading-relaxed">
                   <span className="text-error font-black block mb-1">⚠️ 투자 유의 사항</span>
-                  본 서비스에서 제공하는 분석 결과는 오일전문가님의 투자 평가표 기준에 따른 참고용 데이터이며, 실제 투자에 대한 최종 결정과 책임은 투자자 본인에게 있습니다. 과거의 수익률이 미래의 수익을 보장하지 않습니다.
+                  본 서비스에서 제공하는 분석 결과는 오일전문가님의 투자 평가표 기준에 따른 참고용 데이터이며, 투자에 대한 책임은 본인에게 있습니다.
                 </p>
               </div>
             </div>
