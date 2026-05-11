@@ -346,16 +346,25 @@ function OilExpertAnalyzer() {
     }
   };
 
-  const totalScore = analysisData ? Object.values(analysisData.scores).reduce((acc, curr) => acc + curr.score, 0) : 0;
+  const totalScore = useMemo(() => {
+    if (!analysisData || !analysisData.scores) return 0;
+    return Object.values(analysisData.scores).reduce((acc, curr) => acc + (curr?.score || 0), 0);
+  }, [analysisData]);
+
   const grade = totalScore >= 80 ? 'A' : totalScore >= 70 ? 'B' : totalScore >= 50 ? 'C' : 'D';
   const gradeLabel = totalScore >= 80 ? '오일전문가 강력 추천: 명품 저평가 우량주입니다.' : totalScore >= 70 ? '우량주 후보군: 긍정적인 투자 검토가 필요합니다.' : totalScore >= 50 ? '보통 수준: 추가적인 모멘텀 확인이 필요합니다.' : '투자 주의: 오일전문가 기준에 부합하지 않습니다.';
   const gradeColor = grade === 'A' ? 'text-red-400' : grade === 'B' ? 'text-orange-400' : grade === 'C' ? 'text-blue-400' : 'text-on-surface-variant';
 
   const copySummary = () => {
-    if (!analysisData) return;
-    const summary = `[${analysisData.name}] 결과: PER ${analysisData.scores.per.val} | PBR ${analysisData.scores.pbr.val} | 이익지속성 ${analysisData.scores.sustainability.opt} | 중복상장 ${analysisData.scores.double_listing.opt} | 배당수익률 ${analysisData.scores.dividend_yield.val} | 분기배당 ${analysisData.scores.quarterly_dividend.opt} | 배당인상연수 ${analysisData.scores.dividend_growth.opt} | 자사주매입소각 ${analysisData.scores.buyback_cancellation.opt} | 연간소각비율 ${analysisData.scores.cancellation_ratio.opt} | 자사주보유비율 ${analysisData.scores.treasury_ratio.opt} | 미래성장 ${analysisData.scores.growth.opt} | 기업경영 ${analysisData.scores.management.opt} | 브랜드 ${analysisData.scores.brand.opt}`;
-    navigator.clipboard.writeText(summary);
-    alert("분석 결과가 클립보드에 복사되었습니다.");
+    if (!analysisData || !analysisData.scores) return;
+    try {
+      const s = analysisData.scores;
+      const summary = `[${analysisData.name}] 결과: PER ${s.per?.val || '-'} | PBR ${s.pbr?.val || '-'} | 이익지속성 ${s.sustainability?.opt || '-'} | 중복상장 ${s.double_listing?.opt || '-'} | 배당수익률 ${s.dividend_yield?.val || '-'} | 분기배당 ${s.quarterly_dividend?.opt || '-'} | 배당인상연수 ${s.dividend_growth?.opt || '-'} | 자사주매입소각 ${s.buyback_cancellation?.opt || '-'} | 연간소각비율 ${s.cancellation_ratio?.opt || '-'} | 자사주보유비율 ${s.treasury_ratio?.opt || '-'} | 미래성장 ${s.growth?.opt || '-'} | 기업경영 ${s.management?.opt || '-'} | 브랜드 ${s.brand?.opt || '-'}`;
+      navigator.clipboard.writeText(summary);
+      alert("분석 결과가 클립보드에 복사되었습니다.");
+    } catch (e) {
+      alert("요약 복사 중 오류가 발생했습니다.");
+    }
   };
 
   return (
@@ -394,26 +403,26 @@ function OilExpertAnalyzer() {
         </form>
       </div>
 
-      {analysisData && (
+      {analysisData && analysisData.scores && (
         <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
           {/* Summary Line (Requested) */}
           <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 relative group/summary">
             <div className="overflow-x-auto scrollbar-hide pr-12">
               <p className="text-sm font-bold text-primary whitespace-nowrap">
                 [{analysisData.name}] 결과: 
-                PER {analysisData.scores.per.val} | 
-                PBR {analysisData.scores.pbr.val} | 
-                이익지속성 {analysisData.scores.sustainability.opt} | 
-                중복상장 {analysisData.scores.double_listing.opt} | 
-                배당수익률 {analysisData.scores.dividend_yield.val} | 
-                분기배당 {analysisData.scores.quarterly_dividend.opt} | 
-                배당인상연수 {analysisData.scores.dividend_growth.opt} | 
-                자사주매입소각 {analysisData.scores.buyback_cancellation.opt} | 
-                연간소각비율 {analysisData.scores.cancellation_ratio.opt} | 
-                자사주보유비율 {analysisData.scores.treasury_ratio.opt} | 
-                미래성장 {analysisData.scores.growth.opt} | 
-                기업경영 {analysisData.scores.management.opt} | 
-                브랜드 {analysisData.scores.brand.opt}
+                PER {analysisData.scores.per?.val || '-'} | 
+                PBR {analysisData.scores.pbr?.val || '-'} | 
+                이익지속성 {analysisData.scores.sustainability?.opt || '-'} | 
+                중복상장 {analysisData.scores.double_listing?.opt || '-'} | 
+                배당수익률 {analysisData.scores.dividend_yield?.val || '-'} | 
+                분기배당 {analysisData.scores.quarterly_dividend?.opt || '-'} | 
+                배당인상연수 {analysisData.scores.dividend_growth?.opt || '-'} | 
+                자사주매입소각 {analysisData.scores.buyback_cancellation?.opt || '-'} | 
+                연간소각비율 {analysisData.scores.cancellation_ratio?.opt || '-'} | 
+                자사주보유비율 {analysisData.scores.treasury_ratio?.opt || '-'} | 
+                미래성장 {analysisData.scores.growth?.opt || '-'} | 
+                기업경영 {analysisData.scores.management?.opt || '-'} | 
+                브랜드 {analysisData.scores.brand?.opt || '-'}
               </p>
             </div>
             <button 
@@ -443,7 +452,7 @@ function OilExpertAnalyzer() {
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {criteria.map((c) => {
-                  const userScore = analysisData.scores[c.id];
+                  const userScore = analysisData.scores[c.id] || { opt: '데이터 없음', score: 0 };
                   return (
                     <div key={c.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-between hover:bg-white/10 transition-all">
                       <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-tight mb-1">{c.label}</p>
