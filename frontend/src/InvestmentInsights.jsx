@@ -317,30 +317,7 @@ function OilExpertAnalyzer() {
       setAnalysisData(data);
     } catch (err) {
       console.error(err);
-      // 예시 데이터로 대체 (데모용)
-      setAnalysisData({
-        name: companyName,
-        scores: {
-          per: { val: '8.2', opt: '<10', score: 10 },
-          pbr: { val: '0.45', opt: '<0.6', score: 4 },
-          sustainability: { opt: '대체로 지속 가능', score: 5 },
-          double_listing: { opt: '단독 상장', score: 5 },
-          dividend_yield: { val: '4.8%', opt: '>3%', score: 5 },
-          quarterly_dividend: { opt: '예', score: 5 },
-          dividend_growth: { opt: '5년 이상', score: 4 },
-          buyback_cancellation: { opt: '예', score: 7 },
-          cancellation_ratio: { opt: '>1.5%', score: 5 },
-          treasury_ratio: { opt: '<2%', score: 4 },
-          growth: { opt: '높다', score: 7 },
-          management: { opt: '우수한경영자', score: 10 },
-          brand: { opt: '없다', score: 0 },
-        },
-        links: [
-          { label: '재무제표 (네이버증권)', url: `https://finance.naver.com/search/search.naver?query=${companyName}` },
-          { label: '공시자료 (DART)', url: `https://dart.fss.or.kr/dsab001/main.do?textCrpNm=${companyName}` },
-          { label: '배당정보 (세이브로)', url: `https://seibro.or.kr/` }
-        ]
-      });
+      alert(`분석 중 오류가 발생했습니다: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
