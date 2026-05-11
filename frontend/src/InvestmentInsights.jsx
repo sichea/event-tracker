@@ -341,8 +341,8 @@ function OilExpertAnalyzer() {
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 blur-[120px] rounded-full" />
         {!analysisData && !isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.08] animate-in fade-in duration-1000">
-            <img src="/images/stock_robot.png" alt="" className="w-full max-w-4xl h-[60vh] object-contain filter invert grayscale brightness-150 contrast-125" />
+          <div className="absolute inset-0 flex items-center justify-center opacity-[0.12] animate-in fade-in duration-1000">
+            <img src="/images/thinking_robot.png" alt="" className="w-full max-w-4xl h-[65vh] object-contain filter invert grayscale brightness-150 contrast-125 drop-shadow-[0_0_30px_rgba(34,197,94,0.2)]" />
           </div>
         )}
       </div>
