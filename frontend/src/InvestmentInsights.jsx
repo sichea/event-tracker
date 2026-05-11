@@ -458,6 +458,9 @@ function OilExpertAnalyzer() {
                   );
                 })}
               </div>
+              <p className="mt-6 text-[10px] text-on-surface-variant/50 text-center">
+                ※ AI 분석 결과는 실제 데이터와 차이가 있을 수 있으며, 최종 투자 결정은 본인의 책임하에 진행하시기 바랍니다.
+              </p>
             </div>
           </div>
 

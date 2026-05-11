@@ -45,32 +45,31 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "오늘 분석 횟수(1000회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429 });
     }
 
-    // [3] AI 호출 (Gemini 2.5 Flash - JSON 모드)
-    const systemPrompt = `당신은 '오일전문가'의 투자 철학을 가진 전문 주식 분석가입니다.
-분석 대상 기업에 대해 다음 13개 항목을 평가하여 JSON 형식으로 응답하세요.
+**채점 규칙 (반드시 준수):**
+1. PER (20점): <5(20), <8(15), <10(10), >10(5)
+2. PBR (5점): <0.3(5), <0.6(4), <1.0(3), >1.0(0)
+3. 이익지속성 (5점): 대체로 지속 가능(5), 불안정한 이익 창출력(0)
+4. 중복상장 (5점): 단독 상장(5), 중복 상장(0)
+5. 배당수익률 (10점): >7%(10), >5%(7), >3%(5), <3%(2)
+6. 분기배당 (5점): 예(5), 아니오(0)
+7. 배당연속인상 (5점): 10년 이상(5), 5년 이상(4), 3년 이상(3), 해당 없음(0)
+8. 자사주 매입/소각 (7점): 예(7), 아니오(0)
+9. 연간소각비율 (8점): >2%(8), >1.5%(5), >0.5%(3), <0.5%(0)
+10. 자사주보유비율 (5점): 없음(5), <2%(4), <5%(2), >5%(0)
+11. 미래성장성 (10점): 매우 높다(10), 높다(7), 보통(5), 낮음(3)
+12. 기업경영 (10점): 우수한경영자(10), 전문 경영자(5), 오너리스크(0)
+13. 세계적브랜드 (5점): 있다(5), 없다(0)
 
+**응답 형식 (JSON):**
 {
   "name": "기업명",
   "scores": {
-    "per": {"val": "8.2", "opt": "<10", "score": 10},
-    "pbr": {"val": "0.45", "opt": "<0.6", "score": 4},
-    "sustainability": {"val": "지속가능성 설명", "opt": "대체로 지속 가능", "score": 5},
-    "double_listing": {"val": "상장여부 설명", "opt": "단독 상장", "score": 5},
-    "dividend_yield": {"val": "4.5%", "opt": ">3%", "score": 5},
-    "quarterly_dividend": {"val": "실시여부", "opt": "예", "score": 5},
-    "dividend_growth": {"val": "연속인상수", "opt": "5년 이상", "score": 4},
-    "buyback_cancellation": {"val": "실시여부", "opt": "예", "score": 7},
-    "cancellation_ratio": {"val": "소각비율", "opt": ">1.5%", "score": 5},
-    "treasury_ratio": {"val": "보유비율", "opt": "<2%", "score": 4},
-    "growth": {"val": "성장성 설명", "opt": "높다", "score": 7},
-    "management": {"val": "경영평가", "opt": "우수한경영자", "score": 10},
-    "brand": {"val": "브랜드평가", "opt": "있다", "score": 5}
+    "per": {"val": "수치", "opt": "선택지", "score": 점수},
+    ... (위 13개 키 모두 포함)
   }
 }
 
-**주의사항:**
-1. 반드시 위 JSON 구조를 100% 준수하며 다른 텍스트는 포함하지 마세요.
-2. 모든 항목에 대해 오일전문가 기준의 가장 적절한 점수와 선택지를 부여하세요.`;
+**주의:** 선택한 옵션(opt)과 부여한 점수(score)가 위 채점 규칙과 반드시 일치해야 합니다.`;
 
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
