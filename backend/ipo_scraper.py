@@ -113,172 +113,118 @@ def normalize_for_matching(n):
     return n
 
 
+import urllib.request
+import ssl
+from bs4 import BeautifulSoup
+
+def get_soup(url):
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    ctx.set_ciphers('DEFAULT@SECLEVEL=1')
+    html_bytes = urllib.request.urlopen(req, context=ctx).read()
+    html = html_bytes.decode('euc-kr', errors='ignore')
+    return BeautifulSoup(html, 'html.parser')
+
 async def scrape_ipo() -> list[dict]:
     """38커뮤니케이션에서 공모주 청약 일정 및 상장 일정을 수집합니다."""
     events = []
     
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page()
+    try:
+        print("[IPO] 청약 일정 스크래핑 시작...")
+        soup1 = get_soup('https://www.38.co.kr/html/fund/index.htm?o=k')
+        subscription_rows = []
+        for table in soup1.find_all('table'):
+            if '종목명' in table.text and ('공모주일정' in table.text or '공모청약일정' in table.text):
+                for tr in table.find_all('tr'):
+                    cells = [td.text.strip() for td in tr.find_all(['td', 'th'])]
+                    if len(cells) >= 6 and '~' in cells[1] and cells[0] not in ['종목명', '기업명', '']:
+                        subscription_rows.append({
+                            'name': cells[0], 'dates': cells[1], 'confirmed_price': cells[2],
+                            'desired_price': cells[3], 'competition': cells[4], 'lead_manager': cells[5]
+                        })
         
-        try:
-            # 1. 청약 일정 수집 (메인 및 스팩)
-            print("[IPO] 청약 일정 스크래핑 시작...")
-            await page.goto(
-                'https://www.38.co.kr/html/fund/index.htm?o=k',
-                wait_until='networkidle',
-                timeout=30000
-            )
-            await page.wait_for_timeout(2000)
+        print("[IPO] 상장 일정 스크래핑 시작...")
+        soup2 = get_soup('https://www.38.co.kr/html/fund/index.htm?o=nw')
+        listing_rows = []
+        for table in soup2.find_all('table'):
+            if '신규상장일' in table.text:
+                for tr in table.find_all('tr'):
+                    cells = [td.text.strip() for td in tr.find_all(['td', 'th'])]
+                    import re
+                    if len(cells) >= 2 and cells[0] != '기업명' and len(cells[0]) < 20 and re.match(r'^\d{4}[\.\/]\d{2}[\.\/]\d{2}$', cells[1]):
+                        listing_rows.append({'name': cells[0], 'date': cells[1]})
+                break
+
+        print(f"[IPO] {len(subscription_rows)}개 청약 종목, {len(listing_rows)}개 상장 일정 확인")
+
+        # 상장 일정 맵핑 준비
+        listing_map = {}
+        for l in listing_rows:
+            l_date = l["date"].replace('/', '-').replace('.', '-')
+            listing_map[normalize_for_matching(l["name"])] = l_date
+
+        today = date.today()
+        
+        for row in subscription_rows:
+            name = row["name"]
+            # 헤더나 쓰레기 데이터 필터링
+            if "청약일정" in name or "상장일정" in name or name == "종목명":
+                continue
             
-            subscription_rows = await page.evaluate('''
-            () => {
-                const results = [];
-                const tables = document.querySelectorAll('table');
-                
-                for (let table of tables) {
-                    const headers = Array.from(table.querySelectorAll('tr')).map(tr => 
-                        Array.from(tr.querySelectorAll('td, th')).map(td => td.innerText.trim())
-                    );
-                    
-                    // 종목명, 공모주일정 등이 포함된 헤더 행이 있는지 확인
-                    const hasTargetHeader = headers.some(row => 
-                        row.includes('종목명') && (row.includes('공모주일정') || row.includes('공모청약일정'))
-                    );
-                    
-                    if (hasTargetHeader) {
-                        table.querySelectorAll('tr').forEach(tr => {
-                            const cells = Array.from(tr.querySelectorAll('td, th')).map(td => td.innerText.trim());
-                            // 데이터 행 필터링: 종목명이 있고, 날짜 형식(~)이 포함된 경우
-                            if (cells.length >= 6 && !['종목명', '기업명', ''].includes(cells[0]) && cells[0].length < 30 && cells[1].includes('~')) {
-                                results.push({
-                                    name: cells[0],
-                                    dates: cells[1],
-                                    confirmed_price: cells[2],
-                                    desired_price: cells[3],
-                                    competition: cells[4],
-                                    lead_manager: cells[5]
-                                });
-                            }
-                        });
-                    }
-                }
-                return results;
+            dates = parse_subscription_dates(row["dates"])
+            status = determine_ipo_status(dates["start"], dates["end"])
+            
+            # 상장일 찾기 (정규화 매칭)
+            listing_date = None
+            norm_name = normalize_for_matching(name)
+            
+            if norm_name in listing_map:
+                listing_date = listing_map[norm_name]
+            else:
+                # 부분 일치 검색
+                for l_norm, l_date in listing_map.items():
+                    if l_norm and norm_name and (norm_name in l_norm or l_norm in norm_name):
+                        listing_date = l_date
+                        break
+
+            # 청약마감된 것 중 3개월 이상 지난 건 제외
+            if status == "청약마감" and dates["end"]:
+                try:
+                    end_dt = datetime.strptime(dates["end"], "%Y-%m-%d").date()
+                    if (today - end_dt).days > 90:
+                        continue
+                except: pass
+            
+            min_amt = calculate_min_amount(name, row["confirmed_price"], row["desired_price"])
+
+            event_id = generate_ipo_id(name, dates["start"])
+            event = {
+                "id": event_id,
+                "company_name": name,
+                "subscription_start": dates["start"] or None,
+                "subscription_end": dates["end"] or None,
+                "listing_date": listing_date,
+                "confirmed_price": row["confirmed_price"] if row["confirmed_price"] != '-' else None,
+                "desired_price": row["desired_price"] if row["desired_price"] != '-' else None,
+                "competition_rate": row["competition"] if row["competition"] else None,
+                "lead_manager": row["lead_manager"],
+                "min_subscription_amount": min_amt,
+                "status": status,
+                "scraped_at": datetime.now().isoformat(),
             }
-            ''')
             
-            # 2. 상장 일정 수집 (전용 페이지)
-            print("[IPO] 상장 일정 스크래핑 시작...")
-            await page.goto(
-                'https://www.38.co.kr/html/fund/index.htm?o=nw',
-                wait_until='networkidle',
-                timeout=30000
-            )
-            await page.wait_for_timeout(2000)
-            
-            listing_rows = await page.evaluate('''
-            () => {
-                const results = [];
-                const tables = document.querySelectorAll('table');
-                for (let t of tables) {
-                    if (t.innerText.includes('기업명') && t.innerText.includes('신규상장일')) {
-                        t.querySelectorAll('tr').forEach(tr => {
-                            const cells = Array.from(tr.querySelectorAll('td')).map(td => td.innerText.trim());
-                            // 기업명이 너무 길거나(20자 이상), 날짜 형식이 아니면 무시 (YYYY.MM.DD 또는 YYYY/MM/DD 지원)
-                            if (cells.length >= 2 && cells[0] !== '기업명' && cells[0].length < 20 && cells[0] !== '' && /^\d{4}[\.\/]\d{2}[\.\/]\d{2}$/.test(cells[1])) {
+            # 중복 제거 (이미 추가된 ID면 건너뜀)
+            if not any(e["id"] == event_id for e in events):
+                events.append(event)
+                print(f"  [IPO] {name} | 청약: {dates['start']}~{dates['end']} | 상장: {listing_date} | {status}")
 
-                                results.push({
-                                    name: cells[0],
-                                    date: cells[1]
-                                });
-                            }
-
-                        });
-                        break;
-                    }
-                }
-                return results;
-            }
-            ''')
-            
-            print(f"[IPO] 상장 일정 데이터: {listing_rows}")
-            print(f"[IPO] {len(subscription_rows)}개 청약 종목, {len(listing_rows)}개 상장 일정 확인")
-
-            
-            # 상장 일정 맵핑 준비
-            listing_map = {}
-            for l in listing_rows:
-                # 2026/04/23 -> 2026-04-23 변환
-                l_date = l["date"].replace('/', '-')
-                listing_map[normalize_for_matching(l["name"])] = l_date
-
-            today = date.today()
-            
-            for row in subscription_rows:
-                name = row["name"]
-                # 헤더나 쓰레기 데이터 필터링
-                if "청약일정" in name or "상장일정" in name or name == "종목명":
-                    continue
-                
-                dates = parse_subscription_dates(row["dates"])
-                status = determine_ipo_status(dates["start"], dates["end"])
-                
-                # 상장일 찾기 (정규화 매칭)
-                listing_date = None
-                norm_name = normalize_for_matching(name)
-                
-                if norm_name in listing_map:
-                    listing_date = listing_map[norm_name]
-                else:
-                    # 부분 일치 검색 (히어로스팩 vs 스팩 등 대응)
-                    for l_norm, l_date in listing_map.items():
-                        if l_norm and norm_name and (norm_name in l_norm or l_norm in norm_name):
-                            listing_date = l_date
-                            break
-                
-                if "키움" in name:
-                    pass
-
-
-                # 청약마감된 것 중 3개월 이상 지난 건 제외
-                if status == "청약마감" and dates["end"]:
-                    try:
-                        end_dt = datetime.strptime(dates["end"], "%Y-%m-%d").date()
-                        if (today - end_dt).days > 90:
-                            continue
-                    except: pass
-                
-                min_amt = calculate_min_amount(name, row["confirmed_price"], row["desired_price"])
-
-                event_id = generate_ipo_id(name, dates["start"])
-                event = {
-                    "id": event_id,
-                    "company_name": name,
-                    "subscription_start": dates["start"] or None,
-                    "subscription_end": dates["end"] or None,
-                    "listing_date": listing_date,
-                    "confirmed_price": row["confirmed_price"] if row["confirmed_price"] != '-' else None,
-                    "desired_price": row["desired_price"] if row["desired_price"] != '-' else None,
-                    "competition_rate": row["competition"] if row["competition"] else None,
-                    "lead_manager": row["lead_manager"],
-                    "min_subscription_amount": min_amt,
-                    "status": status,
-                    "scraped_at": datetime.now().isoformat(),
-                }
-                
-                # 중복 제거 (이미 추가된 ID면 건너뜀)
-                if not any(e["id"] == event_id for e in events):
-                    events.append(event)
-                    print(f"  [IPO] {name} | 청약: {dates['start']}~{dates['end']} | 상장: {listing_date} | {status}")
-
-            
-        except Exception as e:
-            print(f"[IPO] 스크래핑 오류: {e}")
-            import traceback
-            traceback.print_exc()
-        finally:
-            await browser.close()
-    
+    except Exception as e:
+        print(f"[IPO] 스크래핑 오류: {e}")
+        import traceback
+        traceback.print_exc()
+        
     return events
 
 
