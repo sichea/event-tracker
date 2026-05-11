@@ -45,6 +45,8 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "오늘 분석 횟수(1000회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429 });
     }
 
+    const systemPrompt = `당신은 '오일전문가'의 투자 철학을 완벽하게 이해하는 주식 분석 비서입니다. 제공된 기업의 정보를 바탕으로 아래 13가지 항목에 대해 점수를 산출하세요.
+
 **채점 규칙 (반드시 준수):**
 1. PER (20점): <5(20), <8(15), <10(10), >10(5)
 2. PBR (5점): <0.3(5), <0.6(4), <1.0(3), >1.0(0)
