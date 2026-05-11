@@ -1055,6 +1055,10 @@ function App() {
                 <span className="material-symbols-outlined text-xl">military_tech</span>
                 <span className="font-medium text-sm">글로벌 투자 전설</span>
               </button>
+              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("oil_expert"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'oil_expert' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+                <span className="material-symbols-outlined text-xl">fact_check</span>
+                <span className="font-medium text-sm">저평가 우량주 판독기</span>
+              </button>
             </>
           ) : activeTab === 'subscription' ? (
             <>

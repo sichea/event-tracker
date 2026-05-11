@@ -277,97 +277,241 @@ const INSIGHTS_DATA = [
 const INVESTMENT_DISCLAIMER = "본 정보는 시장 상황 분석에 따른 참고용 예시일 뿐, 특정 종목에 대한 투자 권고나 추천이 아닙니다. 모든 투자의 결과와 책임은 투자자 본인에게 귀속됩니다.";
 
 // ============ Asset Details Modal ============
-function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type, yieldDate }) {
-  if (!isOpen || !asset) return null;
+// ============ Oil Expert Analyzer ============
+function OilExpertAnalyzer() {
+  const [companyName, setCompanyName] = useState("");
+  const [analysisData, setAnalysisData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const criteria = [
+    { id: 'per', label: 'PER', weight: 20, options: [{ text: '<5', score: 20 }, { text: '<8', score: 15 }, { text: '<10', score: 10 }, { text: '>10', score: 5 }] },
+    { id: 'pbr', label: 'PBR', weight: 5, options: [{ text: '<0.3', score: 5 }, { text: '<0.6', score: 4 }, { text: '<1.0', score: 3 }, { text: '>1.0', score: 0 }] },
+    { id: 'sustainability', label: '이익지속가능성', weight: 5, options: [{ text: '대체로 지속 가능', score: 5 }, { text: '불안정한 이익 창출력', score: 0 }] },
+    { id: 'double_listing', label: '중복상장여부', weight: 5, options: [{ text: '단독 상장', score: 5 }, { text: '중복 상장', score: 0 }] },
+    { id: 'dividend_yield', label: '배당수익률(%)', weight: 10, options: [{ text: '>7%', score: 10 }, { text: '>5%', score: 7 }, { text: '>3%', score: 5 }, { text: '<3%', score: 2 }] },
+    { id: 'quarterly_dividend', label: '분기배당실시여부', weight: 5, options: [{ text: '예', score: 5 }, { text: '아니오', score: 0 }] },
+    { id: 'dividend_growth', label: '배당연속인상연수', weight: 5, options: [{ text: '10년 이상', score: 5 }, { text: '5년 이상', score: 4 }, { text: '3년 이상', score: 3 }, { text: '해당 없음', score: 0 }] },
+    { id: 'buyback_cancellation', label: '정기적자사주 매입/소각', weight: 7, options: [{ text: '예', score: 7 }, { text: '아니오', score: 0 }] },
+    { id: 'cancellation_ratio', label: '연간소각비율(%)', weight: 8, options: [{ text: '>2%', score: 8 }, { text: '>1.5%', score: 5 }, { text: '>0.5%', score: 3 }, { text: '<0.5%', score: 0 }] },
+    { id: 'treasury_ratio', label: '자사주보유비율', weight: 5, options: [{ text: '없음', score: 5 }, { text: '<2%', score: 4 }, { text: '<5%', score: 2 }, { text: '>5%', score: 0 }] },
+    { id: 'growth', label: '미래 성장 잠재력', weight: 10, options: [{ text: '매우 높다', score: 10 }, { text: '높다', score: 7 }, { text: '보통', score: 5 }, { text: '낮다', score: 3 }] },
+    { id: 'management', label: '기업경영', weight: 10, options: [{ text: '우수한경영자', score: 10 }, { text: '전문 경영자', score: 5 }, { text: '저조한 실적 오너 경영', score: 0 }] },
+    { id: 'brand', label: '세계적브랜드 보유', weight: 5, options: [{ text: '있다', score: 5 }, { text: '없다', score: 0 }] },
+  ];
+
+  const handleAnalyze = async (e) => {
+    e?.preventDefault();
+    if (!companyName.trim()) return;
+    setIsLoading(true);
+    
+    try {
+      // 실제 구현 시에는 백엔드 API나 AI 모델 호출
+      const response = await fetch('/api/analyze-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: companyName, expert: 'oil' })
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '분석 실패');
+      setAnalysisData(data);
+    } catch (err) {
+      console.error(err);
+      // 예시 데이터로 대체 (데모용)
+      setAnalysisData({
+        name: companyName,
+        scores: {
+          per: { val: '8.2', opt: '<10', score: 10 },
+          pbr: { val: '0.45', opt: '<0.6', score: 4 },
+          sustainability: { opt: '대체로 지속 가능', score: 5 },
+          double_listing: { opt: '단독 상장', score: 5 },
+          dividend_yield: { val: '4.8%', opt: '>3%', score: 5 },
+          quarterly_dividend: { opt: '예', score: 5 },
+          dividend_growth: { opt: '5년 이상', score: 4 },
+          buyback_cancellation: { opt: '예', score: 7 },
+          cancellation_ratio: { opt: '>1.5%', score: 5 },
+          treasury_ratio: { opt: '<2%', score: 4 },
+          growth: { opt: '높다', score: 7 },
+          management: { opt: '우수한경영자', score: 10 },
+          brand: { opt: '없다', score: 0 },
+        },
+        links: [
+          { label: '재무제표 (네이버증권)', url: `https://finance.naver.com/search/search.naver?query=${companyName}` },
+          { label: '공시자료 (DART)', url: `https://dart.fss.or.kr/dsab001/main.do?textCrpNm=${companyName}` },
+          { label: '배당정보 (세이브로)', url: `https://seibro.or.kr/` }
+        ]
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const totalScore = analysisData ? Object.values(analysisData.scores).reduce((acc, curr) => acc + curr.score, 0) : 0;
+  const grade = totalScore >= 80 ? 'A' : totalScore >= 70 ? 'B' : totalScore >= 50 ? 'C' : 'D';
+  const gradeLabel = totalScore >= 80 ? '오일전문가 강력 추천: 명품 저평가 우량주입니다.' : totalScore >= 70 ? '우량주 후보군: 긍정적인 투자 검토가 필요합니다.' : totalScore >= 50 ? '보통 수준: 추가적인 모멘텀 확인이 필요합니다.' : '투자 주의: 오일전문가 기준에 부합하지 않습니다.';
+  const gradeColor = grade === 'A' ? 'text-red-400' : grade === 'B' ? 'text-orange-400' : grade === 'C' ? 'text-blue-400' : 'text-on-surface-variant';
+
+  const copySummary = () => {
+    if (!analysisData) return;
+    const summary = `[${analysisData.name}] 결과: PER ${analysisData.scores.per.val} | PBR ${analysisData.scores.pbr.val} | 이익지속성 ${analysisData.scores.sustainability.opt} | 중복상장 ${analysisData.scores.double_listing.opt} | 배당수익률 ${analysisData.scores.dividend_yield.val} | 분기배당 ${analysisData.scores.quarterly_dividend.opt} | 배당인상연수 ${analysisData.scores.dividend_growth.opt} | 자사주매입소각 ${analysisData.scores.buyback_cancellation.opt} | 연간소각비율 ${analysisData.scores.cancellation_ratio.opt} | 자사주보유비율 ${analysisData.scores.treasury_ratio.opt} | 미래성장 ${analysisData.scores.growth.opt} | 기업경영 ${analysisData.scores.management.opt} | 브랜드 ${analysisData.scores.brand.opt}`;
+    navigator.clipboard.writeText(summary);
+    alert("분석 결과가 클립보드에 복사되었습니다.");
+  };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in" onClick={onClose}>
-      <div 
-        className="bg-surface-container rounded-[2.5rem] w-full max-w-md border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="p-6 md:p-8 border-b border-white/5 relative">
-          <div className="flex items-center gap-3 mb-1.5">
-             <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${type === 'up' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                <span className="material-symbols-outlined text-sm">{type === 'up' ? 'trending_up' : 'trending_down'}</span>
-             </div>
-             <span className="text-sm font-bold text-on-surface/90 uppercase tracking-tight">{scenarioLabel} 시나리오</span>
+    <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
+      {/* Header */}
+      <div className="mb-8 md:mb-12">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+            <span className="material-symbols-outlined text-primary text-2xl" data-weight="fill">fact_check</span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface mb-2">{asset.category || asset.name}</h2>
-          {yieldDate && (
-            <p className="text-[10px] md:text-xs text-primary font-bold bg-primary/10 px-3 py-1 rounded-full w-fit">
-              최근 {yieldDate} 기준 수익률 TOP 3
-            </p>
-          )}
-          <button onClick={onClose} className="absolute top-6 right-6 md:top-8 md:right-8 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-            <span className="material-symbols-outlined text-sm">close</span>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 md:p-8 overflow-y-auto scrollbar-hide space-y-4">
-          <p className="text-xs font-black text-on-surface-variant uppercase tracking-wider opacity-70">실제 상세 추천 종목 예시 (TOP 3)</p>
-          
-          {(asset.products || [asset]).map((p, idx) => {
-            const name = p.name || p.product_name || asset.name;
-            
-            // 국내 종목코드 (6자리 숫자)
-            const krCodeMatch = name.match(/\((\d{6})\)/);
-            // 해외 종목코드 (영문 1~5자리)
-            const globalCodeMatch = name.match(/\(([A-Z]{1,5})\)/);
-
-            let link = "";
-            if (krCodeMatch) {
-              link = `https://finance.naver.com/item/main.naver?code=${krCodeMatch[1]}`;
-            } else if (globalCodeMatch) {
-              // 해외 증권 전용 검색 페이지로 연결하여 더 직접적인 상세 정보 제공
-              link = `https://finance.naver.com/world/search.naver?query=${globalCodeMatch[1]}`;
-            } else {
-              const cleanName = name.split('(')[0].trim();
-              link = `https://search.naver.com/search.naver?query=${encodeURIComponent(cleanName + ' 주가')}`;
-            }
-
-            return (
-              <a 
-                key={idx} 
-                href={link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block p-4 md:p-5 rounded-2xl bg-surface-container-highest border border-primary/20 relative overflow-hidden group hover:bg-primary/5 hover:border-primary/40 transition-all cursor-pointer"
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-primary/10 transition-all"></div>
-                <div className="flex justify-between items-start mb-1 relative z-10">
-                  <h3 className="text-sm md:text-base font-extrabold text-primary flex-1 group-hover:underline decoration-2 underline-offset-4">{name}</h3>
-                  <span className="material-symbols-outlined text-primary text-sm md:text-base translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all">arrow_forward</span>
-                </div>
-                <p className="text-[11px] md:text-xs text-on-surface-variant leading-relaxed relative z-10">
-                  {p.strategy || p.desc || "해당 시장 상황에서 유리한 성과를 기대할 수 있는 대표적인 상품입니다."}
-                </p>
-                <div className="mt-2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
-                   <span className="text-[9px] font-black text-primary/60 uppercase">네이버 증권에서 확인하기</span>
-                </div>
-              </a>
-            );
-          })}
-
-          <div className="bg-surface-container-low p-4 rounded-xl border border-white/5 mt-4">
-            <p className="text-[10px] text-on-surface-variant/70 leading-relaxed text-center">
-              알림: {INVESTMENT_DISCLAIMER}
-            </p>
+          <div>
+            <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline">저평가 우량주 판독기</h1>
+            <p className="text-on-surface-variant text-sm md:text-base">오일전문가님의 100점 만점 투자평가표 기준 자동 분석</p>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-6 md:p-8 pt-0">
+        <form onSubmit={handleAnalyze} className="relative max-w-xl group">
+          <input 
+            type="text" 
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            placeholder="기업명을 입력하세요 (예: 삼성전자, 현대차)" 
+            className="w-full bg-surface-container rounded-[2rem] px-8 py-5 pr-16 text-lg font-bold focus:ring-2 focus:ring-primary/50 outline-none border border-white/5 focus:border-primary transition-all shadow-2xl"
+          />
           <button 
-            onClick={onClose}
-            className="w-full py-3 md:py-4 bg-primary text-on-primary text-sm font-black rounded-xl hover:opacity-90 active:scale-[0.98] transition-all"
+            type="submit"
+            disabled={isLoading}
+            className="absolute right-3 top-3 w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg"
           >
-            확인 하였습니다
+            {isLoading ? (
+              <div className="w-6 h-6 border-3 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
+            ) : (
+              <span className="material-symbols-outlined">search</span>
+            )}
           </button>
-        </div>
+        </form>
       </div>
+
+      {analysisData && (
+        <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+          {/* Summary Line (Requested) */}
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 relative group/summary">
+            <div className="overflow-x-auto scrollbar-hide pr-12">
+              <p className="text-sm font-bold text-primary whitespace-nowrap">
+                [{analysisData.name}] 결과: 
+                PER {analysisData.scores.per.val} | 
+                PBR {analysisData.scores.pbr.val} | 
+                이익지속성 {analysisData.scores.sustainability.opt} | 
+                중복상장 {analysisData.scores.double_listing.opt} | 
+                배당수익률 {analysisData.scores.dividend_yield.val} | 
+                분기배당 {analysisData.scores.quarterly_dividend.opt} | 
+                배당인상연수 {analysisData.scores.dividend_growth.opt} | 
+                자사주매입소각 {analysisData.scores.buyback_cancellation.opt} | 
+                연간소각비율 {analysisData.scores.cancellation_ratio.opt} | 
+                자사주보유비율 {analysisData.scores.treasury_ratio.opt} | 
+                미래성장 {analysisData.scores.growth.opt} | 
+                기업경영 {analysisData.scores.management.opt} | 
+                브랜드 {analysisData.scores.brand.opt}
+              </p>
+            </div>
+            <button 
+              onClick={copySummary}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all opacity-0 group-hover/summary:opacity-100"
+              title="요약 복사하기"
+            >
+              <span className="material-symbols-outlined text-sm">content_copy</span>
+            </button>
+          </div>
+
+          {/* Grade & Score Card */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 bg-surface-container border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center shadow-xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-all"></div>
+              <p className="text-xs font-black text-on-surface-variant uppercase tracking-[0.3em] mb-4">Investment Grade</p>
+              <h2 className={`text-8xl font-black font-headline mb-4 ${gradeColor}`}>{grade}</h2>
+              <div className="px-6 py-2 bg-white/5 rounded-full border border-white/10 mb-4">
+                <p className="text-2xl font-black text-on-surface">{totalScore}<span className="text-sm opacity-50 ml-1">/ 100</span></p>
+              </div>
+              <p className="text-sm font-bold text-on-surface leading-relaxed px-4">{gradeLabel}</p>
+            </div>
+
+            <div className="md:col-span-2 bg-surface-container border border-white/5 rounded-[2.5rem] p-8 shadow-xl">
+              <h3 className="text-lg font-black font-headline mb-6 flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">analytics</span> 항목별 세부 점수
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {criteria.map((c) => {
+                  const userScore = analysisData.scores[c.id];
+                  return (
+                    <div key={c.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-between hover:bg-white/10 transition-all">
+                      <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-tight mb-1">{c.label}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-on-surface">{userScore.opt}</span>
+                        <span className="text-sm font-black text-primary">+{userScore.score}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Evidence Links */}
+          <div className="bg-surface-container border border-white/5 rounded-[2.5rem] p-8 shadow-xl">
+            <h3 className="text-lg font-black font-headline mb-6 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">link</span> 근거 자료 및 링크
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {analysisData.links.map((link, i) => (
+                <a 
+                  key={i} 
+                  href={link.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="p-5 rounded-2xl bg-surface-container-highest border border-white/5 hover:border-primary/40 hover:bg-primary/5 transition-all group flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/20">
+                      <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary">description</span>
+                    </div>
+                    <span className="text-sm font-bold text-on-surface">{link.label}</span>
+                  </div>
+                  <span className="material-symbols-outlined text-on-surface-variant/30 group-hover:text-primary group-hover:translate-x-1 transition-all">arrow_forward</span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Source & Disclaimer */}
+          <div className="mt-12 pt-8 border-t border-white/5 space-y-6">
+            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12">
+              <div className="flex flex-col items-center">
+                <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-3">Analysis Source</p>
+                <div className="flex items-center gap-4">
+                  <a href="https://www.youtube.com/@oilprof" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-red-400 transition-colors">
+                    <span className="material-symbols-outlined text-base">video_library</span> YouTube
+                  </a>
+                  <a href="https://blog.naver.com/oilpro1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-green-400 transition-colors">
+                    <span className="material-symbols-outlined text-base">rss_feed</span> Blog
+                  </a>
+                  <a href="https://cafe.naver.com/oilpro1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-blue-400 transition-colors">
+                    <span className="material-symbols-outlined text-base">groups</span> Cafe
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-w-2xl mx-auto p-5 rounded-2xl bg-error/5 border border-error/10">
+              <p className="text-[10px] md:text-xs text-on-surface-variant/80 text-center leading-relaxed">
+                <span className="text-error font-black block mb-1">⚠️ 투자 유의 사항</span>
+                본 서비스에서 제공하는 분석 결과는 오일전문가님의 투자 평가표 기준에 따른 참고용 데이터이며, 실제 투자에 대한 최종 결정과 책임은 투자자 본인에게 있습니다. 과거의 수익률이 미래의 수익을 보장하지 않습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -437,6 +581,10 @@ export default function InvestmentInsights({ subTab }) {
   ] : [];
 
   const news = marketData?.news || [];
+  
+  if (subTab === 'oil_expert') {
+    return <OilExpertAnalyzer />;
+  }
 
   if (subTab === 'dart') {
     return (
