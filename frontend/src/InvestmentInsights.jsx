@@ -345,9 +345,26 @@ function OilExpertAnalyzer() {
   };
 
   return (
-    <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4">
-      {/* Header */}
-      <div className="mb-8 md:mb-12">
+    <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 relative">
+      {/* Background Effects (Matching Insights Style) */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 blur-[120px] rounded-full" />
+        
+        {!analysisData && !isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-[0.08] animate-in fade-in duration-1000">
+            <img 
+              src="/images/stock_robot.png" 
+              alt="" 
+              className="w-full max-w-4xl h-[60vh] object-contain filter invert grayscale brightness-150 contrast-125"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="mb-8 md:mb-12">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
             <span className="material-symbols-outlined text-primary text-2xl" data-weight="fill">fact_check</span>
@@ -473,6 +490,7 @@ function OilExpertAnalyzer() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
