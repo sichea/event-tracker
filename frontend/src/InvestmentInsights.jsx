@@ -331,6 +331,18 @@ function OilExpertAnalyzer() {
   const gradeLabel = totalScore >= 80 ? '오일전문가 강력 추천: 명품 저평가 우량주입니다.' : totalScore >= 70 ? '우량주 후보군: 긍정적인 투자 검토가 필요합니다.' : totalScore >= 50 ? '보통 수준: 추가적인 모멘텀 확인이 필요합니다.' : '투자 주의: 오일전문가 기준에 부합하지 않습니다.';
   const gradeColor = grade === 'A' ? 'text-red-400' : grade === 'B' ? 'text-orange-400' : grade === 'C' ? 'text-blue-400' : 'text-on-surface-variant';
 
+  const copySummary = () => {
+    if (!analysisData || !analysisData.scores) return;
+    try {
+      const s = analysisData.scores;
+      const summary = `[${analysisData.name}] 결과: PER ${s.per?.val || '-'} | PBR ${s.pbr?.val || '-'} | 이익지속성 ${s.sustainability?.opt || '-'} | 중복상장 ${s.double_listing?.opt || '-'} | 배당수익률 ${s.dividend_yield?.val || '-'} | 분기배당 ${s.quarterly_dividend?.opt || '-'} | 배당인상연수 ${s.dividend_growth?.opt || '-'} | 자사주매입소각 ${s.buyback_cancellation?.opt || '-'} | 연간소각비율 ${s.cancellation_ratio?.opt || '-'} | 자사주보유비율 ${s.treasury_ratio?.opt || '-'} | 미래성장 ${s.growth?.opt || '-'} | 기업경영 ${s.management?.opt || '-'} | 브랜드 ${s.brand?.opt || '-'}`;
+      navigator.clipboard.writeText(summary);
+      alert("분석 결과가 클립보드에 복사되었습니다.");
+    } catch (e) {
+      alert("요약 복사 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
     <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 relative">
       {/* Background Effects (Matching Insights Style) */}
