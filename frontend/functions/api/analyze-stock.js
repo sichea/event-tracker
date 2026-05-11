@@ -41,8 +41,8 @@ export async function onRequestPost(context) {
       .maybeSingle();
 
     const userCount = userUsage ? userUsage.count : 0;
-    if (userCount >= 5) {
-      return new Response(JSON.stringify({ error: "오늘 분석 횟수(5회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429 });
+    if (userCount >= 1000) {
+      return new Response(JSON.stringify({ error: "오늘 분석 횟수(1000회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429 });
     }
 
     // [3] AI 호출 (Gemini 2.5 Flash - JSON 모드)
