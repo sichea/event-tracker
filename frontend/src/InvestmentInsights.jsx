@@ -987,7 +987,11 @@ export default function InvestmentInsights({ subTab }) {
       </div>
 
       {/* Indicator Cards */}
-      {indicators.length > 0 && (
+      {/* Stock Analyzer (Expert Verdict) */}
+      {subTab === 'stock' && <OilExpertAnalyzer />}
+
+      {/* Investor Insights (Default View) */}
+      {subTab !== 'stock' && indicators.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
           {indicators.map((ind, i) => {
             const diff = ind.prev != null && ind.value !== '-' ? (parseFloat(ind.value) - ind.prev) : null;
@@ -1022,31 +1026,34 @@ export default function InvestmentInsights({ subTab }) {
       )}
 
       {/* Scenario Tabs */}
-      <div className="flex gap-2 md:gap-3 overflow-x-auto pt-2 pb-4 mb-6 md:mb-8 scrollbar-hide">
-        {INSIGHTS_DATA.map(s => (
-          <button
-            key={s.id}
-            onClick={() => setSelectedScenario(s.id)}
-            className={`relative flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-2xl text-xs md:text-sm font-bold whitespace-nowrap transition-all duration-300 border
-              ${selectedScenario === s.id
-                ? 'bg-white/10 border-white/20 text-on-surface shadow-lg scale-[1.02]'
-                : 'bg-surface-container border-transparent text-on-surface-variant hover:bg-white/5 hover:border-white/10'
-              }`}
-            style={selectedScenario === s.id ? { borderColor: s.color + '60', boxShadow: `0 4px 20px ${s.color}15` } : {}}
-          >
-            <span className="material-symbols-outlined text-lg" style={selectedScenario === s.id ? { color: s.color } : {}}>{s.icon}</span>
-            {s.label}
-            {marketData?.scenario?.split(',').includes(s.id) && (
-              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[8px] font-black text-white animate-pulse shadow-lg shadow-red-500/30">now</span>
-            )}
-          </button>
-        ))}
-      </div>
+      {subTab !== 'stock' && (
+        <div className="flex gap-2 md:gap-3 overflow-x-auto pt-2 pb-4 mb-6 md:mb-8 scrollbar-hide">
+          {INSIGHTS_DATA.map(s => (
+            <button
+              key={s.id}
+              onClick={() => setSelectedScenario(s.id)}
+              className={`relative flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-2xl text-xs md:text-sm font-bold whitespace-nowrap transition-all duration-300 border
+                ${selectedScenario === s.id
+                  ? 'bg-white/10 border-white/20 text-on-surface shadow-lg scale-[1.02]'
+                  : 'bg-surface-container border-transparent text-on-surface-variant hover:bg-white/5 hover:border-white/10'
+                }`}
+              style={selectedScenario === s.id ? { borderColor: s.color + '60', boxShadow: `0 4px 20px ${s.color}15` } : {}}
+            >
+              <span className="material-symbols-outlined text-lg" style={selectedScenario === s.id ? { color: s.color } : {}}>{s.icon}</span>
+              {s.label}
+              {marketData?.scenario?.split(',').includes(s.id) && (
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[8px] font-black text-white animate-pulse shadow-lg shadow-red-500/30">now</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
 
       {/* Scenario Content */}
-      {scenario && (
+      {subTab !== 'stock' && scenario && (
         <div key={scenario.id} className="animate-[fadeIn_0.3s_ease-out]">
+          {/* ... (rest of the scenario content) ... */}
           {/* Summary Banner */}
           <div className={`bg-gradient-to-r ${scenario.bgGrad} rounded-3xl p-5 md:p-8 mb-8 border border-white/5 relative overflow-hidden`}>
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
