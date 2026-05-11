@@ -153,7 +153,7 @@ async def scrape_ipo() -> list[dict]:
                 for tr in table.find_all('tr'):
                     cells = [td.text.strip() for td in tr.find_all(['td', 'th'])]
                     import re
-                    if len(cells) >= 2 and cells[0] != '기업명' and len(cells[0]) < 20 and re.match(r'^\d{4}[\.\/]\d{2}[\.\/]\d{2}$', cells[1]):
+                    if len(cells) >= 2 and cells[0] != '기업명' and len(cells[0]) < 50 and re.match(r'^\d{4}[\.\/]\d{2}[\.\/]\d{2}$', cells[1]):
                         listing_rows.append({'name': cells[0], 'date': cells[1]})
                 break
 
