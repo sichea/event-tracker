@@ -363,92 +363,131 @@ function OilExpertAnalyzer({ showToast }) {
       )}
 
       <div className="relative z-10 w-full max-w-2xl flex flex-col items-center">
-        {/* Header Section */}
-        <div className="flex flex-col items-center text-center space-y-4 mb-12">
-          {!analysisData && (
-            <>
-              <div className="px-3 py-1 rounded bg-primary/10 border border-primary/20 mb-2">
-                <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Expert Judgment System</span>
-              </div>
-              <h1 className="text-white/90 text-3xl md:text-4xl font-black tracking-tight font-headline">저평가 우량주 판독기</h1>
-              <p className="text-white/40 text-sm md:text-base font-medium max-w-lg leading-relaxed">
-                오일전문가님의 100점 만점 투자평가표 데이터를 학습한 AI가<br/> 
-                <span className="text-primary/80 font-bold">기업의 내재 가치</span>를 정밀 분석하여 판독합니다.
-              </p>
-            </>
-          )}
-        </div>
-
-        {/* Insights Style Search Bar */}
-        <form onSubmit={handleAnalyze} className="w-full relative group px-2">
-          <div className={`
-            relative flex items-center transition-all duration-500 rounded-full border border-white/10
-            bg-transparent group-hover:bg-white/[0.05] group-hover:backdrop-blur-3xl group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
-            ${companyName.trim() ? 'bg-white/[0.03] backdrop-blur-xl' : ''}
-            focus-within:bg-white/[0.08] focus-within:backdrop-blur-3xl focus-within:outline-none focus-within:shadow-[0_0_30px_rgba(34,197,94,0.1)]
-          `}>
-            <div className="pl-6 md:pl-8 text-primary/60">
-              <span className="material-symbols-outlined text-2xl">assignment_turned_in</span>
+        {/* Header Section - only show when no results */}
+        {!analysisData && !isLoading && (
+          <div className="flex flex-col items-center text-center space-y-4 mb-12">
+            <div className="px-3 py-1 rounded bg-primary/10 border border-primary/20 mb-2">
+              <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Expert Judgment System</span>
             </div>
-            
-            <div className="flex-1 flex items-center h-16 md:h-20 relative">
-              <input 
-                type="text"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="기업명을 입력하세요 (예: 삼성전자, 현대차)"
-                className="flex-1 bg-transparent border-none pl-4 pr-24 md:pl-6 md:pr-32 text-white text-lg md:text-xl !outline-none focus:!outline-none focus:ring-0 placeholder:text-white/20 font-bold appearance-none" 
-                style={{ WebkitTapHighlightColor: 'transparent', outline: 'none', boxShadow: 'none' }}
-              />
-            </div>
+            <h1 className="text-white/90 text-3xl md:text-4xl font-black tracking-tight font-headline">저평가 우량주 판독기</h1>
+            <p className="text-white/40 text-sm md:text-base font-medium max-w-lg leading-relaxed">
+              오일전문가님의 100점 만점 투자평가표 데이터를 학습한 AI가<br/> 
+              <span className="text-primary/80 font-bold">기업의 내재 가치</span>를 정밀 분석하여 판독합니다.
+            </p>
           </div>
+        )}
 
-          <button 
-            type="submit"
-            disabled={isLoading || !companyName.trim()} 
-            className={`
-              absolute right-5 md:right-7 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 z-20
-              ${companyName.trim() && !isLoading ? 'bg-primary text-[#0a0e17] scale-110 shadow-[0_0_20px_rgba(34,197,94,0.4)]' : 'bg-white/5 text-white/20 scale-90'}
-              active:scale-95 touch-manipulation cursor-pointer
-            `}
-          >
-            {isLoading ? (
-              <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
-            ) : (
-              <span className="material-symbols-outlined text-2xl font-bold">arrow_forward</span>
-            )}
-          </button>
-        </form>
-
-        {/* Energy Decoration matching Insights */}
+        {/* Search Bar - only show when no results */}
         {!analysisData && (
-          <div className="flex flex-col items-center gap-4 pt-8 animate-in fade-in slide-in-from-top-4 duration-1000">
-            <div className="flex items-center gap-5">
-              <span className="text-[10px] font-black text-primary/50 uppercase tracking-[0.2em]">Analysis Quota</span>
-              <div className="flex gap-1.5">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-700 ${i < 5 ? 'bg-primary/60 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-white/5'}`} />
-                ))}
+          <>
+            <form onSubmit={handleAnalyze} className="w-full relative group px-2">
+              <div className={`
+                relative flex items-center transition-all duration-500 rounded-full border border-white/10
+                bg-transparent group-hover:bg-white/[0.05] group-hover:backdrop-blur-3xl group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
+                ${companyName.trim() ? 'bg-white/[0.03] backdrop-blur-xl' : ''}
+                focus-within:bg-white/[0.08] focus-within:backdrop-blur-3xl focus-within:outline-none focus-within:shadow-[0_0_30px_rgba(34,197,94,0.1)]
+              `}>
+                <div className="pl-6 md:pl-8 text-primary/60">
+                  <span className="material-symbols-outlined text-2xl">assignment_turned_in</span>
+                </div>
+                
+                <div className="flex-1 flex items-center h-16 md:h-20 relative">
+                  <input 
+                    type="text"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="기업명을 입력하세요 (예: 삼성전자, 현대차)"
+                    className="flex-1 bg-transparent border-none pl-4 pr-24 md:pl-6 md:pr-32 text-white text-lg md:text-xl !outline-none focus:!outline-none focus:ring-0 placeholder:text-white/20 font-bold appearance-none" 
+                    style={{ WebkitTapHighlightColor: 'transparent', outline: 'none', boxShadow: 'none' }}
+                  />
+                </div>
               </div>
-              <span className="text-[10px] font-bold text-white/40 tracking-widest uppercase">Unlimited</span>
+
+              <button 
+                type="submit"
+                disabled={isLoading || !companyName.trim()} 
+                className={`
+                  absolute right-5 md:right-7 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 z-20
+                  ${companyName.trim() && !isLoading ? 'bg-primary text-[#0a0e17] scale-110 shadow-[0_0_20px_rgba(34,197,94,0.4)]' : 'bg-white/5 text-white/20 scale-90'}
+                  active:scale-95 touch-manipulation cursor-pointer
+                `}
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
+                ) : (
+                  <span className="material-symbols-outlined text-2xl font-bold">arrow_forward</span>
+                )}
+              </button>
+            </form>
+
+            {/* Energy Decoration */}
+            <div className="flex flex-col items-center gap-4 pt-8 animate-in fade-in slide-in-from-top-4 duration-1000">
+              <div className="flex items-center gap-5">
+                <span className="text-[10px] font-black text-primary/50 uppercase tracking-[0.2em]">Analysis Quota</span>
+                <div className="flex gap-1.5">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-700 ${i < 5 ? 'bg-primary/60 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-white/5'}`} />
+                  ))}
+                </div>
+                <span className="text-[10px] font-bold text-white/40 tracking-widest uppercase">Unlimited</span>
+              </div>
+              <p className="text-[10px] text-white/20 font-medium">※ 정확한 기업명을 입력하시면 AI가 즉시 판독을 시작합니다.</p>
             </div>
-            <p className="text-[10px] text-white/20 font-medium">※ 정확한 기업명을 입력하시면 AI가 즉시 판독을 시작합니다.</p>
+          </>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex flex-col items-center gap-6 py-20 animate-in fade-in duration-500">
+            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+            <p className="text-white/40 text-sm font-bold">AI가 기업을 분석하고 있습니다...</p>
           </div>
         )}
       </div>
 
         {analysisData && analysisData.scores && (
-          <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-            <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 relative group/summary">
-              <div className="overflow-x-auto scrollbar-hide pr-12">
-                <p className="text-sm font-bold text-primary whitespace-nowrap">
-                  [{analysisData.name}] 결과: PER {analysisData.scores.per?.val || '-'} | PBR {analysisData.scores.pbr?.val || '-'} | 배당수익률 {analysisData.scores.dividend_yield?.val || '-'} | 총점: {totalScore}점
-                </p>
+          <div className="w-full max-w-4xl space-y-8 animate-in fade-in zoom-in-95 duration-500">
+            {/* Back Button + Company Header */}
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => { setAnalysisData(null); setCompanyName(''); }}
+                className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-primary/30 transition-all group"
+              >
+                <span className="material-symbols-outlined text-white/60 group-hover:text-primary transition-colors">arrow_back</span>
+              </button>
+              <div className="flex-1">
+                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Analysis Result</p>
+                <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">{analysisData.name}</h2>
               </div>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                <button onClick={copySummary} className="text-primary/40 hover:text-primary transition-colors"><span className="material-symbols-outlined text-xl">content_copy</span></button>
-                <button onClick={() => setAnalysisData(null)} className="text-primary/40 hover:text-primary transition-colors"><span className="material-symbols-outlined text-xl">close</span></button>
-              </div>
+              <button onClick={copySummary} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all" title="요약 복사">
+                <span className="material-symbols-outlined text-white/40 hover:text-primary text-lg">content_copy</span>
+              </button>
+            </div>
+
+            {/* Key Metrics Table */}
+            <div className="bg-surface-container/50 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/5">
+                    <th className="text-left px-5 py-3 text-[10px] font-black text-on-surface-variant uppercase tracking-wider">기업명</th>
+                    <th className="text-center px-4 py-3 text-[10px] font-black text-on-surface-variant uppercase tracking-wider">PER</th>
+                    <th className="text-center px-4 py-3 text-[10px] font-black text-on-surface-variant uppercase tracking-wider">PBR</th>
+                    <th className="text-center px-4 py-3 text-[10px] font-black text-on-surface-variant uppercase tracking-wider">배당수익률</th>
+                    <th className="text-center px-4 py-3 text-[10px] font-black text-on-surface-variant uppercase tracking-wider">등급</th>
+                    <th className="text-right px-5 py-3 text-[10px] font-black text-on-surface-variant uppercase tracking-wider">총점</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="px-5 py-4 font-black text-white">{analysisData.name}</td>
+                    <td className="text-center px-4 py-4 font-bold text-white/80">{analysisData.scores.per?.val || '-'}</td>
+                    <td className="text-center px-4 py-4 font-bold text-white/80">{analysisData.scores.pbr?.val || '-'}</td>
+                    <td className="text-center px-4 py-4 font-bold text-white/80">{analysisData.scores.dividend_yield?.val || '-'}</td>
+                    <td className="text-center px-4 py-4"><span className={`text-lg font-black ${gradeColor}`}>{grade}</span></td>
+                    <td className="text-right px-5 py-4 font-black text-primary text-lg">{totalScore}<span className="text-xs text-white/40 ml-0.5">점</span></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
