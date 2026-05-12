@@ -1172,6 +1172,63 @@ export default function InvestmentInsights({ subTab, showToast }) {
         )}
       </div>
 
+      {/* Economic Cycle Map */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="material-symbols-outlined text-primary text-lg">cyclone</span>
+          <h2 className="text-sm font-black text-on-surface-variant uppercase tracking-widest">현재 경기 사이클 위치</h2>
+        </div>
+        <div className="grid grid-cols-4 gap-2 md:gap-4 p-1 bg-surface-container-low rounded-[2rem] border border-white/5 shadow-inner">
+          {[
+            { id: 'recovery', label: '회복기', icon: 'trending_up', color: 'from-blue-400/20 to-blue-500/20', borderColor: 'border-blue-500/30', activeColor: 'bg-blue-500', scenarios: ['none'] },
+            { id: 'expansion', label: '활황기', icon: 'sunny', color: 'from-orange-400/20 to-orange-500/20', borderColor: 'border-orange-500/30', activeColor: 'bg-orange-500', scenarios: ['rate_hike'] },
+            { id: 'downturn', label: '후퇴기', icon: 'cloud', color: 'from-red-400/20 to-red-500/20', borderColor: 'border-red-500/30', activeColor: 'bg-red-500', scenarios: ['inflation', 'war'] },
+            { id: 'recession', label: '침체기', icon: 'thunderstorm', color: 'from-purple-400/20 to-purple-500/20', borderColor: 'border-purple-500/30', activeColor: 'bg-purple-500', scenarios: ['rate_cut', 'recession'] }
+          ].map((phase) => {
+            const isActive = phase.scenarios.some(s => marketData?.scenario?.includes(s)) || (phase.id === 'recovery' && !marketData?.scenario);
+            return (
+              <div 
+                key={phase.id}
+                className={`relative p-3 md:p-5 rounded-[1.8rem] transition-all duration-500 flex flex-col items-center justify-center gap-2 border ${isActive ? `bg-gradient-to-br ${phase.color} ${phase.borderColor} shadow-lg scale-[1.02] z-10` : 'border-transparent opacity-40 grayscale'}`}
+              >
+                {isActive && (
+                  <div className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${phase.activeColor} opacity-75`}></span>
+                    <span className={`relative inline-flex rounded-full h-3 w-3 ${phase.activeColor}`}></span>
+                  </div>
+                )}
+                <span className={`material-symbols-outlined text-xl md:text-2xl ${isActive ? 'text-white' : 'text-on-surface-variant'}`}>
+                  {phase.icon}
+                </span>
+                <span className={`text-[11px] md:text-sm font-black ${isActive ? 'text-white' : 'text-on-surface-variant'}`}>
+                  {phase.label}
+                </span>
+                {isActive && (
+                  <div className="mt-1 px-2 py-0.5 bg-white/10 rounded-full">
+                    <span className="text-[8px] md:text-[10px] text-white/80 font-bold whitespace-nowrap">CURRENT</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Cycle Mini Info */}
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 px-2">
+          {[
+            { label: '경제 신호', value: marketData?.scenario?.includes('rate_cut') ? '마이너스 성장 / 고실업' : marketData?.scenario?.includes('rate_hike') ? '안정적 성장 / 인플레 안정' : '지표 혼조세' },
+            { label: '금리 방향', value: marketData?.scenario?.includes('rate_cut') ? '적극적 인하' : marketData?.scenario?.includes('rate_hike') ? '점진적 인상' : '중립적 유지' },
+            { label: '유리한 섹터', value: marketData?.scenario?.includes('rate_cut') ? '필수소비재, 배당주' : marketData?.scenario?.includes('rate_hike') ? 'IT, 성장주' : '방산, 에너지' },
+            { label: '달러 가치', value: marketData?.scenario?.includes('rate_cut') ? '강세 후 약세 전환' : marketData?.scenario?.includes('rate_hike') ? '혼조세' : '강세 유지' }
+          ].map((info, idx) => (
+            <div key={idx} className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-tighter">{info.label}</span>
+              <span className="text-xs font-bold text-on-surface-variant leading-tight">{info.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      
       {/* Indicator Cards */}
       {/* Investor Insights (Default View) */}
       {subTab !== 'oil_expert' && indicators.length > 0 && (
