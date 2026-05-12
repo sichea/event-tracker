@@ -1508,6 +1508,8 @@ export default function InvestmentInsights({ subTab, showToast }) {
           />
         </div>
       )}
-    </div>
-  );
+    </>
+  )}
+</div>
+);
 }
