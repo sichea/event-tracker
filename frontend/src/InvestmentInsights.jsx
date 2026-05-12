@@ -761,7 +761,7 @@ function OilExpertAnalyzer({ showToast }) {
             <div className="mt-12 pt-8 border-t border-white/5 space-y-6">
               <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12">
                 <div className="flex flex-col items-center">
-                  <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-3">Analysis Source</p>
+                  <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-3">출처 : 오일전문가</p>
                   <div className="flex items-center gap-4">
                     <a href="https://www.youtube.com/@oilprof" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-red-400">YouTube</a>
                     <a href="https://blog.naver.com/oilpro1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-green-400">Blog</a>
