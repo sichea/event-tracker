@@ -28,9 +28,18 @@ export async function onRequestPost(context) {
       .maybeSingle();
 
     if (cachedResult) {
+      // 캐시된 결과라도 에너지는 차감
+      const newUserCount = userCount + 1;
+      try {
+        await supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount });
+      } catch (dbError) {
+        console.error('Cache Quota Update Error:', dbError);
+      }
+
       return new Response(JSON.stringify({
         ...cachedResult.result,
         is_cached: true,
+        user_remaining: 5 - newUserCount,
         model: "Cached"
       }), {
         headers: { "Content-Type": "application/json" }
