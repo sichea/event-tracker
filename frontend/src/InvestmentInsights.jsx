@@ -494,7 +494,6 @@ function OilExpertAnalyzer() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }
