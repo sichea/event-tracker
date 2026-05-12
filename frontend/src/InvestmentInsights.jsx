@@ -476,6 +476,24 @@ function OilExpertAnalyzer({ showToast }) {
   const [companyName, setCompanyName] = useState("");
   const [analysisData, setAnalysisData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [quota, setQuota] = useState({ user: 5, total: 500 });
+
+  // 쿼터 정보 가져오기
+  const refreshQuota = useCallback(async () => {
+    try {
+      const res = await fetch('/api/quota');
+      if (res.ok) {
+        const data = await res.json();
+        setQuota({ user: data.user_remaining, total: data.total_remaining });
+      }
+    } catch (e) {
+      console.error("Quota fetch error:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshQuota();
+  }, [refreshQuota]);
 
   const criteria = [
     { id: 'per', label: 'PER', weight: 20, options: [{ text: '<5', score: 20 }, { text: '<8', score: 15 }, { text: '<10', score: 10 }, { text: '>10', score: 5 }] },
@@ -512,6 +530,8 @@ function OilExpertAnalyzer({ showToast }) {
       }
       setAnalysisData(data);
       if (showToast) showToast(`[${data.name}] 분석이 완료되었습니다.`);
+      // 분석 성공 시 쿼터 즉시 갱신
+      refreshQuota();
     } catch (err) {
       if (showToast) {
         showToast(err.message, "error");
@@ -614,16 +634,32 @@ function OilExpertAnalyzer({ showToast }) {
               </button>
             </form>
 
-            {/* Energy Decoration */}
-            <div className="flex flex-col items-center gap-4 pt-8 animate-in fade-in slide-in-from-top-4 duration-1000">
-              <div className="flex items-center gap-5">
-                <span className="text-[10px] font-black text-primary/50 uppercase tracking-[0.2em]">Analysis Quota</span>
-                <div className="flex gap-1.5">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-700 ${i < 5 ? 'bg-primary/60 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-white/5'}`} />
-                  ))}
+            {/* Energy Dashboard - Unified Style */}
+            <div className="flex flex-col items-center gap-6 pt-10 animate-in fade-in slide-in-from-top-4 duration-1000">
+              <div className="flex items-center gap-8 md:gap-12">
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">My Energy</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl md:text-2xl font-black text-white">{quota.user}</span>
+                    <span className="text-sm font-bold text-white/20">/ 5</span>
+                  </div>
+                  <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${(quota.user / 5) * 100}%` }}></div>
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-white/40 tracking-widest uppercase">Unlimited</span>
+
+                <div className="w-px h-10 bg-white/5"></div>
+
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Total Energy Pool</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl md:text-2xl font-black text-white/60">{quota.total}</span>
+                    <span className="text-sm font-bold text-white/10">/ 500</span>
+                  </div>
+                  <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-white/20 transition-all duration-1000" style={{ width: `${(quota.total / 500) * 100}%` }}></div>
+                  </div>
+                </div>
               </div>
               <p className="text-[10px] text-white/20 font-medium">※ 정확한 기업명을 입력하시면 AI가 즉시 판독을 시작합니다.</p>
             </div>
