@@ -1031,7 +1031,7 @@ function App() {
               <span className="text-xl font-bold tracking-tighter text-[#ebedfb] font-headline cursor-pointer" onClick={() => {setActiveTab("landing"); setAnalysisResult(null);}}>RE:MEMBER</span>
             </div>
             <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-                            <button className={`pb-1 font-headline transition-colors ${activeTab === 'landing' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("landing"); setAnalysisResult(null);}}>투자 인사이트</button>
+                            <button className={`pb-1 font-headline transition-colors ${(activeTab === 'landing' || activeTab === 'insights') ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("landing"); setAnalysisResult(null);}}>투자 인사이트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>이벤트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'subscription' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("subscription"); setSubscriptionSubTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents(session?.user?.id).then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>청약</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'zzantec' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("zzantec"); setZzantecSubTab("parking"); }}>짠테크</button>
@@ -1070,23 +1070,23 @@ function App() {
           { (activeTab === 'insights' || activeTab === 'landing') ? (
             <>
               <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-4">투자 인사이트</p>
-              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("macro"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'macro' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("macro"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${(activeTab === 'insights' && insightSubTab === 'macro') ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">public</span>
                 <span className="font-medium text-sm">매크로 시나리오</span>
               </button>
-              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("dart"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'dart' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("dart"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${(activeTab === 'insights' && insightSubTab === 'dart') ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">notifications_active</span>
                 <span className="font-medium text-sm">고래 지분 변동 (5%)</span>
               </button>
-              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("nps"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'nps' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("nps"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${(activeTab === 'insights' && insightSubTab === 'nps') ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">account_balance</span>
                 <span className="font-medium text-sm">국민연금 주력주</span>
               </button>
-              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("legends"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'legends' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("legends"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${(activeTab === 'insights' && insightSubTab === 'legends') ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">military_tech</span>
                 <span className="font-medium text-sm">글로벌 투자 전설</span>
               </button>
-              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("oil_expert"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${insightSubTab === 'oil_expert' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("oil_expert"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${(activeTab === 'insights' && insightSubTab === 'oil_expert') ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">fact_check</span>
                 <span className="font-medium text-sm">저평가 우량주 판독기</span>
               </button>

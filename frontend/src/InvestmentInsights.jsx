@@ -565,11 +565,16 @@ export default function InvestmentInsights({ subTab, showToast }) {
     fetchMarketInsights().then(d => {
       if (d) {
         setMarketData(d);
-        const primaryScenario = d.scenario.split(',')[0];
-        setSelectedScenario(primaryScenario);
+        if (d.scenario) {
+          const primaryScenario = d.scenario.split(',')[0];
+          setSelectedScenario(primaryScenario);
+        }
       }
       setMdLoading(false);
-    }).catch(() => setMdLoading(false));
+    }).catch((err) => {
+      console.error("Market insights fetch error:", err);
+      setMdLoading(false);
+    });
 
     fetchWhaleInsights().then(data => {
       if (data) setWhaleData(data);
@@ -1096,11 +1101,8 @@ export default function InvestmentInsights({ subTab, showToast }) {
       </div>
 
       {/* Indicator Cards */}
-      {/* Stock Analyzer (Expert Verdict) */}
-      {subTab === 'stock' && <OilExpertAnalyzer showToast={showToast} />}
-
       {/* Investor Insights (Default View) */}
-      {subTab !== 'stock' && indicators.length > 0 && (
+      {subTab !== 'oil_expert' && indicators.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
           {indicators.map((ind, i) => {
             const diff = ind.prev != null && ind.value !== '-' ? (parseFloat(ind.value) - ind.prev) : null;
@@ -1135,7 +1137,7 @@ export default function InvestmentInsights({ subTab, showToast }) {
       )}
 
       {/* Scenario Tabs */}
-      {subTab !== 'stock' && (
+      {subTab !== 'oil_expert' && (
         <div className="flex gap-2 md:gap-3 overflow-x-auto pt-2 pb-4 mb-6 md:mb-8 scrollbar-hide">
           {INSIGHTS_DATA.map(s => (
             <button
@@ -1160,7 +1162,7 @@ export default function InvestmentInsights({ subTab, showToast }) {
 
 
       {/* Scenario Content */}
-      {subTab !== 'stock' && scenario && (
+      {subTab !== 'oil_expert' && scenario && (
         <div key={scenario.id} className="animate-[fadeIn_0.3s_ease-out]">
           {/* ... (rest of the scenario content) ... */}
           {/* Summary Banner */}
