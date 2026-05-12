@@ -747,6 +747,7 @@ function OilExpertAnalyzer({ showToast }) {
 }
 
 export default function InvestmentInsights({ showToast, initialSubTab }) {
+  const subTab = initialSubTab || 'macro';
   const [selectedScenario, setSelectedScenario] = useState(INSIGHTS_DATA[0].id);
   const [marketData, setMarketData] = useState(null);
   const [mdLoading, setMdLoading] = useState(true);
@@ -1299,11 +1300,11 @@ export default function InvestmentInsights({ showToast, initialSubTab }) {
       </div>
 
       {/* Main Content Area */}
-      {initialSubTab === 'cycle_guide' && <CycleGuide />}
+      {subTab === 'cycle_guide' && <CycleGuide />}
       
-      {initialSubTab === 'oil_expert' && <OilExpertAnalyzer showToast={showToast} />}
+      {subTab === 'oil_expert' && <OilExpertAnalyzer showToast={showToast} />}
 
-      {initialSubTab === 'macro' && (
+      {subTab === 'macro' && (
         <>
           {/* Indicator Cards - 데이터가 있을 때만 노출 */}
           {indicators.length > 0 && (
