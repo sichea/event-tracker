@@ -1169,19 +1169,22 @@ export default function InvestmentInsights({ subTab, showToast }) {
             const diff = ind.prev != null && ind.value !== '-' ? (parseFloat(ind.value) - ind.prev) : null;
             return (
               <div key={i} className="bg-surface-container border border-white/5 rounded-2xl p-4 relative group">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="material-symbols-outlined text-base text-on-surface-variant shrink-0">{ind.icon}</span>
-                    <span className="text-[10px] md:text-xs text-on-surface-variant font-medium truncate">{ind.label}</span>
+                <div className="flex flex-col mb-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="material-symbols-outlined text-base text-on-surface-variant shrink-0">{ind.icon}</span>
+                      <span className="text-[10px] md:text-xs text-on-surface-variant font-medium truncate">{ind.label}</span>
+                    </div>
+                    <div className="relative flex items-center">
+                      <span 
+                        className="material-symbols-outlined text-[14px] text-on-surface-variant/30 cursor-help hover:text-primary transition-colors"
+                        title={ind.desc}
+                      >
+                        info
+                      </span>
+                    </div>
                   </div>
-                  <div className="relative flex items-center">
-                    <span 
-                      className="material-symbols-outlined text-[14px] text-on-surface-variant/30 cursor-help hover:text-primary transition-colors"
-                      title={ind.desc}
-                    >
-                      info
-                    </span>
-                  </div>
+                  {ind.date && <p className="text-[9px] text-on-surface-variant/40 font-medium">{ind.date} 기준</p>}
                 </div>
                 <div className="flex items-end gap-2">
                   <span className="text-xl md:text-2xl font-extrabold font-headline leading-tight">{ind.value}</span>
@@ -1241,29 +1244,6 @@ export default function InvestmentInsights({ subTab, showToast }) {
                   )}
                 </div>
                 <p className="text-on-surface-variant text-sm md:text-base leading-relaxed mb-6">{scenario.summary}</p>
-                
-                {/* Only show AI Report for the PRIMARY scenario to avoid duplication if multiple scenarios are active */}
-                {marketData?.scenario?.split(',')[0] === scenario.id && marketData?.analysis && (
-                  <div className="p-5 md:p-6 rounded-2xl bg-[#0a0e17]/40 border border-white/10 backdrop-blur-md shadow-xl">
-                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-primary text-[14px]">psychology</span>
-                        </div>
-                        <span className="text-[10px] font-black text-on-surface uppercase tracking-widest">AI Strategy Report</span>
-                      </div>
-                      <span className="text-[9px] text-on-surface-variant font-bold">Deep Learning Verified</span>
-                    </div>
-                    <div className="flex items-start gap-3 text-sm md:text-base text-on-surface leading-relaxed font-medium">
-                      <span className="material-symbols-outlined text-lg shrink-0 text-primary mt-0.5">format_quote</span>
-                      <span className="opacity-95">{marketData.analysis}</span>
-                    </div>
-                    <div className="mt-4 flex items-center gap-4 text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-widest">
-                      <span className="flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-primary"></span> Wall Street Data</span>
-                      <span className="flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-primary"></span> Legend Portfolio</span>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
