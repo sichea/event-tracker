@@ -331,11 +331,15 @@ function OilExpertAnalyzer({ showToast }) {
 
   const totalScore = useMemo(() => {
     if (!analysisData || !analysisData.scores) return 0;
-    return Object.values(analysisData.scores).reduce((acc, curr) => acc + (curr?.score || 0), 0);
-  }, [analysisData]);
+    // UI에 표시되는 13가지 항목의 점수만 정확히 합산하여 정합성 유지
+    return criteria.reduce((acc, c) => {
+      const score = analysisData.scores[c.id]?.score || 0;
+      return acc + score;
+    }, 0);
+  }, [analysisData, criteria]);
 
   const grade = totalScore >= 80 ? 'A' : totalScore >= 70 ? 'B' : totalScore >= 50 ? 'C' : 'D';
-  const gradeLabel = totalScore >= 80 ? '오일전문가 강력 추천: 명품 저평가 우량주입니다.' : totalScore >= 70 ? '우량주 후보군: 긍정적인 투자 검토가 필요합니다.' : totalScore >= 50 ? '보통 수준: 추가적인 모멘텀 확인이 필요합니다.' : '투자 주의: 오일전문가 기준에 부합하지 않습니다.';
+  const gradeLabel = totalScore >= 80 ? 'AI 판정: 최상위 저평가 우량주군에 해당합니다.' : totalScore >= 70 ? 'AI 판정: 안정적인 지표를 보유한 우량주 후보군입니다.' : totalScore >= 50 ? 'AI 판정: 보통 수준이며, 시장 상황에 따른 검토가 필요합니다.' : 'AI 판정: 투자 지표가 다소 미흡하여 주의가 필요한 단계입니다.';
   const gradeColor = grade === 'A' ? 'text-red-400' : grade === 'B' ? 'text-orange-400' : grade === 'C' ? 'text-blue-400' : 'text-on-surface-variant';
 
   const copySummary = () => {
