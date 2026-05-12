@@ -15,6 +15,11 @@ export async function onRequestPost(context) {
     const today = new Date().toISOString().split('T')[0];
     const userIP = request.headers.get('CF-Connecting-IP') || 'anonymous';
 
+    // [0] 기본 입력 검증: 너무 짧거나 의미 없는 입력 차단
+    if (cleanName.length < 2) {
+      return new Response(JSON.stringify({ error: '기업명은 2글자 이상 입력해 주세요.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
     // [1] 캐시 확인
     const { data: cachedResult } = await supabase
       .from('stock_analysis_cache')
@@ -82,7 +87,12 @@ export async function onRequestPost(context) {
   }
 }
 
-**주의:** 위 13개 키 이름을 토씨 하나 틀리지 않고 그대로 사용해야 하며, 선택한 옵션(opt)과 점수(score)는 채점 규칙과 일치해야 합니다.`;
+**중요 규칙:**
+- 위 13개 키 이름을 토씨 하나 틀리지 않고 그대로 사용해야 합니다.
+- 선택한 옵션(opt)과 점수(score)는 채점 규칙과 일치해야 합니다.
+- 만약 입력된 기업명이 실제 상장 기업이 아니거나, 존재하지 않는 기업이거나, 의미 없는 단어(예: 욕설, 숫자, 장난 등)인 경우 반드시 아래 형식으로 응답하세요:
+{"error": true, "message": "존재하지 않는 기업입니다."}
+- 절대로 존재하지 않는 기업에 대해 점수를 지어내지 마세요.`;
 
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -105,6 +115,16 @@ export async function onRequestPost(context) {
 
     const responseText = aiData.candidates[0].content.parts[0].text;
     const resultJson = JSON.parse(responseText);
+
+    // [3] AI가 존재하지 않는 기업이라고 판단한 경우 에러 반환
+    if (resultJson.error === true || !resultJson.scores) {
+      return new Response(JSON.stringify({ 
+        error: resultJson.message || '해당 기업을 찾을 수 없습니다. 정확한 기업명을 입력해 주세요.' 
+      }), { 
+        status: 404, 
+        headers: { 'Content-Type': 'application/json' } 
+      });
+    }
 
     // [4] 데이터 저장
     const newUserCount = userCount + 1;
