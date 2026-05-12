@@ -345,6 +345,132 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type }) {
   );
 }
 
+// ============ Economic Cycle Guide ============
+function CycleGuide() {
+  const cycleData = [
+    { id: 'recovery', label: '회복기', icon: 'trending_up', color: '#60a5fa', bgColor: 'bg-blue-400/20', signal: '성장률(+) / 저금리', rate: '금리 저점 / 인상 시작', win: '금융, 산업재, 경기소비재, 부동산', lose: '필수소비재, 유틸리티', dollar: '약세', duration: '1-2년' },
+    { id: 'expansion', label: '활황기', icon: 'sunny', color: '#fb923c', bgColor: 'bg-orange-400/20', signal: '안정적 성장 / 인플레 안정', rate: '점진적 금리 인상', win: 'IT, 커뮤니케이션, 반도체, 성장주', lose: '유틸리티', dollar: '혼조세', duration: '3-5년' },
+    { id: 'downturn', label: '후퇴기', icon: 'cloud', color: '#f87171', bgColor: 'bg-red-400/20', signal: '인플레 부담 / 금리 정점', rate: '정점 → 인하 시작', win: '에너지, 원자재, 헬스케어', lose: '경기소비재, IT', dollar: '강세 (안전선호)', duration: '0.5-1년' },
+    { id: 'recession', label: '침체기', icon: 'thunderstorm', color: '#a78bfa', bgColor: 'bg-purple-400/20', signal: '성장률(-) / 실업률 증가', rate: '적극적 금리 인하', win: '필수소비재, 유틸리티, 헬스케어', lose: '금융, 경기소비재', dollar: '초기 강세 → 약세', duration: '0.5-1.5년' }
+  ];
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 space-y-8">
+      {/* Visual Cycle Graph */}
+      <div className="p-6 md:p-10 rounded-[2.5rem] bg-surface-container-low border border-white/5 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary">analytics</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-on-surface">경기 사이클 핵심표</h3>
+              <p className="text-xs text-on-surface-variant font-medium">Economic Cycle Reference Guide</p>
+            </div>
+          </div>
+
+          {/* SVG Sine Wave Graph */}
+          <div className="relative h-48 md:h-64 w-full mb-12">
+            <svg viewBox="0 0 800 200" className="w-full h-full preserve-3d">
+              {/* Reference Lines */}
+              <line x1="0" y1="100" x2="800" y2="100" stroke="currentColor" className="text-white/5" strokeWidth="1" />
+              <line x1="200" y1="20" x2="200" y2="180" stroke="currentColor" className="text-white/10" strokeDasharray="4 4" />
+              <line x1="400" y1="20" x2="400" y2="180" stroke="currentColor" className="text-white/10" strokeDasharray="4 4" />
+              <line x1="600" y1="20" x2="600" y2="180" stroke="currentColor" className="text-white/10" strokeDasharray="4 4" />
+
+              {/* Main Sine Path */}
+              <path 
+                d="M 0 140 Q 100 140 200 80 T 400 40 T 600 120 T 800 140" 
+                fill="none" 
+                stroke="url(#cycleGradient)" 
+                strokeWidth="6" 
+                strokeLinecap="round"
+                className="drop-shadow-[0_0_15px_rgba(251,146,60,0.3)]"
+              />
+              
+              <defs>
+                <linearGradient id="cycleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#60a5fa" />
+                  <stop offset="25%" stopColor="#fb923c" />
+                  <stop offset="50%" stopColor="#f87171" />
+                  <stop offset="75%" stopColor="#a78bfa" />
+                  <stop offset="100%" stopColor="#60a5fa" />
+                </linearGradient>
+              </defs>
+
+              {/* Phase Labels on Graph */}
+              <g className="text-[14px] font-black fill-white/80">
+                <text x="70" y="180">회복기</text>
+                <text x="270" y="30">활황기</text>
+                <text x="470" y="180">후퇴기</text>
+                <text x="670" y="180">침체기</text>
+              </g>
+            </svg>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {cycleData.map((phase) => (
+              <div key={phase.id} className="flex flex-col items-center gap-2">
+                <div className={`w-12 h-12 rounded-2xl ${phase.bgColor} flex items-center justify-center mb-1`}>
+                  <span className="material-symbols-outlined" style={{ color: phase.color }}>{phase.icon}</span>
+                </div>
+                <span className="text-sm font-black text-on-surface">{phase.label}</span>
+                <span className="text-[10px] font-bold text-on-surface-variant/60 text-center px-2">{phase.duration} 지속</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Table */}
+      <div className="overflow-x-auto scrollbar-hide">
+        <table className="w-full min-w-[800px] border-separate border-spacing-y-3">
+          <thead>
+            <tr className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest text-left">
+              <th className="px-6 py-2">국면</th>
+              <th className="px-6 py-2">경제 신호</th>
+              <th className="px-6 py-2">금리 방향</th>
+              <th className="px-6 py-2">유리한 섹터</th>
+              <th className="px-6 py-2">불리한 섹터</th>
+              <th className="px-6 py-2">달러</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cycleData.map((phase) => (
+              <tr key={phase.id} className="bg-surface-container-high/40 hover:bg-surface-container-high transition-colors group">
+                <td className="px-6 py-6 rounded-l-3xl border-l border-y border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-xl ${phase.bgColor} flex items-center justify-center`}>
+                      <span className="material-symbols-outlined text-sm" style={{ color: phase.color }}>{phase.icon}</span>
+                    </div>
+                    <span className="text-sm font-black text-on-surface">{phase.label}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-6 border-y border-white/5">
+                  <span className="text-xs font-bold text-on-surface-variant">{phase.signal}</span>
+                </td>
+                <td className="px-6 py-6 border-y border-white/5">
+                  <span className="text-xs font-bold text-on-surface-variant">{phase.rate}</span>
+                </td>
+                <td className="px-6 py-6 border-y border-white/5">
+                  <span className="text-xs font-black text-green-400">{phase.win}</span>
+                </td>
+                <td className="px-6 py-6 border-y border-white/5">
+                  <span className="text-xs font-bold text-red-400/70">{phase.lose}</span>
+                </td>
+                <td className="px-6 py-6 rounded-r-3xl border-r border-y border-white/5">
+                  <span className="text-xs font-bold text-on-surface-variant">{phase.dollar}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ============ Oil Expert Analyzer ============
 function OilExpertAnalyzer({ showToast }) {
   const [companyName, setCompanyName] = useState("");
@@ -1172,88 +1298,16 @@ export default function InvestmentInsights({ subTab, showToast }) {
         )}
       </div>
 
-      {/* Economic Cycle Map */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-lg">cyclone</span>
-            <h2 className="text-sm font-black text-on-surface-variant uppercase tracking-widest">경기 사이클 가이드</h2>
-          </div>
-          <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
-            <span className="text-[10px] font-bold text-primary">지표 기반 AI 분석 중</span>
-          </div>
-        </div>
-
-        <div className="relative">
-          {/* Main Grid */}
-          <div className="grid grid-cols-4 gap-2 md:gap-4 p-1.5 bg-surface-container-low rounded-[2.5rem] border border-white/5 shadow-inner">
-            {[
-              { id: 'recovery', label: '회복기', icon: 'trending_up', color: 'text-blue-400', scenarios: ['none'] },
-              { id: 'expansion', label: '활황기', icon: 'sunny', color: 'text-orange-400', scenarios: ['rate_hike'] },
-              { id: 'downturn', label: '후퇴기', icon: 'cloud', color: 'text-red-400', scenarios: ['inflation', 'war'] },
-              { id: 'recession', label: '침체기', icon: 'thunderstorm', color: 'text-purple-400', scenarios: ['rate_cut', 'recession'] }
-            ].map((phase) => {
-              const isAIChosen = phase.scenarios.some(s => marketData?.scenario?.includes(s)) || (phase.id === 'recovery' && !marketData?.scenario);
-              return (
-                <div 
-                  key={phase.id}
-                  className={`relative p-4 md:p-6 rounded-[2.2rem] transition-all duration-300 flex flex-col items-center justify-center gap-2 border bg-surface-container-high/50 ${isAIChosen ? 'border-primary/40 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]' : 'border-transparent'}`}
-                >
-                  {isAIChosen && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-primary rounded-full shadow-lg z-20">
-                      <span className="text-[8px] font-black text-on-primary whitespace-nowrap">AI OPINION</span>
-                    </div>
-                  )}
-                  <span className={`material-symbols-outlined text-xl md:text-2xl ${phase.color}`}>
-                    {phase.icon}
-                  </span>
-                  <span className="text-xs md:text-sm font-black text-on-surface">
-                    {phase.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        
-        {/* Cycle Detailed Table (Scrollable on Mobile) */}
-        <div className="mt-6 overflow-x-auto scrollbar-hide pb-2">
-          <div className="min-w-[600px] grid grid-cols-4 gap-4 px-2">
-            {[
-              { id: 'recovery', signal: '성장률(+) / 저금리', rate: '금리 저점 / 인상 시작', win: '금융, 경기소비재', lose: '필수소비재' },
-              { id: 'expansion', signal: '안정적 성장 / 인플레 안정', rate: '점진적 금리 인상', win: 'IT, 반도체, 성장주', lose: '유틸리티' },
-              { id: 'downturn', signal: '인플레 부담 / 경기 과열', rate: '금리 정점 / 인하 시작', win: '에너지, 원자재, 헬스', lose: '기술주, IT' },
-              { id: 'recession', signal: '성장률(-) / 고실업', rate: '적극적 금리 인하', win: '필수소비재, 통신, 배당', lose: '금융, 경기소비재' }
-            ].map((phase) => {
-              const isAIChosen = phase.id === 'recovery' && !marketData?.scenario || (phase.id === 'recession' && marketData?.scenario?.includes('rate_cut')) || (phase.id === 'expansion' && marketData?.scenario?.includes('rate_hike')) || (phase.id === 'downturn' && (marketData?.scenario?.includes('inflation') || marketData?.scenario?.includes('war')));
-              return (
-                <div key={phase.id} className={`flex flex-col gap-3 p-4 rounded-2xl transition-colors ${isAIChosen ? 'bg-primary/5 border border-primary/10' : 'bg-transparent border border-transparent'}`}>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-on-surface-variant/40 uppercase">경제 신호</span>
-                    <span className="text-[11px] font-bold text-on-surface-variant">{phase.signal}</span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-on-surface-variant/40 uppercase">금리 방향</span>
-                    <span className="text-[11px] font-bold text-on-surface-variant">{phase.rate}</span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-green-400/60 uppercase">유리한 섹터</span>
-                    <span className="text-[11px] font-bold text-on-surface">{phase.win}</span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-red-400/60 uppercase">불리한 섹터</span>
-                    <span className="text-[11px] font-bold text-on-surface-variant/70">{phase.lose}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      {/* Main Content Area */}
+      {subTab === 'cycle_guide' && <CycleGuide />}
       
-      {/* Indicator Cards */}
-      {/* Investor Insights (Default View) */}
-      {subTab !== 'oil_expert' && indicators.length > 0 && (
+      {subTab === 'oil_expert' && <OilExpertAnalyzer showToast={showToast} />}
+
+      {subTab === 'insights' && (
+        <>
+          {/* Indicator Cards */}
+          {/* Investor Insights (Default View) */}
+          {indicators.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
           {indicators.map((ind, i) => {
             const diff = ind.prev != null && ind.value !== '-' ? (parseFloat(ind.value) - ind.prev) : null;
