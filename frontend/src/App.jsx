@@ -1074,6 +1074,10 @@ function App() {
                 <span className="material-symbols-outlined text-xl">public</span>
                 <span className="font-medium text-sm">매크로 시나리오</span>
               </button>
+              <button onClick={() => { setActiveTab("insights"); setInsightSubTab("cycle_guide"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${(activeTab === 'insights' && insightSubTab === 'cycle_guide') ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
+                <span className="material-symbols-outlined text-xl">cyclone</span>
+                <span className="font-medium text-sm">경기 사이클 가이드</span>
+              </button>
               <button onClick={() => { setActiveTab("insights"); setInsightSubTab("dart"); window.scrollTo(0,0); }} className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${(activeTab === 'insights' && insightSubTab === 'dart') ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}>
                 <span className="material-symbols-outlined text-xl">notifications_active</span>
                 <span className="font-medium text-sm">고래 지분 변동 (5%)</span>

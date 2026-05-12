@@ -1298,34 +1298,12 @@ export default function InvestmentInsights({ subTab, showToast }) {
         )}
       </div>
 
-      {/* Sub Tabs */}
-      <div className="flex p-1 bg-surface-container-low rounded-2xl border border-white/5 shadow-inner mb-8 md:mb-10">
-        {[
-          { id: 'insights', label: '투자 인사이트', icon: 'auto_graph' },
-          { id: 'oil_expert', label: '오일전문가 판독기', icon: 'finance_mode' },
-          { id: 'cycle_guide', label: '경기 사이클 가이드', icon: 'cyclone' }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setSubTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 md:py-4 rounded-xl text-xs md:text-sm font-black transition-all duration-300
-              ${subTab === tab.id 
-                ? 'bg-primary text-on-primary shadow-lg scale-[1.02] z-10' 
-                : 'text-on-surface-variant hover:bg-white/5 hover:text-on-surface'
-              }`}
-          >
-            <span className="material-symbols-outlined text-lg">{tab.icon}</span>
-            <span className="truncate">{tab.label}</span>
-          </button>
-        ))}
-      </div>
-
       {/* Main Content Area */}
-      {subTab === 'cycle_guide' && <CycleGuide />}
+      {initialSubTab === 'cycle_guide' && <CycleGuide />}
       
-      {subTab === 'oil_expert' && <OilExpertAnalyzer showToast={showToast} />}
+      {initialSubTab === 'oil_expert' && <OilExpertAnalyzer showToast={showToast} />}
 
-      {subTab === 'insights' && (
+      {initialSubTab === 'macro' && (
         <>
           {/* Indicator Cards - 데이터가 있을 때만 노출 */}
           {indicators.length > 0 && (
