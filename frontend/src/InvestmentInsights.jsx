@@ -655,6 +655,7 @@ export default function InvestmentInsights({ subTab, showToast }) {
       value: marketData.kr_rate != null ? `${marketData.kr_rate}%` : '-', 
       icon: 'flag', 
       prev: marketData.kr_rate_prev,
+      date: marketData.updated_at ? new Date(marketData.updated_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '',
       desc: '국내 금리의 나침반입니다. 금리가 낮아지면 대출 부담이 줄고 시장에 돈이 풀리며 주가 상승의 원동력이 됩니다.'
     },
     { 
@@ -662,18 +663,21 @@ export default function InvestmentInsights({ subTab, showToast }) {
       value: marketData.us_rate != null ? `${marketData.us_rate}%` : '-', 
       icon: 'public', 
       prev: marketData.us_rate_prev,
+      date: marketData.updated_at ? new Date(marketData.updated_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '',
       desc: '전 세계 돈의 흐름을 결정합니다. 미국 금리가 내리면 달러 가치가 안정되고 전 세계 주식 시장으로 자금이 유입됩니다.'
     },
     { 
       label: '미국 CPI (전년비)', 
       value: marketData.us_cpi != null ? `${marketData.us_cpi}%` : '-', 
       icon: 'shopping_cart',
+      date: marketData.updated_at ? new Date(marketData.updated_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '',
       desc: '물가 성적표입니다. 물가가 안정(CPI 하락)되어야 중앙은행이 안심하고 금리를 내릴 수 있는 환경이 조성됩니다.'
     },
     { 
       label: '미국 GDP 성장률', 
       value: marketData.us_gdp != null ? `${marketData.us_gdp}%` : '-', 
       icon: 'bar_chart',
+      date: marketData.updated_at ? new Date(marketData.updated_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '',
       desc: '경제 건강 상태입니다. 적당한 성장은 기업 실적에 좋지만, 과열되면 금리 인상 압박으로 이어질 수 있습니다.'
     },
   ] : [];
@@ -1238,7 +1242,8 @@ export default function InvestmentInsights({ subTab, showToast }) {
                 </div>
                 <p className="text-on-surface-variant text-sm md:text-base leading-relaxed mb-6">{scenario.summary}</p>
                 
-                {marketData?.scenario?.split(',').includes(scenario.id) && marketData?.analysis && (
+                {/* Only show AI Report for the PRIMARY scenario to avoid duplication if multiple scenarios are active */}
+                {marketData?.scenario?.split(',')[0] === scenario.id && marketData?.analysis && (
                   <div className="p-5 md:p-6 rounded-2xl bg-[#0a0e17]/40 border border-white/10 backdrop-blur-md shadow-xl">
                     <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/5">
                       <div className="flex items-center gap-2">
