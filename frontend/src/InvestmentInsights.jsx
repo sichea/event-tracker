@@ -1174,58 +1174,80 @@ export default function InvestmentInsights({ subTab, showToast }) {
 
       {/* Economic Cycle Map */}
       <div className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="material-symbols-outlined text-primary text-lg">cyclone</span>
-          <h2 className="text-sm font-black text-on-surface-variant uppercase tracking-widest">현재 경기 사이클 위치</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-lg">cyclone</span>
+            <h2 className="text-sm font-black text-on-surface-variant uppercase tracking-widest">경기 사이클 가이드</h2>
+          </div>
+          <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+            <span className="text-[10px] font-bold text-primary">지표 기반 AI 분석 중</span>
+          </div>
         </div>
-        <div className="grid grid-cols-4 gap-2 md:gap-4 p-1 bg-surface-container-low rounded-[2rem] border border-white/5 shadow-inner">
-          {[
-            { id: 'recovery', label: '회복기', icon: 'trending_up', color: 'from-blue-400/20 to-blue-500/20', borderColor: 'border-blue-500/30', activeColor: 'bg-blue-500', scenarios: ['none'] },
-            { id: 'expansion', label: '활황기', icon: 'sunny', color: 'from-orange-400/20 to-orange-500/20', borderColor: 'border-orange-500/30', activeColor: 'bg-orange-500', scenarios: ['rate_hike'] },
-            { id: 'downturn', label: '후퇴기', icon: 'cloud', color: 'from-red-400/20 to-red-500/20', borderColor: 'border-red-500/30', activeColor: 'bg-red-500', scenarios: ['inflation', 'war'] },
-            { id: 'recession', label: '침체기', icon: 'thunderstorm', color: 'from-purple-400/20 to-purple-500/20', borderColor: 'border-purple-500/30', activeColor: 'bg-purple-500', scenarios: ['rate_cut', 'recession'] }
-          ].map((phase) => {
-            const isActive = phase.scenarios.some(s => marketData?.scenario?.includes(s)) || (phase.id === 'recovery' && !marketData?.scenario);
-            return (
-              <div 
-                key={phase.id}
-                className={`relative p-3 md:p-5 rounded-[1.8rem] transition-all duration-500 flex flex-col items-center justify-center gap-2 border ${isActive ? `bg-gradient-to-br ${phase.color} ${phase.borderColor} shadow-lg scale-[1.02] z-10` : 'border-transparent opacity-40 grayscale'}`}
-              >
-                {isActive && (
-                  <div className="absolute -top-1 -right-1 flex h-3 w-3">
-                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${phase.activeColor} opacity-75`}></span>
-                    <span className={`relative inline-flex rounded-full h-3 w-3 ${phase.activeColor}`}></span>
-                  </div>
-                )}
-                <span className={`material-symbols-outlined text-xl md:text-2xl ${isActive ? 'text-white' : 'text-on-surface-variant'}`}>
-                  {phase.icon}
-                </span>
-                <span className={`text-[11px] md:text-sm font-black ${isActive ? 'text-white' : 'text-on-surface-variant'}`}>
-                  {phase.label}
-                </span>
-                {isActive && (
-                  <div className="mt-1 px-2 py-0.5 bg-white/10 rounded-full">
-                    <span className="text-[8px] md:text-[10px] text-white/80 font-bold whitespace-nowrap">CURRENT</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+
+        <div className="relative">
+          {/* Main Grid */}
+          <div className="grid grid-cols-4 gap-2 md:gap-4 p-1.5 bg-surface-container-low rounded-[2.5rem] border border-white/5 shadow-inner">
+            {[
+              { id: 'recovery', label: '회복기', icon: 'trending_up', color: 'text-blue-400', scenarios: ['none'] },
+              { id: 'expansion', label: '활황기', icon: 'sunny', color: 'text-orange-400', scenarios: ['rate_hike'] },
+              { id: 'downturn', label: '후퇴기', icon: 'cloud', color: 'text-red-400', scenarios: ['inflation', 'war'] },
+              { id: 'recession', label: '침체기', icon: 'thunderstorm', color: 'text-purple-400', scenarios: ['rate_cut', 'recession'] }
+            ].map((phase) => {
+              const isAIChosen = phase.scenarios.some(s => marketData?.scenario?.includes(s)) || (phase.id === 'recovery' && !marketData?.scenario);
+              return (
+                <div 
+                  key={phase.id}
+                  className={`relative p-4 md:p-6 rounded-[2.2rem] transition-all duration-300 flex flex-col items-center justify-center gap-2 border bg-surface-container-high/50 ${isAIChosen ? 'border-primary/40 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]' : 'border-transparent'}`}
+                >
+                  {isAIChosen && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-primary rounded-full shadow-lg z-20">
+                      <span className="text-[8px] font-black text-on-primary whitespace-nowrap">AI OPINION</span>
+                    </div>
+                  )}
+                  <span className={`material-symbols-outlined text-xl md:text-2xl ${phase.color}`}>
+                    {phase.icon}
+                  </span>
+                  <span className="text-xs md:text-sm font-black text-on-surface">
+                    {phase.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
         
-        {/* Cycle Mini Info */}
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 px-2">
-          {[
-            { label: '경제 신호', value: marketData?.scenario?.includes('rate_cut') ? '마이너스 성장 / 고실업' : marketData?.scenario?.includes('rate_hike') ? '안정적 성장 / 인플레 안정' : '지표 혼조세' },
-            { label: '금리 방향', value: marketData?.scenario?.includes('rate_cut') ? '적극적 인하' : marketData?.scenario?.includes('rate_hike') ? '점진적 인상' : '중립적 유지' },
-            { label: '유리한 섹터', value: marketData?.scenario?.includes('rate_cut') ? '필수소비재, 배당주' : marketData?.scenario?.includes('rate_hike') ? 'IT, 성장주' : '방산, 에너지' },
-            { label: '달러 가치', value: marketData?.scenario?.includes('rate_cut') ? '강세 후 약세 전환' : marketData?.scenario?.includes('rate_hike') ? '혼조세' : '강세 유지' }
-          ].map((info, idx) => (
-            <div key={idx} className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-tighter">{info.label}</span>
-              <span className="text-xs font-bold text-on-surface-variant leading-tight">{info.value}</span>
-            </div>
-          ))}
+        {/* Cycle Detailed Table (Scrollable on Mobile) */}
+        <div className="mt-6 overflow-x-auto scrollbar-hide pb-2">
+          <div className="min-w-[600px] grid grid-cols-4 gap-4 px-2">
+            {[
+              { id: 'recovery', signal: '성장률(+) / 저금리', rate: '금리 저점 / 인상 시작', win: '금융, 경기소비재', lose: '필수소비재' },
+              { id: 'expansion', signal: '안정적 성장 / 인플레 안정', rate: '점진적 금리 인상', win: 'IT, 반도체, 성장주', lose: '유틸리티' },
+              { id: 'downturn', signal: '인플레 부담 / 경기 과열', rate: '금리 정점 / 인하 시작', win: '에너지, 원자재, 헬스', lose: '기술주, IT' },
+              { id: 'recession', signal: '성장률(-) / 고실업', rate: '적극적 금리 인하', win: '필수소비재, 통신, 배당', lose: '금융, 경기소비재' }
+            ].map((phase) => {
+              const isAIChosen = phase.id === 'recovery' && !marketData?.scenario || (phase.id === 'recession' && marketData?.scenario?.includes('rate_cut')) || (phase.id === 'expansion' && marketData?.scenario?.includes('rate_hike')) || (phase.id === 'downturn' && (marketData?.scenario?.includes('inflation') || marketData?.scenario?.includes('war')));
+              return (
+                <div key={phase.id} className={`flex flex-col gap-3 p-4 rounded-2xl transition-colors ${isAIChosen ? 'bg-primary/5 border border-primary/10' : 'bg-transparent border border-transparent'}`}>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[9px] font-bold text-on-surface-variant/40 uppercase">경제 신호</span>
+                    <span className="text-[11px] font-bold text-on-surface-variant">{phase.signal}</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[9px] font-bold text-on-surface-variant/40 uppercase">금리 방향</span>
+                    <span className="text-[11px] font-bold text-on-surface-variant">{phase.rate}</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[9px] font-bold text-green-400/60 uppercase">유리한 섹터</span>
+                    <span className="text-[11px] font-bold text-on-surface">{phase.win}</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[9px] font-bold text-red-400/60 uppercase">불리한 섹터</span>
+                    <span className="text-[11px] font-bold text-on-surface-variant/70">{phase.lose}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
       
