@@ -1302,7 +1302,7 @@ function App() {
             onReset={() => setAnalysisResult(null)}
           />
         ) : activeTab === "insights" ? (
-          <InvestmentInsights subTab={insightSubTab} />
+          <InvestmentInsights subTab={insightSubTab} showToast={showToastMsg} />
         ) : activeTab === "subscription" ? (
           <div className="flex flex-col h-full">
             <div className="mb-8">
