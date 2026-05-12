@@ -37,17 +37,26 @@ export async function onRequestPost(context) {
       });
     }
 
-    // [2] 쿼터 확인 (사용자당 일 5회)
-    const { data: userUsage } = await supabase
-      .from('user_stock_api_usage')
-      .select('count')
-      .eq('user_ip', userIP)
-      .eq('usage_date', today)
-      .maybeSingle();
+    // [2] 쿼터 확인
+    const [{ data: globalUsage }, { data: userUsage }] = await Promise.all([
+      supabase.from('api_usage').select('*').eq('id', 'gemini_daily').single(),
+      supabase.from('user_stock_api_usage').select('count').eq('user_ip', userIP).eq('usage_date', today).maybeSingle()
+    ]);
+    
+    let globalRemaining = globalUsage ? globalUsage.remaining_count : 500;
+    // 날짜가 바뀌었으면 글로벌 쿼터 초기화
+    if (globalUsage && globalUsage.last_reset_date !== today) {
+      globalRemaining = 500;
+      await supabase.from('api_usage').update({ remaining_count: 500, last_reset_date: today }).eq('id', 'gemini_daily');
+    }
 
     const userCount = userUsage ? userUsage.count : 0;
-    if (userCount >= 1000) {
-      return new Response(JSON.stringify({ error: "오늘 분석 횟수(1000회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429 });
+    
+    if (globalRemaining <= 0) {
+      return new Response(JSON.stringify({ error: "시스템 에너지가 부족합니다.", user_remaining: 5 - userCount }), { status: 429 });
+    }
+    if (userCount >= 5) {
+      return new Response(JSON.stringify({ error: "오늘 분석 횟수(5회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429 });
     }
 
     const systemPrompt = `당신은 '오일전문가'의 투자 철학을 완벽하게 이해하는 주식 분석 비서입니다. 제공된 기업의 정보를 바탕으로 아래 13가지 항목에 대해 점수를 산출하세요.
@@ -131,6 +140,7 @@ export async function onRequestPost(context) {
     try {
       await Promise.all([
         supabase.from('stock_analysis_cache').insert([{ company_name: cleanName, result: resultJson }]),
+        supabase.from('api_usage').update({ remaining_count: globalRemaining - 1 }).eq('id', 'gemini_daily'),
         supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount })
       ]);
     } catch (dbError) {
