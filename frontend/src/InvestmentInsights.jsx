@@ -301,15 +301,26 @@ function AssetDetailsModal({ isOpen, onClose, asset, scenarioLabel, type }) {
         </div>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto custom-scrollbar space-y-8">
+        <div className="p-8 overflow-y-auto custom-scrollbar space-y-6">
           <div>
-            <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-4 opacity-50">추천 종목 예시</p>
-            <div className="p-6 rounded-3xl bg-surface-container-highest border border-primary/20 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-              <h3 className="text-xl font-bold text-primary mb-2 relative z-10">{asset.product_name || asset.name}</h3>
-              <p className="text-sm text-on-surface-variant leading-relaxed relative z-10">
-                {asset.strategy || asset.desc || "해당 시장 상황에서 유리한 성과를 기대할 수 있는 대표적인 ETF 상품입니다."}
-              </p>
+            <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-4 opacity-50">추천 종목 상세 정보</p>
+            <div className="space-y-4">
+              {(asset.products || [asset]).map((product, idx) => (
+                <div key={idx} className="p-6 rounded-3xl bg-surface-container-highest border border-primary/20 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                  <div className="flex items-center justify-between mb-2 relative z-10">
+                    <h3 className="text-lg font-bold text-primary">{product.product_name || product.name}</h3>
+                    {product.yield && (
+                      <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] font-black">
+                        3M {product.yield}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-on-surface-variant leading-relaxed relative z-10">
+                    {product.strategy || product.desc || "해당 시장 상황에서 유리한 성과를 기대할 수 있는 대표적인 상품입니다."}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
