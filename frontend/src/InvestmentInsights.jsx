@@ -1305,44 +1305,43 @@ export default function InvestmentInsights({ subTab, showToast }) {
 
       {subTab === 'insights' && (
         <>
-          {/* Indicator Cards */}
-          {/* Investor Insights (Default View) */}
+          {/* Indicator Cards - 데이터가 있을 때만 노출 */}
           {indicators.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
-          {indicators.map((ind, i) => {
-            const diff = ind.prev != null && ind.value !== '-' ? (parseFloat(ind.value) - ind.prev) : null;
-            return (
-              <div key={i} className="bg-surface-container border border-white/5 rounded-2xl p-4 relative group">
-                <div className="flex flex-col mb-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="material-symbols-outlined text-base text-on-surface-variant shrink-0">{ind.icon}</span>
-                      <span className="text-[10px] md:text-xs text-on-surface-variant font-medium truncate">{ind.label}</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
+              {indicators.map((ind, i) => {
+                const diff = ind.prev != null && ind.value !== '-' ? (parseFloat(ind.value) - ind.prev) : null;
+                return (
+                  <div key={i} className="bg-surface-container border border-white/5 rounded-2xl p-4 relative group">
+                    <div className="flex flex-col mb-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="material-symbols-outlined text-base text-on-surface-variant shrink-0">{ind.icon}</span>
+                          <span className="text-[10px] md:text-xs text-on-surface-variant font-medium truncate">{ind.label}</span>
+                        </div>
+                        <div className="relative flex items-center">
+                          <span 
+                            className="material-symbols-outlined text-[14px] text-on-surface-variant/30 cursor-help hover:text-primary transition-colors"
+                            title={ind.desc}
+                          >
+                            info
+                          </span>
+                        </div>
+                      </div>
+                      {ind.date && <p className="text-[9px] text-on-surface-variant/40 font-medium">{ind.date} 기준</p>}
                     </div>
-                    <div className="relative flex items-center">
-                      <span 
-                        className="material-symbols-outlined text-[14px] text-on-surface-variant/30 cursor-help hover:text-primary transition-colors"
-                        title={ind.desc}
-                      >
-                        info
-                      </span>
+                    <div className="flex items-end gap-2">
+                      <span className="text-xl md:text-2xl font-extrabold font-headline leading-tight">{ind.value}</span>
+                      {diff != null && diff !== 0 && (
+                        <span className={`text-[10px] font-bold mb-0.5 ${diff > 0 ? 'text-red-400' : 'text-blue-400'}`}>
+                          {diff > 0 ? '▲' : '▼'} {Math.abs(diff).toFixed(2)}%p
+                        </span>
+                      )}
                     </div>
                   </div>
-                  {ind.date && <p className="text-[9px] text-on-surface-variant/40 font-medium">{ind.date} 기준</p>}
-                </div>
-                <div className="flex items-end gap-2">
-                  <span className="text-xl md:text-2xl font-extrabold font-headline leading-tight">{ind.value}</span>
-                  {diff != null && diff !== 0 && (
-                    <span className={`text-[10px] font-bold mb-0.5 ${diff > 0 ? 'text-red-400' : 'text-blue-400'}`}>
-                      {diff > 0 ? '▲' : '▼'} {Math.abs(diff).toFixed(2)}%p
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+                );
+              })}
+            </div>
+          )}
 
       {/* Scenario Tabs */}
       {subTab !== 'oil_expert' && (
