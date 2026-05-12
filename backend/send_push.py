@@ -70,8 +70,10 @@ def send_push(subscription, title, body):
 
 def process_notifications():
     print("🚀 직접 통신 모드로 알림 스캔 시작...")
-    today = str(datetime.date.today())
-    yesterday_dt = datetime.datetime.now() - datetime.timedelta(days=1)
+    # 한국 시간(KST, UTC+9) 기준으로 '오늘' 날짜 구하기
+    kst_now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
+    today = kst_now.strftime("%Y-%m-%d")
+    yesterday_dt = kst_now - datetime.timedelta(days=1)
     
     try:
         # 1. 구독 정보 조회
