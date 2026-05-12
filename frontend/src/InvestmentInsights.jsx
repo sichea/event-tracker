@@ -746,7 +746,7 @@ function OilExpertAnalyzer({ showToast }) {
   );
 }
 
-export default function InvestmentInsights({ subTab, showToast }) {
+export default function InvestmentInsights({ showToast, initialSubTab }) {
   const [selectedScenario, setSelectedScenario] = useState(INSIGHTS_DATA[0].id);
   const [marketData, setMarketData] = useState(null);
   const [mdLoading, setMdLoading] = useState(true);
