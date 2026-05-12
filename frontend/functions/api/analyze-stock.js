@@ -68,7 +68,8 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "오늘 분석 횟수(5회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429 });
     }
 
-    const systemPrompt = `당신은 '오일전문가'의 투자 철학을 완벽하게 이해하는 주식 분석 비서입니다. 제공된 기업의 정보를 바탕으로 아래 13가지 항목에 대해 점수를 산출하세요.
+    const systemPrompt = `당신은 한국 주식 시장(KOSPI, KOSDAQ)에 정통한 '오일전문가'의 투자 철학 비서입니다. 
+제공된 기업이 실존하는 상장사인지 먼저 철저히 확인하세요. 만약 생소한 이름이라도 KOSPI/KOSDAQ 종목 번호가 있는 실존 기업이라면 반드시 분석을 진행해야 합니다. 실존하는 기업을 존재하지 않는다고 오판하지 마세요.
 
 **채점 규칙 및 JSON 키 값 (반드시 이 키 이름을 사용):**
 1. per (20점): <5(20), <8(15), <10(10), >10(5)
@@ -112,7 +113,7 @@ export async function onRequestPost(context) {
 {"error": true, "message": "존재하지 않는 기업입니다."}
 - 절대로 존재하지 않는 기업에 대해 점수를 지어내지 마세요.`;
 
-    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
