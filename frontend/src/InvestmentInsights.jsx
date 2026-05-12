@@ -336,39 +336,91 @@ function OilExpertAnalyzer() {
   };
 
   return (
-    <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 relative">
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 blur-[120px] rounded-full" />
-        {!analysisData && !isLoading && (
-          <div className="absolute inset-0 flex items-end justify-end opacity-[0.15] pointer-events-none animate-in fade-in zoom-in duration-1000">
-            <img 
-              src="/images/stock_robot.png" 
-              alt="" 
-              className="w-auto h-auto max-w-[85%] max-h-[70%] object-contain object-right-bottom filter invert grayscale brightness-150 contrast-125 drop-shadow-[0_0_30px_rgba(34,197,94,0.15)]" 
-            />
+    <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 relative min-h-[85vh] flex flex-col items-center justify-center">
+      {/* THE KICK: Thinking Robot Background - Matching Insights Style */}
+      {!analysisData && !isLoading && (
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-[0.15] animate-in fade-in zoom-in duration-1000">
+          <img 
+            src="/images/stock_robot.png" 
+            alt="" 
+            className="w-full max-w-5xl h-[80vh] object-contain filter invert grayscale brightness-150 contrast-125" 
+          />
+        </div>
+      )}
+
+      <div className="relative z-10 w-full max-w-2xl flex flex-col items-center">
+        {/* Header Section */}
+        <div className="flex flex-col items-center text-center space-y-4 mb-12">
+          {!analysisData && (
+            <>
+              <div className="px-3 py-1 rounded bg-primary/10 border border-primary/20 mb-2">
+                <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Expert Judgment System</span>
+              </div>
+              <h1 className="text-white/90 text-3xl md:text-4xl font-black tracking-tight font-headline">저평가 우량주 판독기</h1>
+              <p className="text-white/40 text-sm md:text-base font-medium max-w-lg leading-relaxed">
+                오일전문가님의 100점 만점 투자평가표 데이터를 학습한 AI가<br/> 
+                <span className="text-primary/80 font-bold">기업의 내재 가치</span>를 정밀 분석하여 판독합니다.
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* Insights Style Search Bar */}
+        <form onSubmit={handleAnalyze} className="w-full relative group px-2">
+          <div className={`
+            relative flex items-center transition-all duration-500 rounded-full border border-white/10
+            bg-transparent group-hover:bg-white/[0.05] group-hover:backdrop-blur-3xl group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
+            ${companyName.trim() ? 'bg-white/[0.03] backdrop-blur-xl' : ''}
+            focus-within:bg-white/[0.08] focus-within:backdrop-blur-3xl focus-within:outline-none focus-within:shadow-[0_0_30px_rgba(34,197,94,0.1)]
+          `}>
+            <div className="pl-6 md:pl-8 text-primary/60">
+              <span className="material-symbols-outlined text-2xl">assignment_turned_in</span>
+            </div>
+            
+            <div className="flex-1 flex items-center h-16 md:h-20 relative">
+              <input 
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="기업명을 입력하세요 (예: 삼성전자, 현대차)"
+                className="flex-1 bg-transparent border-none pl-4 pr-24 md:pl-6 md:pr-32 text-white text-lg md:text-xl !outline-none focus:!outline-none focus:ring-0 placeholder:text-white/20 font-bold appearance-none" 
+                style={{ WebkitTapHighlightColor: 'transparent', outline: 'none', boxShadow: 'none' }}
+              />
+            </div>
+          </div>
+
+          <button 
+            type="submit"
+            disabled={isLoading || !companyName.trim()} 
+            className={`
+              absolute right-5 md:right-7 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 z-20
+              ${companyName.trim() && !isLoading ? 'bg-primary text-[#0a0e17] scale-110 shadow-[0_0_20px_rgba(34,197,94,0.4)]' : 'bg-white/5 text-white/20 scale-90'}
+              active:scale-95 touch-manipulation cursor-pointer
+            `}
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
+            ) : (
+              <span className="material-symbols-outlined text-2xl font-bold">arrow_forward</span>
+            )}
+          </button>
+        </form>
+
+        {/* Energy Decoration matching Insights */}
+        {!analysisData && (
+          <div className="flex flex-col items-center gap-4 pt-8 animate-in fade-in slide-in-from-top-4 duration-1000">
+            <div className="flex items-center gap-5">
+              <span className="text-[10px] font-black text-primary/50 uppercase tracking-[0.2em]">Analysis Quota</span>
+              <div className="flex gap-1.5">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-700 ${i < 5 ? 'bg-primary/60 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-white/5'}`} />
+                ))}
+              </div>
+              <span className="text-[10px] font-bold text-white/40 tracking-widest uppercase">Unlimited</span>
+            </div>
           </div>
         )}
       </div>
-
-      <div className="relative z-10">
-        <div className="mb-8 md:mb-12">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
-              <span className="material-symbols-outlined text-primary text-2xl" data-weight="fill">fact_check</span>
-            </div>
-            <div>
-              <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tighter font-headline">저평가 우량주 판독기</h1>
-              <p className="text-on-surface-variant text-sm md:text-base">오일전문가님의 100점 만점 투자평가표 기준 자동 분석</p>
-            </div>
-          </div>
-          <form onSubmit={handleAnalyze} className="relative max-w-xl">
-            <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="기업명을 입력하세요 (예: 삼성전자, 현대차)" className="w-full bg-surface-container rounded-[2rem] px-8 py-5 pr-16 text-lg font-bold focus:ring-2 focus:ring-primary/50 outline-none border border-white/5 shadow-2xl" />
-            <button type="submit" disabled={isLoading} className="absolute right-3 top-3 w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center hover:scale-105 transition-all">
-              {isLoading ? <div className="w-6 h-6 border-3 border-on-primary/30 border-t-on-primary rounded-full animate-spin" /> : <span className="material-symbols-outlined">search</span>}
-            </button>
-          </form>
-        </div>
 
         {analysisData && analysisData.scores && (
           <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
