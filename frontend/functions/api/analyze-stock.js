@@ -113,7 +113,7 @@ export async function onRequestPost(context) {
 {"error": true, "message": "존재하지 않는 기업입니다."}
 - 절대로 존재하지 않는 기업에 대해 점수를 지어내지 마세요.`;
 
-    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -125,6 +125,12 @@ export async function onRequestPost(context) {
         generationConfig: { response_mime_type: "application/json", temperature: 0.2 }
       })
     });
+
+    if (!apiResponse.ok) {
+      const errorText = await apiResponse.text();
+      console.error('Gemini API Error:', errorText);
+      throw new Error(`AI 서버 응답 오류 (Status: ${apiResponse.status}). 모델 설정을 확인 중입니다.`);
+    }
 
     const aiData = await apiResponse.json();
     
