@@ -991,6 +991,8 @@ async def run_scrape_and_save():
                 del active_map[e["id"]]
 
         # 4. 종료 처리: 이번 수집에서 사라졌거나 날짜가 지난 것들 처리
+        protected_count = 0
+        terminated_count = 0
         for old_id, old_evt in active_map.items():
             provider = old_evt.get("provider", "")
             

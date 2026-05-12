@@ -39,7 +39,20 @@ function formatDateRange(start, end) {
 
 // Event Card using Tailwind
 function EventCard({ event, aliases, onToggle, showToastMsg }) {
-  const dday = formatDday(event.d_day);
+  // D-day를 end_date 기반으로 실시간 계산 (DB 값은 스크래핑 시점에 고정되므로 부정확)
+  const computedDday = (() => {
+    if (!event.end_date) return event.d_day;
+    try {
+      const end = new Date(event.end_date + 'T23:59:59');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      return Math.floor((end - today) / (1000 * 60 * 60 * 24));
+    } catch {
+      return event.d_day;
+    }
+  })();
+  const dday = formatDday(computedDday);
   const isActive = event.status === "진행중";
   const hasAnyCheck = Object.values(event.checkedAliases || {}).some((v) => v);
   const pConf = PROVIDERS.find(p => p.key === event.provider) || PROVIDERS[0];
@@ -947,7 +960,24 @@ function App() {
   const maxPossibleChecks = events.length * Math.max(aliases.length, 1);
   const checkPercent = maxPossibleChecks > 0 ? Math.round((totalChecks / maxPossibleChecks) * 100) : 0;
   
-  const upcomingEvents = uniqueEvents.filter(e => e.status === "진행중" && !isExpired(e.end_date) && e.d_day >= 0 && e.d_day <= 3).length;
+  // D-day 실시간 계산 헬퍼 (end_date 기반)
+  const calcDday = (e) => {
+    if (!e.end_date) return e.d_day ?? null;
+    try {
+      const end = new Date(e.end_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      return Math.floor((end - today) / (1000 * 60 * 60 * 24));
+    } catch {
+      return e.d_day ?? null;
+    }
+  };
+
+  const upcomingEvents = uniqueEvents.filter(e => {
+    const dd = calcDday(e);
+    return e.status === "진행중" && !isExpired(e.end_date) && dd !== null && dd >= 0 && dd <= 3;
+  }).length;
 
   // 참여 목록 탭에서 쓸 '종료 후 경과 일수' 계산 헬퍼
   const daysAfterEndOf = (e) => {
@@ -970,7 +1000,8 @@ function App() {
         if (dae === null || dae > 30) return false;
       }
     } else if (selectedStatus === "마감 임박") {
-      if (e.status !== "진행중" || isExpired(e.end_date) || e.d_day === null || e.d_day === undefined || e.d_day < 0 || e.d_day > 3) return false;
+      const dd = calcDday(e);
+      if (e.status !== "진행중" || isExpired(e.end_date) || dd === null || dd < 0 || dd > 3) return false;
     } else {
       if (e.status !== "진행중" || isExpired(e.end_date)) return false;
     }
@@ -982,10 +1013,10 @@ function App() {
       const bActive = b.status === "진행중" ? 0 : 1;
       if (aActive !== bActive) return aActive - bActive;
       // 진행중끼리는 d_day 오름차순, 종료끼리는 end_date 내림차순
-      if (aActive === 0) return (a.d_day ?? 9999) - (b.d_day ?? 9999);
+      if (aActive === 0) return (calcDday(a) ?? 9999) - (calcDday(b) ?? 9999);
       return (b.end_date || '').localeCompare(a.end_date || '');
     }
-    return (a.d_day ?? 9999) - (b.d_day ?? 9999);
+    return (calcDday(a) ?? 9999) - (calcDday(b) ?? 9999);
   });
 
   return (
