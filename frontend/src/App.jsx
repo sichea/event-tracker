@@ -940,26 +940,6 @@ function App() {
                 <span className="font-medium text-sm">카테크 (준비중)</span>
               </button>
 
-              {zzantecSubTab === 'parking' && (
-                <>
-                  <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-6">금리 필터</p>
-                  {[
-                    { id: 'all', label: '전체 상품', icon: 'list' },
-                    { id: 'no_conditions', label: '우대조건 없음', icon: 'verified_user' },
-                    { id: 'high_yield', label: '실수령액 순', icon: 'payments' },
-                    { id: 'major', label: '1금융권/대형사', icon: 'account_balance' }
-                  ].map(f => (
-                    <button 
-                      key={f.id}
-                      onClick={() => { setParkingFilter(f.id); window.scrollTo(0,0); }} 
-                      className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2 transition-all duration-300 ${parkingFilter === f.id ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
-                    >
-                      <span className="material-symbols-outlined text-lg">{f.icon}</span>
-                      <span className="font-medium text-xs">{f.label}</span>
-                    </button>
-                  ))}
-                </>
-              )}
             </>
           ) : (
             <div className="text-center py-10 text-on-surface-variant/50 text-xs">
