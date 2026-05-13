@@ -13,14 +13,15 @@ import "./index.css";
 const PROVIDERS = [
   { key: "TIGER", label: "TIGER", name: "Mirae Asset TIGER", bgColor: "bg-orange-600", textLabel: "TIGER", shadow: "shadow-orange-900/20", url: "https://investments.miraeasset.com/tigeretf/ko/customer/event/list.do" },
   { key: "KODEX", label: "KODEX", name: "Samsung KODEX", bgColor: "bg-blue-700", textLabel: "KODEX", shadow: "shadow-blue-900/20", url: "https://m.samsungfund.com/etf/lounge/event.do" },
+  { key: "PLUS", label: "PLUS", name: "PLUS (한화)", bgColor: "bg-[#ff8200]", textLabel: "PLUS", textSize: "text-xs", shadow: "shadow-[#ff8200]/20", url: "https://m.blog.naver.com/hanwhaasset" },
   { key: "ACE", label: "ACE", name: "Korea Invest ACE", bgColor: "bg-yellow-500", textLabel: "ACE", textCol: "text-black", shadow: "shadow-yellow-900/20", url: "https://www.aceetf.co.kr/cs/notice" },
   { key: "SOL", label: "SOL", name: "Shinhan SOL", bgColor: "bg-cyan-600", textLabel: "SOL", shadow: "shadow-cyan-900/20", url: "https://m.blog.naver.com/soletf" },
   { key: "RISE", label: "RISE", name: "KB RISE", bgColor: "bg-red-600", textLabel: "RISE", shadow: "shadow-red-900/20", url: "https://www.riseetf.co.kr/cust/event" },
   { key: "AMUNDI", label: "AMUNDI", name: "NH-Amundi", bgColor: "bg-emerald-800", textLabel: "AMUNDI", textSize: "text-[10px]", shadow: "", url: "https://m.blog.naver.com/nh_amundi" },
   { key: "1Q", label: "1Q", name: "Hana 1Q", bgColor: "bg-green-500", textLabel: "1Q", shadow: "", url: "https://m.blog.naver.com/1qetf" },
-  { key: "PLUS", label: "PLUS", name: "Hanwha PLUS", bgColor: "bg-indigo-600", textLabel: "PLUS", textSize: "text-xs", shadow: "", url: "https://m.blog.naver.com/hanwhaasset" },
   { key: "KIWOOM", label: "KIWOOM", name: "Kiwoom KOSETF", bgColor: "bg-pink-600", textLabel: "KIWOOM", textSize: "text-[10px]", shadow: "", url: "https://m.blog.naver.com/kiwoomammkt" },
-  { key: "FUN", label: "FUN", name: "Woori FUN", bgColor: "bg-indigo-400", textLabel: "FUN", shadow: "", url: "https://www.funetf.co.kr/membersLounge/event" },
+  { key: "FUN", label: "FUN", name: "Samsung FUN", bgColor: "bg-indigo-400", textLabel: "FUN", shadow: "", url: "https://www.funetf.co.kr/membersLounge/event" },
+  { key: "WON", label: "WON", name: "Woori WON", bgColor: "bg-blue-400", textLabel: "WON", shadow: "", url: "https://www.wooriwam.com/kr/etf/lounge/event.do" },
 ];
 
 function formatDday(dday) {
@@ -907,7 +908,7 @@ function App() {
           ) : activeTab === 'dashboard' ? (
             <>
               <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-6">운용사별</p>
-              <div className="space-y-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
+              <div className="space-y-1 pr-2">
                 {PROVIDERS.map(p => (
                   <button 
                     key={p.key}
