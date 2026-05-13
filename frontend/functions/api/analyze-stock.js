@@ -22,14 +22,17 @@ export async function onRequestPost(context) {
 
     // [1] 쿼터 확인 (캐시 히트에서도 userCount 필요하므로 먼저 조회)
     const [{ data: globalUsage }, { data: userUsage }] = await Promise.all([
-      supabase.from('api_usage').select('*').eq('id', 'gemini_daily').single(),
+      supabase.from('api_usage').select('*').eq('id', 'gemini_stock_daily').maybeSingle(),
       supabase.from('user_stock_api_usage').select('count').eq('user_ip', userIP).eq('usage_date', today).maybeSingle()
     ]);
     
     let globalRemaining = globalUsage ? globalUsage.remaining_count : 500;
     if (globalUsage && globalUsage.last_reset_date !== today) {
       globalRemaining = 500;
-      await supabase.from('api_usage').update({ remaining_count: 500, last_reset_date: today }).eq('id', 'gemini_daily');
+      await supabase.from('api_usage').update({ remaining_count: 500, last_reset_date: today }).eq('id', 'gemini_stock_daily');
+    } else if (!globalUsage) {
+      // 레코드가 없으면 새로 생성
+      await supabase.from('api_usage').upsert({ id: 'gemini_stock_daily', remaining_count: 500, last_reset_date: today });
     }
 
     const userCount = userUsage ? userUsage.count : 0;
@@ -154,7 +157,7 @@ export async function onRequestPost(context) {
     try {
       await Promise.all([
         supabase.from('stock_analysis_cache').insert([{ company_name: cleanName, result: resultJson }]),
-        supabase.from('api_usage').update({ remaining_count: globalRemaining - 1 }).eq('id', 'gemini_daily'),
+        supabase.from('api_usage').update({ remaining_count: globalRemaining - 1 }).eq('id', 'gemini_stock_daily'),
         supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount })
       ]);
     } catch (dbError) {

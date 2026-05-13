@@ -478,13 +478,13 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
   const [isLoading, setIsLoading] = useState(false);
   const [quota, setQuota] = useState({ user: 5, total: 500 });
 
-  // 쿼터 정보 가져오기
+  // 판독기 전용 쿼터 정보 가져오기
   const refreshQuota = useCallback(async () => {
     try {
       const res = await fetch('/api/quota');
       if (res.ok) {
         const data = await res.json();
-        setQuota({ user: data.user_remaining, total: data.total_remaining });
+        setQuota({ user: data.stock_user_remaining ?? 5, total: data.stock_global_remaining ?? 500 });
       }
     } catch (e) {
       console.error("Quota fetch error:", e);
