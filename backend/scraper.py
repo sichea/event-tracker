@@ -733,8 +733,8 @@ async def scrape_kiwoom(page) -> list[dict]:
     return await scrape_naver_blog_generic(page, "KIWOOM")
 
 
-async def scrape_fun(page) -> list[dict]:
-    """FUN ETF 이벤트 페이지 스크래핑 - 카드형 이벤트 페이지 기반"""
+async def scrape_fun(page, kodex_titles: list[str] = None) -> list[dict]:
+    """FUN ETF 이벤트 페이지 스크래핑 - 카드형 이벤트 페이지 기반 (KODEX 중복 제거 로직 포함)"""
     import re
     events = []
     try:
@@ -771,6 +771,22 @@ async def scrape_fun(page) -> list[dict]:
             if item.get("ended"): continue
             title = item["title"]
             if not title or is_announcement(title): continue
+            
+            # KODEX 중복 제거 로직 (Option A)
+            if kodex_titles:
+                # 제목이 완전히 일치하거나, KODEX 제목이 FUN 제목을 포함하는 경우 스킵
+                # (보통 KODEX 쪽 제목이 더 정석적인 경우가 많음)
+                is_duplicate = False
+                for kt in kodex_titles:
+                    # 공백 제거 후 비교하여 공백 차이로 인한 중복 방지
+                    clean_kt = re.sub(r'\s+', '', kt)
+                    clean_title = re.sub(r'\s+', '', title)
+                    if clean_kt == clean_title or clean_kt in clean_title or clean_title in clean_kt:
+                        is_duplicate = True
+                        break
+                if is_duplicate:
+                    print(f"[FUN 스킵] KODEX와 중복된 이벤트 발견: {title[:30]}")
+                    continue
             
             # 기간 텍스트에서 날짜 파싱 (예: 26.03.26 ~ 26.04.12)
             end_date = None
@@ -891,11 +907,22 @@ async def scrape_all() -> tuple[list[dict], dict[str, int]]:
             ("FUN", scrape_fun),
         ]
 
+        kodex_titles = []
         for name, scraper in scrapers:
             print(f"\n{'='*50}")
             print(f"[{name}] 스크래핑 시작...")
             print(f"{'='*50}")
-            events = await _run_scraper_with_retry(name, scraper, browser)
+            
+            # FUN 실행 시 KODEX 타이틀 목록 전달
+            if name == "FUN":
+                events = await _run_scraper_with_retry(name, lambda p: scraper(p, kodex_titles), browser)
+            else:
+                events = await _run_scraper_with_retry(name, scraper, browser)
+                
+            # KODEX 결과 저장 (FUN 필터링용)
+            if name == "KODEX":
+                kodex_titles = [e["title"] for e in events]
+                
             provider_results[name] = len(events)
             print(f"[{name}] 최종 수집: {len(events)}건")
             all_events.extend(events)
