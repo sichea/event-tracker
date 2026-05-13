@@ -1275,65 +1275,16 @@ function App() {
             {loading && events.length === 0 ? (
               <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
             ) : (
-              (selectedProvider === null && (selectedStatus === "전체 보기" || selectedStatus === "전체 이벤트")) ? (
-                <section className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2 bg-surface-container border border-white/5 rounded-3xl p-8 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                    <h3 className="text-2xl font-bold mb-6 font-headline flex items-center gap-3">
-                      <span className="material-symbols-outlined text-primary" data-weight="fill">bolt</span> 최근 활동 알림
-                    </h3>
-                    <div className="space-y-6">
-                      {uniqueEvents.slice(0,3).map((ev, i) => (
-                        <div key={ev.id} className="flex gap-4 items-start">
-                          <div className={`w-2 h-2 rounded-full mt-2 ${i===0?'bg-primary shadow-[0_0_8px_#73ffba]':'bg-outline-variant'}`}></div>
-                          <div className="flex-1 cursor-pointer hover:underline" onClick={() => {if(ev.link) window.open(ev.link, '_blank')}}>
-                            <p className="text-on-surface font-medium line-clamp-1">{i===0?'신규':'발견'} {ev.provider} 이벤트: '{ev.title}'</p>
-                            <p className="text-xs text-on-surface-variant mt-1">{formatDateRange(ev.start_date, ev.end_date)} • {ev.provider} ETF</p>
-                          </div>
-                          {i === 0 && <span className="text-[10px] uppercase font-bold text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded">NEW</span>}
-                          {i === 2 && <span className="material-symbols-outlined text-primary text-sm">verified</span>}
-                        </div>
-                      ))}
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in">
+                {displayEvents.length > 0 ? displayEvents.map(e => (
+                  <EventCard key={e.id} event={e} aliases={aliases} onToggle={handleToggle} showToastMsg={showToastMsg} />
+                )) : (
+                  <div className="col-span-full py-20 text-center text-on-surface-variant">
+                    <span className="material-symbols-outlined text-5xl mb-4 opacity-50">filter_list_off</span>
+                    <p>해당 조건의 이벤트가 없습니다.</p>
                   </div>
-                  <div className="bg-surface-container border border-white/5 rounded-3xl p-8 flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-2xl font-bold mb-2 font-headline">시스템 건전성</h3>
-                      <p className="text-sm text-on-surface-variant mb-8">안전한 데이터 수집 및 보안 상태입니다.</p>
-                      <div className="flex items-center justify-center py-10 relative">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-32 h-32 rounded-full border-4 border-primary/10 border-t-primary border-l-primary/50 animate-[spin:5s_linear_infinite]"></div>
-                        </div>
-                        <div className="text-center z-10">
-                          <p className="text-4xl font-black text-on-surface font-headline">{scrapingStatus?.status === 'success' || scrapingStatus?.status === '성공' ? '99.8%' : '90.2%'}</p>
-                          <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">안전함</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-surface-container-highest p-4 rounded-2xl text-center">
-                        <p className="text-[10px] uppercase font-bold text-on-surface-variant mb-1">API 상태</p>
-                        <p className="text-sm font-bold text-primary">{scrapingStatus?.status === 'failed' ? '오류' : '안정'}</p>
-                      </div>
-                      <div className="bg-surface-container-highest p-4 rounded-2xl text-center">
-                        <p className="text-[10px] uppercase font-bold text-on-surface-variant mb-1">응답 속도</p>
-                        <p className="text-sm font-bold text-on-surface">최적</p>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in">
-                  {displayEvents.length > 0 ? displayEvents.map(e => (
-                    <EventCard key={e.id} event={e} aliases={aliases} onToggle={handleToggle} showToastMsg={showToastMsg} />
-                  )) : (
-                    <div className="col-span-full py-20 text-center text-on-surface-variant">
-                      <span className="material-symbols-outlined text-5xl mb-4 opacity-50">filter_list_off</span>
-                      <p>해당 조건의 이벤트가 없습니다.</p>
-                    </div>
-                  )}
-                </div>
-              )
+                )}
+              </div>
             )}
           </>
         )}
