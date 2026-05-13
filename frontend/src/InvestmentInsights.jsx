@@ -534,7 +534,13 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
       }
       setAnalysisData(data);
       if (showToast) showToast(`[${data.name}] 분석이 완료되었습니다.`);
-      // 분석 성공 시 쿼터 즉시 갱신
+      // 분석 성공 시 응답에서 직접 받은 값으로 즉시 갱신
+      if (data.user_remaining !== undefined || data.stock_global_remaining !== undefined) {
+        setQuota(prev => ({
+          user: data.user_remaining ?? prev.user,
+          total: data.stock_global_remaining ?? prev.total
+        }));
+      }
       refreshQuota();
     } catch (err) {
       if (showToast) {

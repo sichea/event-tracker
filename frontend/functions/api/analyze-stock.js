@@ -56,10 +56,13 @@ export async function onRequestPost(context) {
       const CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30일
 
       if (cacheAge < CACHE_TTL) {
-        // 유효한 캐시 → 바로 반환
+        // 유효한 캐시 → 글로벌 에너지 + 사용자 에너지 모두 차감
         const newUserCount = userCount + 1;
         try {
-          await supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount });
+          await Promise.all([
+            supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount }),
+            supabase.from('api_usage').upsert({ id: 'gemini_stock_daily', remaining_count: globalRemaining - 1, last_reset_date: today }, { onConflict: 'id' })
+          ]);
         } catch (dbError) {
           console.error('Cache Quota Update Error:', dbError);
         }
@@ -69,6 +72,7 @@ export async function onRequestPost(context) {
           is_cached: true,
           cache_date: cachedResult.created_at,
           user_remaining: 5 - newUserCount,
+          stock_global_remaining: globalRemaining - 1,
           model: "Cached"
         }), {
           headers: { "Content-Type": "application/json" }
@@ -167,7 +171,7 @@ export async function onRequestPost(context) {
     try {
       await Promise.all([
         supabase.from('stock_analysis_cache').upsert({ company_name: cleanName, result: resultJson, created_at: new Date().toISOString() }, { onConflict: 'company_name' }),
-        supabase.from('api_usage').update({ remaining_count: globalRemaining - 1 }).eq('id', 'gemini_stock_daily'),
+        supabase.from('api_usage').upsert({ id: 'gemini_stock_daily', remaining_count: globalRemaining - 1, last_reset_date: today }, { onConflict: 'id' }),
         supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount })
       ]);
     } catch (dbError) {
@@ -178,6 +182,7 @@ export async function onRequestPost(context) {
       ...resultJson,
       is_cached: false,
       user_remaining: 5 - newUserCount,
+      stock_global_remaining: globalRemaining - 1,
       model: "Gemini 2.5 Flash"
     }), {
       headers: { "Content-Type": "application/json" }
