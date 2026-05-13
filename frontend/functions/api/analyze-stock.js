@@ -44,29 +44,37 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "오늘 분석 횟수(5회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429, headers: { 'Content-Type': 'application/json' } });
     }
 
-    // [2] 캐시 확인
+    // [2] 캐시 확인 (30일 TTL)
     const { data: cachedResult } = await supabase
       .from('stock_analysis_cache')
-      .select('result')
+      .select('result, created_at')
       .eq('company_name', cleanName)
       .maybeSingle();
 
     if (cachedResult) {
-      const newUserCount = userCount + 1;
-      try {
-        await supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount });
-      } catch (dbError) {
-        console.error('Cache Quota Update Error:', dbError);
-      }
+      const cacheAge = Date.now() - new Date(cachedResult.created_at).getTime();
+      const CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30일
 
-      return new Response(JSON.stringify({
-        ...cachedResult.result,
-        is_cached: true,
-        user_remaining: 5 - newUserCount,
-        model: "Cached"
-      }), {
-        headers: { "Content-Type": "application/json" }
-      });
+      if (cacheAge < CACHE_TTL) {
+        // 유효한 캐시 → 바로 반환
+        const newUserCount = userCount + 1;
+        try {
+          await supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount });
+        } catch (dbError) {
+          console.error('Cache Quota Update Error:', dbError);
+        }
+
+        return new Response(JSON.stringify({
+          ...cachedResult.result,
+          is_cached: true,
+          cache_date: cachedResult.created_at,
+          user_remaining: 5 - newUserCount,
+          model: "Cached"
+        }), {
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+      // 30일 초과 → 캐시 만료, 아래에서 재분석 진행
     }
 
     const systemPrompt = `당신은 대한민국 주식 시장(KOSPI, KOSDAQ)의 모든 종목을 꿰뚫고 있는 '오일전문가'의 AI 비서입니다. 
@@ -154,11 +162,11 @@ export async function onRequestPost(context) {
       });
     }
 
-    // [4] 데이터 저장
+    // [4] 데이터 저장 (upsert: 만료된 캐시 갱신 대응)
     const newUserCount = userCount + 1;
     try {
       await Promise.all([
-        supabase.from('stock_analysis_cache').insert([{ company_name: cleanName, result: resultJson }]),
+        supabase.from('stock_analysis_cache').upsert({ company_name: cleanName, result: resultJson, created_at: new Date().toISOString() }, { onConflict: 'company_name' }),
         supabase.from('api_usage').update({ remaining_count: globalRemaining - 1 }).eq('id', 'gemini_stock_daily'),
         supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount })
       ]);
