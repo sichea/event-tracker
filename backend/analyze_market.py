@@ -158,8 +158,8 @@ def fetch_fred_data():
     us_rate, us_rate_prev = fetch_fred_series("FEDFUNDS")
     print(f"📊 미국 기준금리: {us_rate}% (이전: {us_rate_prev}%)")
 
-    # CPI 전년비 변화율 (FRED에서 전년비 직접 제공 시리즈)
-    cpi_yoy, _ = fetch_fred_series("CPALTT01USM657N")
+    # CPI 전년비 변화율 (FRED에서 전년비 직접 제공 시리즈 - CPALTT01USM659N)
+    cpi_yoy, _ = fetch_fred_series("CPALTT01USM659N")
     if cpi_yoy is None:
         cpi_yoy = 3.0  # 기본값
     else:
