@@ -472,7 +472,7 @@ function CycleGuide() {
 }
 
 // ============ Oil Expert Analyzer ============
-function OilExpertAnalyzer({ showToast }) {
+function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
   const [companyName, setCompanyName] = useState("");
   const [analysisData, setAnalysisData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -514,6 +514,10 @@ function OilExpertAnalyzer({ showToast }) {
   const handleAnalyze = async (e) => {
     e?.preventDefault();
     if (!companyName.trim()) return;
+    if (!session) {
+      if (onRequireLogin) onRequireLogin();
+      return;
+    }
     setIsLoading(true);
     try {
       const response = await fetch('/api/analyze-stock', {
@@ -782,7 +786,7 @@ function OilExpertAnalyzer({ showToast }) {
   );
 }
 
-export default function InvestmentInsights({ showToast, initialSubTab }) {
+export default function InvestmentInsights({ showToast, initialSubTab, session, onRequireLogin }) {
   const subTab = initialSubTab || 'macro';
   const [selectedScenario, setSelectedScenario] = useState(INSIGHTS_DATA[0].id);
   const [marketData, setMarketData] = useState(null);
@@ -859,7 +863,7 @@ export default function InvestmentInsights({ showToast, initialSubTab }) {
   const news = marketData?.news || [];
   
   if (subTab === 'oil_expert') {
-    return <OilExpertAnalyzer />;
+    return <OilExpertAnalyzer showToast={showToast} session={session} onRequireLogin={onRequireLogin} />;
   }
 
   if (subTab === 'dart') {

@@ -1136,7 +1136,7 @@ function App() {
             onReset={() => setAnalysisResult(null)}
           />
         ) : activeTab === "insights" ? (
-          <InvestmentInsights key={insightSubTab} initialSubTab={insightSubTab} showToast={showToastMsg} />
+          <InvestmentInsights key={insightSubTab} initialSubTab={insightSubTab} showToast={showToastMsg} session={session} onRequireLogin={() => setShowLoginModal(true)} />
         ) : activeTab === "subscription" ? (
           <div className="flex flex-col h-full">
             <div className="mb-8">
