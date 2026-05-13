@@ -20,7 +20,28 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: '기업명은 2글자 이상 입력해 주세요.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
-    // [1] 캐시 확인
+    // [1] 쿼터 확인 (캐시 히트에서도 userCount 필요하므로 먼저 조회)
+    const [{ data: globalUsage }, { data: userUsage }] = await Promise.all([
+      supabase.from('api_usage').select('*').eq('id', 'gemini_daily').single(),
+      supabase.from('user_stock_api_usage').select('count').eq('user_ip', userIP).eq('usage_date', today).maybeSingle()
+    ]);
+    
+    let globalRemaining = globalUsage ? globalUsage.remaining_count : 500;
+    if (globalUsage && globalUsage.last_reset_date !== today) {
+      globalRemaining = 500;
+      await supabase.from('api_usage').update({ remaining_count: 500, last_reset_date: today }).eq('id', 'gemini_daily');
+    }
+
+    const userCount = userUsage ? userUsage.count : 0;
+    
+    if (globalRemaining <= 0) {
+      return new Response(JSON.stringify({ error: "시스템 에너지가 부족합니다.", user_remaining: 5 - userCount }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (userCount >= 5) {
+      return new Response(JSON.stringify({ error: "오늘 분석 횟수(5회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    // [2] 캐시 확인
     const { data: cachedResult } = await supabase
       .from('stock_analysis_cache')
       .select('result')
@@ -28,7 +49,6 @@ export async function onRequestPost(context) {
       .maybeSingle();
 
     if (cachedResult) {
-      // 캐시된 결과라도 에너지는 차감
       const newUserCount = userCount + 1;
       try {
         await supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount });
@@ -44,28 +64,6 @@ export async function onRequestPost(context) {
       }), {
         headers: { "Content-Type": "application/json" }
       });
-    }
-
-    // [2] 쿼터 확인
-    const [{ data: globalUsage }, { data: userUsage }] = await Promise.all([
-      supabase.from('api_usage').select('*').eq('id', 'gemini_daily').single(),
-      supabase.from('user_stock_api_usage').select('count').eq('user_ip', userIP).eq('usage_date', today).maybeSingle()
-    ]);
-    
-    let globalRemaining = globalUsage ? globalUsage.remaining_count : 500;
-    // 날짜가 바뀌었으면 글로벌 쿼터 초기화
-    if (globalUsage && globalUsage.last_reset_date !== today) {
-      globalRemaining = 500;
-      await supabase.from('api_usage').update({ remaining_count: 500, last_reset_date: today }).eq('id', 'gemini_daily');
-    }
-
-    const userCount = userUsage ? userUsage.count : 0;
-    
-    if (globalRemaining <= 0) {
-      return new Response(JSON.stringify({ error: "시스템 에너지가 부족합니다.", user_remaining: 5 - userCount }), { status: 429 });
-    }
-    if (userCount >= 5) {
-      return new Response(JSON.stringify({ error: "오늘 분석 횟수(5회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429 });
     }
 
     const systemPrompt = `당신은 대한민국 주식 시장(KOSPI, KOSDAQ)의 모든 종목을 꿰뚫고 있는 '오일전문가'의 AI 비서입니다. 
@@ -175,8 +173,7 @@ export async function onRequestPost(context) {
   } catch (error) {
     console.error('Stock analysis error:', error);
     return new Response(JSON.stringify({ 
-      error: error.message || '분석 중 오류가 발생했습니다.',
-      user_remaining: 5 - (userCount || 0)
+      error: error.message || '분석 중 오류가 발생했습니다.'
     }), { 
       status: 500,
       headers: { "Content-Type": "application/json" }
