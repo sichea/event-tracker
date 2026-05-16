@@ -1355,7 +1355,7 @@ function App() {
         {/* Tab Content Switch */}
         {activeTab === "landing" ? (
           <LandingPage 
-            onAnalyze={async (input) => {
+            onAnalyze={async (input, uid) => {
               if (!input) {
                 setActiveTab("dashboard");
                 return;
@@ -1367,7 +1367,7 @@ function App() {
                 const res = await fetch('/api/analyze', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ scenario: input })
+                  body: JSON.stringify({ scenario: input, userId: uid })
                 });
                 
                 if (!res.ok) {
@@ -1388,6 +1388,7 @@ function App() {
             isAnalyzing={isAnalyzing}
             analysisResult={analysisResult}
             onReset={() => setAnalysisResult(null)}
+            session={session}
           />
         ) : activeTab === "insights" ? (
           <InvestmentInsights key={insightSubTab} initialSubTab={insightSubTab} showToast={showToastMsg} session={session} onRequireLogin={() => setShowLoginModal(true)} />

@@ -12,10 +12,11 @@ export async function onRequestPost(context) {
   const GEMINI_API_KEY = env.GEMINI_API_KEY;
 
   try {
-    const { scenario } = await request.json();
+    const { scenario, userId } = await request.json();
     const cleanScenario = scenario ? scenario.trim() : "";
     const today = new Date().toISOString().split('T')[0];
     const userIP = request.headers.get('CF-Connecting-IP') || 'anonymous';
+    const identifier = userId || userIP;
 
     // [1] 캐시 확인
     const { data: cachedResult } = await supabase
@@ -30,7 +31,7 @@ export async function onRequestPost(context) {
       const { data: uUsage } = await supabase
         .from('user_api_usage')
         .select('count')
-        .eq('user_ip', userIP)
+        .eq('user_ip', identifier)
         .eq('usage_date', today)
         .maybeSingle();
       
@@ -49,7 +50,7 @@ export async function onRequestPost(context) {
     // [2] 쿼터 확인
     const [{ data: globalUsage }, { data: userUsage }] = await Promise.all([
       supabase.from('api_usage').select('*').eq('id', 'gemini_daily').single(),
-      supabase.from('user_api_usage').select('count').eq('user_ip', userIP).eq('usage_date', today).maybeSingle()
+      supabase.from('user_api_usage').select('count').eq('user_ip', identifier).eq('usage_date', today).maybeSingle()
     ]);
 
     let globalRemaining = globalUsage ? globalUsage.remaining_count : 500;
@@ -132,7 +133,7 @@ export async function onRequestPost(context) {
       await Promise.all([
         supabase.from('ai_analysis_cache').insert([{ scenario_text: cleanScenario, result: resultJson }]),
         supabase.from('api_usage').update({ remaining_count: globalRemaining - 1 }).eq('id', 'gemini_daily'),
-        supabase.from('user_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount })
+        supabase.from('user_api_usage').upsert({ user_ip: identifier, usage_date: today, count: newUserCount })
       ]);
     } catch (dbError) {
       console.error('DB Update Error:', dbError);

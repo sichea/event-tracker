@@ -10,7 +10,10 @@ export async function onRequestGet(context) {
   
   try {
     const today = new Date().toISOString().split('T')[0];
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId');
     const userIP = request.headers.get('CF-Connecting-IP') || 'anonymous';
+    const identifier = userId || userIP; // ID가 있으면 ID 우선, 없으면 IP
 
     const [{ data: globalData }, { data: stockGlobalData }, { data: userData }, { data: stockUserData }] = await Promise.all([
       // 통찰력 글로벌 쿼터
@@ -18,9 +21,9 @@ export async function onRequestGet(context) {
       // 판독기 글로벌 쿼터
       supabase.from('api_usage').select('remaining_count').eq('id', 'gemini_stock_daily').maybeSingle(),
       // 통찰력 사용자 쿼터
-      supabase.from('user_api_usage').select('count').eq('user_ip', userIP).eq('usage_date', today).maybeSingle(),
+      supabase.from('user_api_usage').select('count').eq('user_ip', identifier).eq('usage_date', today).maybeSingle(),
       // 판독기 사용자 쿼터
-      supabase.from('user_stock_api_usage').select('count').eq('user_ip', userIP).eq('usage_date', today).maybeSingle()
+      supabase.from('user_stock_api_usage').select('count').eq('user_ip', identifier).eq('usage_date', today).maybeSingle()
     ]);
 
     return new Response(JSON.stringify({

@@ -55,7 +55,7 @@ const ThoughtBubble = ({ text, show, isFinal, index }) => {
   );
 };
 
-export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, onReset }) {
+export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, onReset, session }) {
   const [scenario, setScenario] = useState('');
   const [visibleSteps, setVisibleSteps] = useState(0);
   const [remainingQuota, setRemainingQuota] = useState(500);
@@ -64,7 +64,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
   useEffect(() => {
     async function fetchQuota() {
       try {
-        const res = await fetch('/api/quota');
+        const res = await fetch(`/api/quota?userId=${session?.user?.id || ''}`);
         const data = await res.json();
         setRemainingQuota(data.global_remaining);
         setUserRemaining(data.user_remaining);
@@ -73,7 +73,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
       }
     }
     fetchQuota();
-  }, []);
+  }, [session]);
 
   useEffect(() => {
     if (analysisResult) {
@@ -155,7 +155,7 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
                   onClick={() => {
                     if (scenario.trim() && !isAnalyzing && userRemaining > 0) {
                       document.getElementById('scenario-input')?.blur();
-                      onAnalyze(scenario);
+                      onAnalyze(scenario, session?.user?.id);
                     }
                   }}
                   disabled={isAnalyzing || !scenario.trim() || userRemaining <= 0} 

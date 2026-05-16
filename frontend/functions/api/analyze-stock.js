@@ -10,10 +10,11 @@ export async function onRequestPost(context) {
   const GEMINI_API_KEY = env.GEMINI_API_KEY;
 
   try {
-    const { name } = await request.json();
+    const { name, userId } = await request.json();
     const cleanName = name ? name.trim() : "";
     const today = new Date().toISOString().split('T')[0];
     const userIP = request.headers.get('CF-Connecting-IP') || 'anonymous';
+    const identifier = userId || userIP;
 
     // [0] 기본 입력 검증: 너무 짧거나 의미 없는 입력 차단
     if (cleanName.length < 2) {
@@ -23,7 +24,7 @@ export async function onRequestPost(context) {
     // [1] 쿼터 확인 (캐시 히트에서도 userCount 필요하므로 먼저 조회)
     const [{ data: globalUsage }, { data: userUsage }] = await Promise.all([
       supabase.from('api_usage').select('*').eq('id', 'gemini_stock_daily').maybeSingle(),
-      supabase.from('user_stock_api_usage').select('count').eq('user_ip', userIP).eq('usage_date', today).maybeSingle()
+      supabase.from('user_stock_api_usage').select('count').eq('user_ip', identifier).eq('usage_date', today).maybeSingle()
     ]);
     
     let globalRemaining = globalUsage ? globalUsage.remaining_count : 500;
@@ -60,7 +61,7 @@ export async function onRequestPost(context) {
         const newUserCount = userCount + 1;
         try {
           await Promise.all([
-            supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount }),
+            supabase.from('user_stock_api_usage').upsert({ user_ip: identifier, usage_date: today, count: newUserCount }),
             supabase.from('api_usage').upsert({ id: 'gemini_stock_daily', remaining_count: globalRemaining - 1, last_reset_date: today }, { onConflict: 'id' })
           ]);
         } catch (dbError) {
@@ -172,7 +173,7 @@ export async function onRequestPost(context) {
       await Promise.all([
         supabase.from('stock_analysis_cache').upsert({ company_name: cleanName, result: resultJson, created_at: new Date().toISOString() }, { onConflict: 'company_name' }),
         supabase.from('api_usage').upsert({ id: 'gemini_stock_daily', remaining_count: globalRemaining - 1, last_reset_date: today }, { onConflict: 'id' }),
-        supabase.from('user_stock_api_usage').upsert({ user_ip: userIP, usage_date: today, count: newUserCount })
+        supabase.from('user_stock_api_usage').upsert({ user_ip: identifier, usage_date: today, count: newUserCount })
       ]);
     } catch (dbError) {
       console.error('DB Update Error:', dbError);

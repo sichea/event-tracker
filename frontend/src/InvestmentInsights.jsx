@@ -481,7 +481,7 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
   // 판독기 전용 쿼터 정보 가져오기
   const refreshQuota = useCallback(async () => {
     try {
-      const res = await fetch('/api/quota');
+      const res = await fetch(`/api/quota?userId=${session?.user?.id || ''}`);
       if (res.ok) {
         const data = await res.json();
         setQuota({ user: data.stock_user_remaining ?? 5, total: data.stock_global_remaining ?? 500 });
@@ -523,7 +523,7 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
       const response = await fetch('/api/analyze-stock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: companyName, expert: 'oil' })
+        body: JSON.stringify({ name: companyName, expert: 'oil', userId: session?.user?.id })
       });
       const data = await response.json();
       if (!response.ok) {
