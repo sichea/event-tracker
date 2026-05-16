@@ -10,21 +10,28 @@ export default function IpoReport({ reports, onAddReport, onDeleteReport }) {
   });
 
   const summary = useMemo(() => {
-    const totalProfit = reports.reduce((acc, r) => acc + Number(r.profit || 0), 0);
+    if (!Array.isArray(reports)) return { totalProfit: 0, yearProfit: 0, currentYear: new Date().getFullYear() };
+    
+    const totalProfit = reports.reduce((acc, r) => acc + Number(r?.profit || 0), 0);
     const currentYear = new Date().getFullYear();
     const yearProfit = reports
-      .filter(r => new Date(r.sell_date).getFullYear() === currentYear)
-      .reduce((acc, r) => acc + Number(r.profit || 0), 0);
+      .filter(r => r && r.sell_date && new Date(r.sell_date).getFullYear() === currentYear)
+      .reduce((acc, r) => acc + Number(r?.profit || 0), 0);
     
     return { totalProfit, yearProfit, currentYear };
   }, [reports]);
 
   const groupedReports = useMemo(() => {
+    if (!Array.isArray(reports)) return [];
+    
     const groups = {};
     reports.forEach(r => {
+      if (!r || !r.sell_date) return;
       const date = new Date(r.sell_date);
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
+      if (isNaN(year) || isNaN(month)) return;
+      
       const key = `${year}-${month}`;
       if (!groups[key]) groups[key] = { year, month, items: [], monthlyTotal: 0 };
       groups[key].items.push(r);
