@@ -737,6 +737,24 @@ function App() {
     } catch (err) { showToastMsg("상태 변경 실패", "error"); }
   };
 
+  const handleAddIpoReport = async (data) => {
+    if (!requireLogin()) return;
+    try {
+      const added = await addIpoReport(session.user.id, data);
+      setIpoReports(prev => [added, ...prev]);
+      showToastMsg("기록이 추가되었습니다.");
+    } catch (err) { showToastMsg("기록 추가 실패", "error"); }
+  };
+
+  const handleRemoveIpoReport = async (reportId) => {
+    if (!requireLogin()) return;
+    try {
+      await removeIpoReport(reportId, session.user.id);
+      setIpoReports(prev => prev.filter(r => r.id !== reportId));
+      showToastMsg("기록이 삭제되었습니다.");
+    } catch (err) { showToastMsg("삭제 실패", "error"); }
+  };
+
   // 비회원도 대시보드 접근 가능 — 로그인 필요 기능은 requireLogin() 게이트로 보호
 
   // 데이터 필터링 계산
@@ -1175,11 +1193,30 @@ function App() {
                 <AptCalendar aptEvents={aptEvents} />
               )
             ) : (
-              <IpoReport 
-                reports={ipoReports} 
-                onAddReport={handleAddIpoReport} 
-                onDeleteReport={handleRemoveIpoReport} 
-              />
+              session ? (
+                <IpoReport 
+                  reports={ipoReports} 
+                  onAddReport={handleAddIpoReport} 
+                  onDeleteReport={handleRemoveIpoReport} 
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-32 animate-in fade-in">
+                  <div className="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center mb-6">
+                    <span className="material-symbols-outlined text-primary text-5xl">lock</span>
+                  </div>
+                  <h3 className="text-2xl font-black font-headline mb-3">로그인이 필요합니다</h3>
+                  <p className="text-on-surface-variant text-sm text-center max-w-xs mb-8 leading-relaxed">
+                    내 공모주 투자 수익을 기록하고 관리하려면<br/>로그인 후 이용해 주세요.
+                  </p>
+                  <button 
+                    onClick={() => setShowLoginModal(true)}
+                    className="px-8 py-4 bg-primary text-on-primary rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-lg">login</span>
+                    로그인 하기
+                  </button>
+                </div>
+              )
             )}
           </div>
         ) : activeTab === "zzantec" ? (
