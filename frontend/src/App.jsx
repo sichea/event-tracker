@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription, fetchMarketInsights, fetchAptSubscriptions, fetchParkingRates, fetchVisitorCount, incrementVisitor } from "./api";
+import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription, fetchMarketInsights, fetchAptSubscriptions, fetchParkingRates, fetchVisitorCount, incrementVisitor, fetchIpoReports, addIpoReport, removeIpoReport } from "./api";
+import IpoReport from "./IpoReport";
 import { supabase } from "./supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -343,6 +344,7 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [whaleData, setWhaleData] = useState(null); // 투자 인사이트용 데이터
   const [marketData, setMarketData] = useState(null);
+  const [ipoReports, setIpoReports] = useState([]);
   const [visitorCount, setVisitorCount] = useState({ today: 0, total: 0 });
   const [showAbout, setShowAbout] = useState(false);
   const [showContact, setShowContact] = useState(false);
@@ -641,12 +643,13 @@ function App() {
         fetchMarketInsights(),
         fetch('/data/whale.json').then(r => r.json()).catch(() => null),
         fetchIpoEvents(userId).catch(() => []),
-        fetchAptSubscriptions().catch(() => [])
+        fetchAptSubscriptions().catch(() => []),
+        userId ? fetchIpoReports(userId) : Promise.resolve([])
       ];
       // 사용자 전용 데이터: 세션 있을 때만
       const aliasPromise = userId ? fetchAliases(userId) : Promise.resolve([]);
       
-      const [fetchedAliases, eventsData, statusUpdate, mData, wData, ipoData, aptData] = await Promise.all([
+      const [fetchedAliases, eventsData, statusUpdate, mData, wData, ipoData, aptData, reportsData] = await Promise.all([
         aliasPromise,
         ...publicPromises
       ]);
@@ -657,6 +660,7 @@ function App() {
       setWhaleData(wData);
       setIpoEvents(ipoData || []);
       setAptEvents(aptData || []);
+      setIpoReports(reportsData || []);
       
       if (isAdmin) {
         const token = await fetchAdminSecret('GITHUB_PAT');
@@ -1138,7 +1142,8 @@ function App() {
               <div className="flex items-center gap-2 bg-surface-container/30 p-1.5 rounded-2xl border border-white/5 w-fit">
                 {[
                   { id: 'ipo', label: '공모주 청약', icon: 'payments', count: ipoEvents.length },
-                  { id: 'apt', label: '아파트 청약', icon: 'home', count: aptEvents.length }
+                  { id: 'apt', label: '아파트 청약', icon: 'home', count: aptEvents.length },
+                  { id: 'report', label: '투자 리포트', icon: 'analytics', count: ipoReports.length }
                 ].map(tab => (
                   <button 
                     key={tab.id}
@@ -1163,12 +1168,18 @@ function App() {
                   onToggleIpo={handleToggleIpo}
                 />
               )
-            ) : (
+            ) : subscriptionSubTab === "apt" ? (
               aptLoading ? (
                 <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
               ) : (
                 <AptCalendar aptEvents={aptEvents} />
               )
+            ) : (
+              <IpoReport 
+                reports={ipoReports} 
+                onAddReport={handleAddIpoReport} 
+                onDeleteReport={handleRemoveIpoReport} 
+              />
             )}
           </div>
         ) : activeTab === "zzantec" ? (

@@ -361,3 +361,47 @@ export async function incrementVisitor() {
   const { error } = await supabase.rpc('increment_visitor');
   if (error) console.error("Visitor increment error:", error);
 }
+
+// --- IPO 리포트 API ---
+export async function fetchIpoReports(userId) {
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from('user_ipo_reports')
+    .select('*')
+    .eq('user_id', userId)
+    .order('sell_date', { ascending: false });
+    
+  if (error) {
+    console.error("IPO reports fetch error:", error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function addIpoReport(userId, data) {
+  if (!userId) throw new Error("로그인이 필요합니다");
+  const { data: inserted, error } = await supabase
+    .from('user_ipo_reports')
+    .insert({
+      user_id: userId,
+      stock_name: data.stock_name,
+      profit: data.profit,
+      return_rate: data.return_rate,
+      sell_date: data.sell_date
+    })
+    .select()
+    .single();
+    
+  if (error) throw error;
+  return inserted;
+}
+
+export async function removeIpoReport(reportId, userId) {
+  if (!userId) throw new Error("로그인이 필요합니다");
+  const { error } = await supabase
+    .from('user_ipo_reports')
+    .delete()
+    .match({ id: reportId, user_id: userId });
+    
+  if (error) throw error;
+}
