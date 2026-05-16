@@ -4,6 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA_ID%"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '%VITE_GA_ID%');
+    </script>
+
+    <!-- Microsoft Clarity -->
+    <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "%VITE_CLARITY_ID%");
+    </script>
+
     <meta name="description" content="RE:MEMBER - 최첨단 AI 알고리즘과 글로벌 데이터를 결합한 프리미엄 투자 인사이트 플랫폼. ETF 이벤트, 공모주 일정, 시장 매크로 분석을 한곳에서 확인하세요." />
     <meta name="keywords" content="투자, 재테크, 공모주, ETF, 거시경제, AI분석, 주식, 금융인사이트" />
     <meta name="robots" content="index,follow" />

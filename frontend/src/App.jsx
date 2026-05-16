@@ -568,14 +568,28 @@ function App() {
   }, []);
 
   useEffect(() => {
+    fetchVisitorCount().then(setVisitorCount);
+    
+    // Analytics: Track tab changes as page views
+    if (typeof window.gtag === 'function') {
+      const pagePath = `/${activeTab}${activeTab === 'subscription' ? '/' + subscriptionSubTab : ''}${activeTab === 'zzantec' ? '/' + zzantecSubTab : ''}${activeTab === 'insight' ? '/' + insightSubTab : ''}`;
+      window.gtag('event', 'page_view', {
+        page_title: activeTab,
+        page_location: window.location.href,
+        page_path: pagePath
+      });
+    }
+    if (typeof window.clarity === 'function') {
+      window.clarity("set", "active_tab", activeTab);
+    }
+  }, [activeTab, subscriptionSubTab, zzantecSubTab, insightSubTab]);
+
+  useEffect(() => {
     const visited = sessionStorage.getItem('visited');
     if (!visited) {
       incrementVisitor().then(() => {
         sessionStorage.setItem('visited', 'true');
-        fetchVisitorCount().then(setVisitorCount);
       });
-    } else {
-      fetchVisitorCount().then(setVisitorCount);
     }
   }, []);
 
