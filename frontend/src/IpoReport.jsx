@@ -50,37 +50,40 @@ export default function IpoReport({ reports, onAddReport, onDeleteReport }) {
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-4xl mx-auto pb-20">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-4xl mx-auto pb-32">
       {/* Header Summary */}
       <div className="bg-surface-container rounded-[32px] p-8 md:p-10 border border-white/5 shadow-2xl mb-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] rounded-full -mr-32 -mt-32"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-black tracking-tighter text-on-surface font-headline">내 공모주 리포트</h1>
-            <button 
-              onClick={() => setShowAddModal(true)}
-              className="w-12 h-12 rounded-2xl bg-primary text-on-primary flex items-center justify-center shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
-            >
-              <span className="material-symbols-outlined font-bold">add</span>
-            </button>
           </div>
 
           <div className="space-y-6">
             <div className="flex justify-between items-end border-b border-white/5 pb-4">
               <span className="text-sm font-bold text-on-surface-variant opacity-60">전체 누적 수익</span>
               <span className="text-3xl font-black font-headline text-primary">
-                {new Intl.NumberFormat('ko-KR').format(summary.totalProfit)}<span className="text-lg ml-1">원</span>
+                {new Intl.NumberFormat('ko-KR').format(summary.totalProfit || 0)}<span className="text-lg ml-1">원</span>
               </span>
             </div>
             <div className="flex justify-between items-end">
               <span className="text-sm font-bold text-on-surface-variant opacity-60">{summary.currentYear}년 총 수익</span>
               <span className="text-2xl font-black font-headline text-on-surface">
-                {new Intl.NumberFormat('ko-KR').format(summary.yearProfit)}<span className="text-base ml-1 opacity-60">원</span>
+                {new Intl.NumberFormat('ko-KR').format(summary.yearProfit || 0)}<span className="text-base ml-1 opacity-60">원</span>
               </span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Floating Action Button */}
+      <button 
+        onClick={() => setShowAddModal(true)}
+        className="fixed bottom-10 right-6 md:right-10 w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-110 active:scale-90 transition-all z-[100] group"
+      >
+        <span className="material-symbols-outlined text-3xl font-bold">add</span>
+        <span className="absolute right-full mr-4 px-3 py-1.5 bg-surface-container border border-white/10 rounded-xl text-xs font-bold text-on-surface opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">수익 기록하기</span>
+      </button>
 
       {/* Grouped List */}
       <div className="space-y-10">
