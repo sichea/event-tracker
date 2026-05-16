@@ -7,7 +7,12 @@ const PUBLIC_HOLIDAYS_2026 = {
   '2026-09-26': '추석', '2026-10-03': '개천절', '2026-10-09': '한글날', '2026-12-25': '성탄절'
 };
 
-export default function IpoCalendar({ ipoEvents, onSelectIpo, aliases, onToggleIpo }) {
+export default function IpoCalendar({ ipoEvents, onSelectIpo, aliases, onToggleIpo, ipoReports }) {
+  const profitMap = useMemo(() => {
+    const map = {};
+    (ipoReports || []).forEach(r => { if (r.stock_name) map[r.stock_name] = r; });
+    return map;
+  }, [ipoReports]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -113,15 +118,18 @@ export default function IpoCalendar({ ipoEvents, onSelectIpo, aliases, onToggleI
                       {day}
                     </span>
                     <div className="space-y-1 overflow-hidden flex-1">
-                      {eventsForDay.map((ev, ei) => (
-                        <div 
-                          key={`${ev.id}-${ei}`} 
-                          onClick={(e) => { e.stopPropagation(); onSelectIpo(ev); }} 
-                          className={`text-[7px] md:text-[9px] leading-tight px-1 md:px-1.5 py-0.5 md:py-1 rounded truncate border cursor-pointer hover:opacity-80 transition-opacity font-bold ${getTagStyle(ev.dateType)}`}
-                        >
-                          {ev.company_name}
-                        </div>
-                      ))}
+                      {eventsForDay.map((ev, ei) => {
+                        const hasProfit = profitMap[ev.company_name];
+                        return (
+                          <div 
+                            key={`${ev.id}-${ei}`} 
+                            onClick={(e) => { e.stopPropagation(); onSelectIpo(ev); }} 
+                            className={`text-[7px] md:text-[9px] leading-tight px-1 md:px-1.5 py-0.5 md:py-1 rounded truncate border cursor-pointer hover:opacity-80 transition-opacity font-bold ${getTagStyle(ev.dateType)} ${hasProfit ? 'ring-1 ring-emerald-400/40' : ''}`}
+                          >
+                            {hasProfit && <span className="inline-block mr-0.5">💰</span>}{ev.company_name}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );

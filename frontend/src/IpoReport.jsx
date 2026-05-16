@@ -1,96 +1,79 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
-export default function IpoReport({ reports, onAddReport, onDeleteReport }) {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [formData, setFormData] = useState({
-    stock_name: '',
-    profit: '',
-    return_rate: '',
-    sell_date: new Date().toISOString().split('T')[0]
-  });
-
+export default function IpoReport({ reports, onDeleteReport }) {
+  const safeReports = Array.isArray(reports) ? reports : [];
+  
   const summary = useMemo(() => {
-    if (!Array.isArray(reports)) return { totalProfit: 0, yearProfit: 0, currentYear: new Date().getFullYear() };
-    
-    const totalProfit = reports.reduce((acc, r) => acc + Number(r?.profit || 0), 0);
+    const totalProfit = safeReports.reduce((acc, r) => acc + Number(r?.profit || 0), 0);
     const currentYear = new Date().getFullYear();
-    const yearProfit = reports
+    const yearProfit = safeReports
       .filter(r => r && r.sell_date && new Date(r.sell_date).getFullYear() === currentYear)
       .reduce((acc, r) => acc + Number(r?.profit || 0), 0);
-    
-    return { totalProfit, yearProfit, currentYear };
-  }, [reports]);
+    const avgRate = safeReports.length > 0 
+      ? (safeReports.reduce((acc, r) => acc + Number(r?.return_rate || 0), 0) / safeReports.length).toFixed(1)
+      : 0;
+    return { totalProfit, yearProfit, currentYear, avgRate, totalCount: safeReports.length };
+  }, [safeReports]);
 
   const groupedReports = useMemo(() => {
-    if (!Array.isArray(reports)) return [];
-    
     const groups = {};
-    reports.forEach(r => {
+    safeReports.forEach(r => {
       if (!r || !r.sell_date) return;
       const date = new Date(r.sell_date);
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
       if (isNaN(year) || isNaN(month)) return;
-      
       const key = `${year}-${month}`;
       if (!groups[key]) groups[key] = { year, month, items: [], monthlyTotal: 0 };
       groups[key].items.push(r);
       groups[key].monthlyTotal += Number(r.profit || 0);
     });
     return Object.values(groups).sort((a, b) => b.year - a.year || b.month - a.month);
-  }, [reports]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onAddReport({
-      ...formData,
-      profit: Number(formData.profit),
-      return_rate: Number(formData.return_rate)
-    });
-    setShowAddModal(false);
-    setFormData({
-      stock_name: '',
-      profit: '',
-      return_rate: '',
-      sell_date: new Date().toISOString().split('T')[0]
-    });
-  };
+  }, [safeReports]);
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-4xl mx-auto pb-32">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-4xl mx-auto pb-20">
       {/* Header Summary */}
       <div className="bg-surface-container rounded-[32px] p-8 md:p-10 border border-white/5 shadow-2xl mb-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] rounded-full -mr-32 -mt-32"></div>
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-black tracking-tighter text-on-surface font-headline">내 공모주 리포트</h1>
+          <h1 className="text-3xl font-black tracking-tighter text-on-surface font-headline mb-8">내 공모주 리포트</h1>
+
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-surface-container-highest rounded-2xl p-4 border border-white/5 text-center">
+              <p className="text-[9px] font-bold text-on-surface-variant opacity-50 uppercase tracking-widest mb-2">총 거래</p>
+              <p className="text-2xl font-black font-headline text-on-surface">{summary.totalCount}<span className="text-xs ml-0.5 opacity-40">건</span></p>
+            </div>
+            <div className="bg-surface-container-highest rounded-2xl p-4 border border-white/5 text-center">
+              <p className="text-[9px] font-bold text-on-surface-variant opacity-50 uppercase tracking-widest mb-2">평균 수익률</p>
+              <p className={`text-2xl font-black font-headline ${Number(summary.avgRate) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                {summary.avgRate}<span className="text-xs ml-0.5">%</span>
+              </p>
+            </div>
+            <div className="bg-surface-container-highest rounded-2xl p-4 border border-white/5 text-center">
+              <p className="text-[9px] font-bold text-on-surface-variant opacity-50 uppercase tracking-widest mb-2">{summary.currentYear}년</p>
+              <p className="text-2xl font-black font-headline text-on-surface">
+                {new Intl.NumberFormat('ko-KR', {notation: 'compact'}).format(summary.yearProfit)}<span className="text-xs ml-0.5 opacity-40">원</span>
+              </p>
+            </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="flex justify-between items-end border-b border-white/5 pb-4">
-              <span className="text-sm font-bold text-on-surface-variant opacity-60">전체 누적 수익</span>
-              <span className="text-3xl font-black font-headline text-primary">
-                {new Intl.NumberFormat('ko-KR').format(summary.totalProfit || 0)}<span className="text-lg ml-1">원</span>
-              </span>
-            </div>
-            <div className="flex justify-between items-end">
-              <span className="text-sm font-bold text-on-surface-variant opacity-60">{summary.currentYear}년 총 수익</span>
-              <span className="text-2xl font-black font-headline text-on-surface">
-                {new Intl.NumberFormat('ko-KR').format(summary.yearProfit || 0)}<span className="text-base ml-1 opacity-60">원</span>
-              </span>
-            </div>
+          <div className="flex justify-between items-end border-t border-white/5 pt-6">
+            <span className="text-sm font-bold text-on-surface-variant opacity-60">전체 누적 수익</span>
+            <span className={`text-3xl font-black font-headline ${summary.totalProfit >= 0 ? 'text-primary' : 'text-red-400'}`}>
+              {summary.totalProfit >= 0 ? '+' : ''}{new Intl.NumberFormat('ko-KR').format(summary.totalProfit)}<span className="text-lg ml-1">원</span>
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Floating Action Button */}
-      <button 
-        onClick={() => setShowAddModal(true)}
-        className="fixed bottom-10 right-6 md:right-10 w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-110 active:scale-90 transition-all z-[100] group"
-      >
-        <span className="material-symbols-outlined text-3xl font-bold">add</span>
-        <span className="absolute right-full mr-4 px-3 py-1.5 bg-surface-container border border-white/10 rounded-xl text-xs font-bold text-on-surface opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">수익 기록하기</span>
-      </button>
+      {/* Tip */}
+      <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 mb-8 flex items-start gap-3">
+        <span className="material-symbols-outlined text-primary mt-0.5 text-lg">tips_and_updates</span>
+        <p className="text-xs text-on-surface-variant leading-relaxed">
+          <strong className="text-primary">수익 기록 방법:</strong> 공모주 캘린더에서 상장 완료된 종목을 클릭하면 "투자 수익 기록하기" 버튼이 나타납니다. 투자금과 수익금을 입력하면 수익률이 자동 계산됩니다.
+        </p>
+      </div>
 
       {/* Grouped List */}
       <div className="space-y-10">
@@ -98,9 +81,9 @@ export default function IpoReport({ reports, onAddReport, onDeleteReport }) {
           groupedReports.map(group => (
             <div key={`${group.year}-${group.month}`} className="animate-in fade-in duration-500">
               <div className="flex items-center justify-between mb-4 px-2">
-                <h3 className="text-xl font-black font-headline tracking-tight">{group.month}월</h3>
-                <span className="text-sm font-black text-primary">
-                  {new Intl.NumberFormat('ko-KR').format(group.monthlyTotal)}원
+                <h3 className="text-xl font-black font-headline tracking-tight">{group.year}년 {group.month}월</h3>
+                <span className={`text-sm font-black ${group.monthlyTotal >= 0 ? 'text-primary' : 'text-red-400'}`}>
+                  {group.monthlyTotal >= 0 ? '+' : ''}{new Intl.NumberFormat('ko-KR').format(group.monthlyTotal)}원
                 </span>
               </div>
               <div className="space-y-3">
@@ -112,14 +95,16 @@ export default function IpoReport({ reports, onAddReport, onDeleteReport }) {
                         <span className="text-[10px] text-on-surface-variant opacity-40 font-medium">{item.sell_date}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
-                          ▲ {item.return_rate}%
+                        <span className={`text-[11px] font-black px-2 py-0.5 rounded-md border ${Number(item.return_rate) >= 0 
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                          : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                          {Number(item.return_rate) >= 0 ? '▲' : '▼'} {Math.abs(item.return_rate)}%
                         </span>
                       </div>
                     </div>
                     <div className="text-right flex items-center gap-4">
-                      <span className="text-lg font-black font-headline text-primary">
-                        {new Intl.NumberFormat('ko-KR').format(item.profit)}원
+                      <span className={`text-lg font-black font-headline ${Number(item.profit) >= 0 ? 'text-primary' : 'text-red-400'}`}>
+                        {Number(item.profit) >= 0 ? '+' : ''}{new Intl.NumberFormat('ko-KR').format(item.profit)}원
                       </span>
                       <button 
                         onClick={() => { if(window.confirm('삭제하시겠습니까?')) onDeleteReport(item.id); }}
@@ -134,90 +119,15 @@ export default function IpoReport({ reports, onAddReport, onDeleteReport }) {
             </div>
           ))
         ) : (
-          <div className="py-32 text-center">
+          <div className="py-24 text-center">
             <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-6 opacity-20">
               <span className="material-symbols-outlined text-4xl">analytics</span>
             </div>
-            <p className="text-on-surface-variant font-bold opacity-40">아직 등록된 리포트가 없습니다.</p>
-            <button 
-              onClick={() => setShowAddModal(true)}
-              className="mt-6 text-primary font-black text-sm underline underline-offset-8"
-            >
-              첫 투자 수익 기록하기
-            </button>
+            <p className="text-on-surface-variant font-bold opacity-40 mb-2">아직 등록된 수익 기록이 없습니다.</p>
+            <p className="text-on-surface-variant text-xs opacity-30">공모주 캘린더에서 상장 완료된 종목을 눌러 기록을 시작하세요.</p>
           </div>
         )}
       </div>
-
-      {/* Add Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in" onClick={() => setShowAddModal(false)}>
-          <div className="bg-surface-container rounded-[2.5rem] w-full max-w-md border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
-            <div className="p-8 pb-4 flex items-center justify-between">
-              <h2 className="text-2xl font-black font-headline tracking-tighter">수익 기록하기</h2>
-              <button onClick={() => setShowAddModal(false)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-8 pt-4 space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-black text-primary uppercase tracking-widest mb-2 ml-1">종목명</label>
-                  <input 
-                    type="text" 
-                    required 
-                    value={formData.stock_name}
-                    onChange={e => setFormData({...formData, stock_name: e.target.value})}
-                    placeholder="예: 아이엠바이오로직스"
-                    className="w-full bg-surface-container-highest border-white/5 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-primary uppercase tracking-widest mb-2 ml-1">수익금 (원)</label>
-                    <input 
-                      type="number" 
-                      required 
-                      value={formData.profit}
-                      onChange={e => setFormData({...formData, profit: e.target.value})}
-                      placeholder="0"
-                      className="w-full bg-surface-container-highest border-white/5 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-primary uppercase tracking-widest mb-2 ml-1">수익률 (%)</label>
-                    <input 
-                      type="number" 
-                      step="0.01"
-                      required 
-                      value={formData.return_rate}
-                      onChange={e => setFormData({...formData, return_rate: e.target.value})}
-                      placeholder="0.00"
-                      className="w-full bg-surface-container-highest border-white/5 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-primary uppercase tracking-widest mb-2 ml-1">매도일</label>
-                  <input 
-                    type="date" 
-                    required 
-                    value={formData.sell_date}
-                    onChange={e => setFormData({...formData, sell_date: e.target.value})}
-                    className="w-full bg-surface-container-highest border-white/5 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                  />
-                </div>
-              </div>
-              <button 
-                type="submit" 
-                className="w-full py-5 bg-primary text-on-primary rounded-2xl font-black text-base shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-              >
-                기록 완료
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
