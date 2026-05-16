@@ -511,6 +511,25 @@ function App() {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showNotice, setShowNotice] = useState(false);
+
+  useEffect(() => {
+    const noticeId = "notice_ipo_report_20260516";
+    const expirationDate = "2026-05-23";
+    const hideUntil = localStorage.getItem(noticeId);
+    const today = new Date().toISOString().split('T')[0];
+
+    if (today <= expirationDate && (!hideUntil || hideUntil < today)) {
+      setShowNotice(true);
+    }
+  }, []);
+
+  const handleHideNoticeToday = () => {
+    const noticeId = "notice_ipo_report_20260516";
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem(noticeId, today);
+    setShowNotice(false);
+  };
 
   const INFO_CONTENT = {
     about: {
@@ -646,6 +665,64 @@ function App() {
           
           {/* Footer Decoration */}
           <div className="h-2 w-full bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0"></div>
+        </div>
+      </div>
+    );
+  }
+
+  function NoticeModal({ onClose, onHideToday }) {
+    return (
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-500" onClick={onClose}>
+        <div className="bg-surface-container rounded-[2.5rem] w-full max-w-md border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+          <div className="p-8 pb-4 flex items-center justify-between">
+            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[12px]">campaign</span> 새 기능 안내
+            </div>
+            <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all">
+              <span className="material-symbols-outlined text-xl">close</span>
+            </button>
+          </div>
+          
+          <div className="p-8 pt-4 space-y-6">
+            <div>
+              <h2 className="text-2xl font-black font-headline tracking-tighter mb-4 leading-tight">내 공모주 투자 리포트<br/>기능이 출시되었습니다! 🚀</h2>
+              <div className="space-y-4 text-on-surface-variant text-sm font-medium leading-relaxed">
+                <div className="flex gap-4">
+                  <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
+                    <span className="text-xl">📊</span>
+                  </div>
+                  <p><strong className="text-on-surface">실적 자동 기록</strong><br/>캘린더에서 상장 종목 선택 후 실현손익만 입력하면 끝!</p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
+                    <span className="text-xl">📉</span>
+                  </div>
+                  <p><strong className="text-on-surface">수익률 자동 계산</strong><br/>매도금액 입력 시 매입금액과 수익률을 자동으로 계산해드려요.</p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
+                    <span className="text-xl">📈</span>
+                  </div>
+                  <p><strong className="text-on-surface">통계 대시보드</strong><br/>내 전체 수익, 평균 수익률, 올해 실적을 한눈에 확인하세요.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-4">
+              <button 
+                onClick={onClose}
+                className="w-full py-5 bg-primary text-on-primary rounded-2xl font-black text-base shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                확인
+              </button>
+              <button 
+                onClick={onHideToday}
+                className="w-full py-4 bg-white/5 text-on-surface-variant rounded-2xl font-bold text-xs hover:bg-white/10 transition-all"
+              >
+                오늘 하루 띄우지 않기
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1618,11 +1695,14 @@ function App() {
       {/* Modal Rendering */}
       <IpoModal ipo={selectedIpo} aliases={aliases} onClose={() => setSelectedIpo(null)} onToggleIpo={handleToggleIpo} ipoReports={ipoReports} onAddReport={handleAddIpoReport} onDeleteReport={handleRemoveIpoReport} session={session} onRequireLogin={() => setShowLoginModal(true)} />
       
-      {/* Footer Info Modals */}
+      {/* Info Modals */}
       <InfoModal isOpen={showAbout} onClose={() => setShowAbout(false)} type="about" />
       <InfoModal isOpen={showContact} onClose={() => setShowContact(false)} type="contact" />
       <InfoModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} type="privacy" />
       <InfoModal isOpen={showTerms} onClose={() => setShowTerms(false)} type="terms" />
+
+      {/* Update Notice Modal */}
+      {showNotice && <NoticeModal onClose={() => setShowNotice(false)} onHideToday={handleHideNoticeToday} />}
 
       {/* FAB */}
       {(selectedProvider || selectedStatus === "참여 목록" || selectedStatus === "마감 임박") && (
