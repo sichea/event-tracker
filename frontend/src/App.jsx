@@ -485,6 +485,7 @@ function App() {
   const [adminToken, setAdminToken] = useState(null);
   const [activeTab, setActiveTab] = useState("landing");
   const [subscriptionSubTab, setSubscriptionSubTab] = useState("ipo");
+  const [ipoViewMode, setIpoViewMode] = useState("calendar"); // "calendar" or "report"
   const [zzantecSubTab, setZzantecSubTab] = useState("parking"); // "parking" or "card"
   const [insightSubTab, setInsightSubTab] = useState("macro");
   const [parkingFilter, setParkingFilter] = useState('all');
@@ -1315,19 +1316,18 @@ function App() {
           <InvestmentInsights key={insightSubTab} initialSubTab={insightSubTab} showToast={showToastMsg} session={session} onRequireLogin={() => setShowLoginModal(true)} />
         ) : activeTab === "subscription" ? (
           <div className="flex flex-col h-full">
-            <div className="mb-8">
-              <div className="flex items-center gap-2 bg-surface-container/30 p-1.5 rounded-2xl border border-white/5 w-fit">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 bg-surface-container/30 p-1.5 rounded-2xl border border-white/5 w-fit overflow-x-auto scrollbar-hide">
                 {[
-                  { id: 'ipo', label: '공모주 청약', icon: 'payments', count: ipoEvents.length },
-                  { id: 'apt', label: '아파트 청약', icon: 'home', count: aptEvents.length },
-                  { id: 'report', label: '투자 리포트', icon: 'analytics', count: ipoReports.length }
+                  { id: 'ipo', label: '공모주', icon: 'payments', count: ipoEvents.length },
+                  { id: 'apt', label: '아파트 청약', icon: 'home', count: aptEvents.length }
                 ].map(tab => (
                   <button 
                     key={tab.id}
-                    onClick={() => setSubscriptionSubTab(tab.id)}
-                    className={`px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-300 font-bold text-sm ${subscriptionSubTab === tab.id ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5'}`}
+                    onClick={() => { setSubscriptionSubTab(tab.id); if (tab.id === 'ipo') setIpoViewMode('calendar'); }}
+                    className={`px-4 md:px-5 py-2.5 rounded-xl flex items-center gap-1.5 md:gap-2 transition-all duration-300 font-bold text-xs md:text-sm whitespace-nowrap shrink-0 ${subscriptionSubTab === tab.id ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5'}`}
                   >
-                    <span className="material-symbols-outlined text-lg">{tab.icon}</span>
+                    <span className="material-symbols-outlined text-base md:text-lg">{tab.icon}</span>
                     <span>{tab.label}</span>
                     <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${subscriptionSubTab === tab.id ? 'bg-white/20' : 'bg-surface-container-highest text-on-surface-variant'}`}>{tab.count}</span>
                   </button>
@@ -1335,46 +1335,66 @@ function App() {
               </div>
             </div>
             {subscriptionSubTab === "ipo" ? (
-              ipoLoading ? (
-                <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
-              ) : (
-                <IpoCalendar 
-                  ipoEvents={ipoEvents} 
-                  onSelectIpo={setSelectedIpo} 
-                  aliases={aliases}
-                  onToggleIpo={handleToggleIpo}
-                  ipoReports={ipoReports}
-                />
-              )
-            ) : subscriptionSubTab === "apt" ? (
+              <>
+                {/* IPO 내부 토글: 캘린더 / 리포트 */}
+                <div className="flex items-center gap-1.5 mb-6">
+                  <button 
+                    onClick={() => setIpoViewMode('calendar')}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${ipoViewMode === 'calendar' ? 'bg-white/10 text-on-surface border border-white/10' : 'text-on-surface-variant hover:text-on-surface'}`}
+                  >
+                    <span className="material-symbols-outlined text-sm align-middle mr-1">calendar_month</span>캘린더
+                  </button>
+                  <button 
+                    onClick={() => { if (!session) { setShowLoginModal(true); return; } setIpoViewMode('report'); }}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${ipoViewMode === 'report' ? 'bg-white/10 text-on-surface border border-white/10' : 'text-on-surface-variant hover:text-on-surface'}`}
+                  >
+                    <span className="material-symbols-outlined text-sm">analytics</span>내 리포트
+                    {ipoReports.length > 0 && <span className="px-1 py-0.5 rounded text-[9px] font-black bg-primary/20 text-primary">{ipoReports.length}</span>}
+                  </button>
+                </div>
+                {ipoViewMode === 'calendar' ? (
+                  ipoLoading ? (
+                    <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
+                  ) : (
+                    <IpoCalendar 
+                      ipoEvents={ipoEvents} 
+                      onSelectIpo={setSelectedIpo} 
+                      aliases={aliases}
+                      onToggleIpo={handleToggleIpo}
+                      ipoReports={ipoReports}
+                    />
+                  )
+                ) : (
+                  session ? (
+                    <IpoReport 
+                      reports={ipoReports} 
+                      onDeleteReport={handleRemoveIpoReport} 
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-32 animate-in fade-in">
+                      <div className="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center mb-6">
+                        <span className="material-symbols-outlined text-primary text-5xl">lock</span>
+                      </div>
+                      <h3 className="text-2xl font-black font-headline mb-3">로그인이 필요합니다</h3>
+                      <p className="text-on-surface-variant text-sm text-center max-w-xs mb-8 leading-relaxed">
+                        내 공모주 투자 수익을 기록하고 관리하려면<br/>로그인 후 이용해 주세요.
+                      </p>
+                      <button 
+                        onClick={() => setShowLoginModal(true)}
+                        className="px-8 py-4 bg-primary text-on-primary rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-lg">login</span>
+                        로그인 하기
+                      </button>
+                    </div>
+                  )
+                )}
+              </>
+            ) : (
               aptLoading ? (
                 <div className="py-20 flex flex-col items-center justify-center"><div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>
               ) : (
                 <AptCalendar aptEvents={aptEvents} />
-              )
-            ) : (
-              session ? (
-                <IpoReport 
-                  reports={ipoReports} 
-                  onDeleteReport={handleRemoveIpoReport} 
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center py-32 animate-in fade-in">
-                  <div className="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center mb-6">
-                    <span className="material-symbols-outlined text-primary text-5xl">lock</span>
-                  </div>
-                  <h3 className="text-2xl font-black font-headline mb-3">로그인이 필요합니다</h3>
-                  <p className="text-on-surface-variant text-sm text-center max-w-xs mb-8 leading-relaxed">
-                    내 공모주 투자 수익을 기록하고 관리하려면<br/>로그인 후 이용해 주세요.
-                  </p>
-                  <button 
-                    onClick={() => setShowLoginModal(true)}
-                    className="px-8 py-4 bg-primary text-on-primary rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-lg">login</span>
-                    로그인 하기
-                  </button>
-                </div>
               )
             )}
           </div>
