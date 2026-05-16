@@ -195,7 +195,7 @@ function EventCard({ event, aliases, onToggle, showToastMsg }) {
 
 // ============ Ipo Modal Component ============
 function IpoModal({ ipo, aliases, onClose, onToggleIpo, ipoReports, onAddReport, onDeleteReport, session, onRequireLogin }) {
-  const [profitForm, setProfitForm] = useState({ investment: '', profit: '', sell_date: new Date().toISOString().split('T')[0] });
+  const [profitForm, setProfitForm] = useState({ sell_amount: '', profit: '', sell_date: new Date().toISOString().split('T')[0] });
   const [showProfitForm, setShowProfitForm] = useState(false);
   
   if (!ipo) return null;
@@ -217,34 +217,38 @@ function IpoModal({ ipo, aliases, onClose, onToggleIpo, ipoReports, onAddReport,
   // 이 종목에 대한 기존 수익 기록 찾기
   const existingReport = (ipoReports || []).find(r => r.stock_name === ipo.company_name);
 
-  // 수익률 자동 계산 (매입금액 입력 시에만)
-  const autoReturnRate = (() => {
-    const inv = Number(profitForm.investment);
+  // 수익률 자동 계산: 매입금액 = 매도금액 - 실현손익 → 수익률 = 실현손익 / 매입금액 × 100
+  const autoCalc = (() => {
+    const sell = Number(profitForm.sell_amount);
     const pft = Number(profitForm.profit);
-    if (inv > 0 && !isNaN(pft)) return ((pft / inv) * 100).toFixed(2);
+    if (sell > 0 && !isNaN(pft) && pft !== 0) {
+      const cost = sell - pft;
+      if (cost > 0) {
+        return { cost, rate: ((pft / cost) * 100).toFixed(2) };
+      }
+    }
     return null;
   })();
 
   const handleProfitSubmit = (e) => {
     e.preventDefault();
     if (!session) { onRequireLogin(); return; }
-    const inv = Number(profitForm.investment);
     const pft = Number(profitForm.profit);
-    const rate = inv > 0 ? ((pft / inv) * 100).toFixed(2) : 0;
+    const rate = autoCalc ? Number(autoCalc.rate) : 0;
     onAddReport({
       stock_name: ipo.company_name,
       profit: pft,
-      return_rate: Number(rate),
+      return_rate: rate,
       sell_date: profitForm.sell_date
     });
     setShowProfitForm(false);
-    setProfitForm({ investment: '', profit: '', sell_date: new Date().toISOString().split('T')[0] });
+    setProfitForm({ sell_amount: '', profit: '', sell_date: new Date().toISOString().split('T')[0] });
   };
 
   const openProfitForm = () => {
     if (!session) { onRequireLogin(); return; }
     setProfitForm({
-      investment: '',
+      sell_amount: '',
       profit: '',
       sell_date: new Date().toISOString().split('T')[0]
     });
@@ -341,34 +345,41 @@ function IpoModal({ ipo, aliases, onClose, onToggleIpo, ipoReports, onAddReport,
                     <span className="material-symbols-outlined text-primary text-sm">apartment</span>
                     <span className="text-sm font-bold text-on-surface">{ipo.company_name}</span>
                   </div>
-                  <div>
-                    <label className="block text-[9px] font-black text-primary uppercase tracking-widest mb-1.5 ml-1">실현손익 (원) <span className="text-error">*</span></label>
-                    <input 
-                      type="number" required
-                      value={profitForm.profit}
-                      onChange={e => setProfitForm({...profitForm, profit: e.target.value})}
-                      placeholder="증권사 앱의 실현손익 금액"
-                      className="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all border border-white/5"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[9px] font-black text-primary uppercase tracking-widest mb-1.5 ml-1">실현손익 (원) <span className="text-error">*</span></label>
+                      <input 
+                        type="number" required
+                        value={profitForm.profit}
+                        onChange={e => setProfitForm({...profitForm, profit: e.target.value})}
+                        placeholder="71,816"
+                        className="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all border border-white/5"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">매도금액 (원) <span className="opacity-40">선택</span></label>
+                      <input 
+                        type="number"
+                        value={profitForm.sell_amount}
+                        onChange={e => setProfitForm({...profitForm, sell_amount: e.target.value})}
+                        placeholder="90,000"
+                        className="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all border border-white/5"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">매입금액 (원) <span className="opacity-40">선택</span></label>
-                    <input 
-                      type="number"
-                      value={profitForm.investment}
-                      onChange={e => setProfitForm({...profitForm, investment: e.target.value})}
-                      placeholder="배정주수 × 공모가"
-                      className="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all border border-white/5"
-                    />
-                    <p className="text-[8px] text-on-surface-variant opacity-40 mt-1 ml-1">입력하면 수익률이 자동 계산됩니다</p>
-                  </div>
-                  {autoReturnRate !== null && (
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/5 rounded-xl border border-primary/10">
-                      <span className="material-symbols-outlined text-primary text-sm">calculate</span>
-                      <span className="text-xs text-on-surface-variant">자동 계산 수익률:</span>
-                      <span className={`text-sm font-black ${Number(autoReturnRate) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {Number(autoReturnRate) >= 0 ? '▲' : '▼'} {Math.abs(Number(autoReturnRate))}%
-                      </span>
+                  {autoCalc && (
+                    <div className="px-4 py-3 bg-primary/5 rounded-xl border border-primary/10 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-on-surface-variant flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-primary text-sm">calculate</span>자동 계산
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-on-surface-variant">매입금액: <span className="font-bold text-on-surface">{new Intl.NumberFormat('ko-KR').format(autoCalc.cost)}원</span></span>
+                        <span className={`text-sm font-black ${Number(autoCalc.rate) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          수익률 {Number(autoCalc.rate) >= 0 ? '▲' : '▼'} {Math.abs(Number(autoCalc.rate))}%
+                        </span>
+                      </div>
                     </div>
                   )}
                   <div>
