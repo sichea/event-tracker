@@ -22,10 +22,12 @@ build/
 # Logs
 *.log
 *.html
+!frontend/public/**/*.html
 *.png
 !frontend/public/**/*.png
 !frontend/src/**/*.png
 *.txt
+!frontend/public/ads.txt
 
 # Debug Scripts
 backend/check_db_stats.py

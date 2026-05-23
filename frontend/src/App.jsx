@@ -1389,6 +1389,7 @@ function App() {
             analysisResult={analysisResult}
             onReset={() => setAnalysisResult(null)}
             session={session}
+            setAnalysisResult={setAnalysisResult}
           />
         ) : activeTab === "insights" ? (
           <InvestmentInsights key={insightSubTab} initialSubTab={insightSubTab} showToast={showToastMsg} session={session} onRequireLogin={() => setShowLoginModal(true)} />
@@ -1647,14 +1648,14 @@ function App() {
                 Contact
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>
               </button>
-              <button className="hover:text-primary transition-all relative group py-1" onClick={() => setShowPrivacy(true)}>
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-all relative group py-1">
                 Privacy
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>
-              </button>
-              <button className="hover:text-primary transition-all relative group py-1" onClick={() => setShowTerms(true)}>
+              </a>
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-all relative group py-1">
                 Terms
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>
-              </button>
+              </a>
             </div>
             
             <div className="flex flex-col items-start md:items-end gap-1">
