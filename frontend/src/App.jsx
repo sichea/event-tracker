@@ -799,7 +799,7 @@ function App() {
             </div>
 
             {/* Miniature Tier List Preview */}
-            <div className="relative z-10 bg-[#121824]/40 backdrop-blur-md rounded-2xl border border-white/5 p-4 space-y-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-[340px] mx-auto mb-1">
+            <div className="relative z-10 bg-[#121824]/15 backdrop-blur-[2px] rounded-2xl border border-white/5 p-4 space-y-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-[340px] mx-auto mb-1">
               <div className="flex items-center justify-between border-b border-white/5 pb-1.5">
                 <span className="text-[9px] font-black text-white/50 tracking-wider">실시간 랭킹 (5월 기준)</span>
                 <span className="text-[8px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded-full animate-pulse">LIVE</span>
@@ -810,13 +810,14 @@ function App() {
                 <div className="flex gap-2 items-center">
                   <div className="w-5 h-5 rounded-md bg-[#ff7f7f] text-black font-black text-[9px] flex items-center justify-center shadow-[0_0_8px_rgba(255,127,127,0.3)] shrink-0">S</div>
                   <div className="flex flex-wrap gap-1 overflow-hidden">
-                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">현대2우B</span>
+                    <span className="text-[8px] text-white/30 italic">판독된 종목이 없습니다.</span>
                   </div>
                 </div>
                 {/* Tier A */}
                 <div className="flex gap-2 items-center">
                   <div className="w-5 h-5 rounded-md bg-[#ffbf7f] text-black font-black text-[9px] flex items-center justify-center shrink-0">A</div>
                   <div className="flex flex-wrap gap-1 overflow-hidden">
+                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">현대2우B</span>
                     <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">미래에셋증권</span>
                     <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">지투파워</span>
                   </div>
@@ -826,6 +827,7 @@ function App() {
                   <div className="w-5 h-5 rounded-md bg-[#ffdf7f] text-black font-black text-[9px] flex items-center justify-center shrink-0">B</div>
                   <div className="flex flex-wrap gap-1 overflow-hidden">
                     <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">HD현대마린솔루션</span>
+                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">하나금융지주</span>
                   </div>
                 </div>
                 {/* Tier C */}
