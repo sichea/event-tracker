@@ -771,13 +771,72 @@ function App() {
             <span className="material-symbols-outlined text-lg">close</span>
           </button>
 
-          {/* Poster Image */}
-          <div className="w-full relative overflow-hidden aspect-[4/5] bg-black/20">
-            <img 
-              src="/images/tier_list_promo.png" 
-              alt="저평가 우량주 판독기 티어표 업데이트" 
-              className="w-full h-full object-cover"
-            />
+          {/* Dynamic HTML Poster */}
+          <div className="w-full relative overflow-hidden aspect-[4/5] bg-[#0a0e17] flex flex-col justify-between p-8 border-b border-white/5 select-none">
+            {/* Robot Line-art Background */}
+            <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.25] overflow-hidden">
+              <img 
+                src="/images/stock_robot.png" 
+                alt="" 
+                className="w-full h-full object-contain object-top filter invert grayscale brightness-150 contrast-125 scale-110 translate-y-6" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0e17]/50 to-[#0a0e17]"></div>
+            </div>
+
+            {/* Glowing Accent Orbs */}
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[60px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[60px] rounded-full pointer-events-none" />
+
+            {/* Header copy */}
+            <div className="relative z-10 flex flex-col items-center text-center mt-4">
+              <div className="px-3 py-0.5 rounded bg-primary/10 border border-primary/20 mb-2.5">
+                <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">NEW UPDATE</span>
+              </div>
+              <h3 className="text-white/95 text-2xl font-black tracking-tight font-headline">저평가 우량주 판독기</h3>
+              <p className="text-primary font-black text-xs tracking-widest mt-1.5 uppercase">
+                실시간 종목 티어표 오픈 🏆
+              </p>
+            </div>
+
+            {/* Miniature Tier List Preview */}
+            <div className="relative z-10 bg-[#121824]/85 backdrop-blur-md rounded-3xl border border-white/10 p-5 space-y-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-[340px] mx-auto mb-2">
+              <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                <span className="text-[10px] font-black text-white/50 tracking-wider">실시간 랭킹 (5월 기준)</span>
+                <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">LIVE</span>
+              </div>
+              
+              <div className="space-y-2.5">
+                {/* Tier S */}
+                <div className="flex gap-2.5 items-center">
+                  <div className="w-8 h-8 rounded-xl bg-[#ff7f7f] text-black font-black text-xs flex items-center justify-center shadow-[0_0_12px_rgba(255,127,127,0.3)] shrink-0">S</div>
+                  <div className="flex flex-wrap gap-1.5 overflow-hidden">
+                    <span className="text-[9px] bg-white/[0.04] border border-white/10 text-white/80 px-2.5 py-1 rounded-lg font-bold">현대2우B</span>
+                    <span className="text-[9px] bg-white/[0.04] border border-white/10 text-white/80 px-2.5 py-1 rounded-lg font-bold">미래에셋증권</span>
+                  </div>
+                </div>
+                {/* Tier A */}
+                <div className="flex gap-2.5 items-center">
+                  <div className="w-8 h-8 rounded-xl bg-[#ffbf7f] text-black font-black text-xs flex items-center justify-center shrink-0">A</div>
+                  <div className="flex flex-wrap gap-1.5 overflow-hidden">
+                    <span className="text-[9px] bg-white/[0.04] border border-white/10 text-white/80 px-2.5 py-1 rounded-lg font-bold">지투파워</span>
+                    <span className="text-[9px] bg-white/[0.04] border border-white/10 text-white/80 px-2.5 py-1 rounded-lg font-bold">하나금융지주</span>
+                  </div>
+                </div>
+                {/* Tier B */}
+                <div className="flex gap-2.5 items-center">
+                  <div className="w-8 h-8 rounded-xl bg-[#ffdf7f] text-black font-black text-xs flex items-center justify-center shrink-0">B</div>
+                  <div className="flex flex-wrap gap-1.5 overflow-hidden">
+                    <span className="text-[9px] bg-white/[0.04] border border-white/10 text-white/80 px-2.5 py-1 rounded-lg font-bold">HD현대마린솔루션</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="h-px w-full bg-white/5 pt-1"></div>
+              <p className="text-[9px] text-white/40 text-center font-medium leading-relaxed">
+                투자평가표 데이터를 학습한 AI가 분석한<br/>
+                우량 기업들의 실시간 투자 티어를 확인해보세요!
+              </p>
+            </div>
           </div>
 
           {/* Bottom Options & CTA */}
