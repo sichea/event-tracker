@@ -580,9 +580,21 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
     }, 0);
   }, [analysisData, criteria]);
 
-  const grade = totalScore >= 80 ? 'A' : totalScore >= 70 ? 'B' : totalScore >= 50 ? 'C' : 'D';
-  const gradeLabel = totalScore >= 80 ? 'AI 판정: 최상위 저평가 우량주군에 해당합니다.' : totalScore >= 70 ? 'AI 판정: 안정적인 지표를 보유한 우량주 후보군입니다.' : totalScore >= 50 ? 'AI 판정: 보통 수준이며, 시장 상황에 따른 검토가 필요합니다.' : 'AI 판정: 투자 지표가 다소 미흡하여 주의가 필요한 단계입니다.';
-  const gradeColor = grade === 'A' ? 'text-red-400' : grade === 'B' ? 'text-orange-400' : grade === 'C' ? 'text-blue-400' : 'text-on-surface-variant';
+  const grade = totalScore >= 85 ? 'S' : totalScore >= 75 ? 'A' : totalScore >= 65 ? 'B' : totalScore >= 50 ? 'C' : totalScore >= 35 ? 'D' : 'E';
+  
+  const gradeLabel = totalScore >= 85 ? 'AI 판정: 최상위 저평가 우량주군에 해당합니다.' 
+                   : totalScore >= 75 ? 'AI 판정: 안정적인 지표를 보유한 우량주 후보군입니다.' 
+                   : totalScore >= 65 ? 'AI 판정: 양호한 지표를 보유한 우량주 후보군입니다.' 
+                   : totalScore >= 50 ? 'AI 판정: 보통 수준이며, 시장 상황에 따른 검토가 필요합니다.' 
+                   : totalScore >= 35 ? 'AI 판정: 투자 지표가 다소 아쉬우며 주의가 필요한 단계입니다.' 
+                   : 'AI 판정: 투자 지표가 매우 미흡하여 신중한 접근이 필요한 단계입니다.';
+
+  const gradeColor = grade === 'S' ? 'text-[#ff7f7f]' 
+                   : grade === 'A' ? 'text-[#ffbf7f]' 
+                   : grade === 'B' ? 'text-[#ffdf7f]' 
+                   : grade === 'C' ? 'text-[#ffff7f]' 
+                   : grade === 'D' ? 'text-[#bfff7f]' 
+                   : 'text-[#7fff7f]';
 
   const copySummary = () => {
     if (!analysisData || !analysisData.scores) return;
