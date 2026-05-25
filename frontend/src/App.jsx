@@ -788,7 +788,7 @@ function App() {
             <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[60px] rounded-full pointer-events-none" />
 
             {/* Header copy */}
-            <div className="relative z-10 flex flex-col items-center text-center mt-4">
+            <div className="relative z-10 flex flex-col items-center text-center mt-8">
               <div className="px-3 py-0.5 rounded bg-primary/10 border border-primary/20 mb-2.5">
                 <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">NEW UPDATE</span>
               </div>
@@ -796,7 +796,7 @@ function App() {
               <p className="text-primary font-black text-xs tracking-widest mt-1.5 uppercase">
                 실시간 종목 티어표 오픈 🏆
               </p>
-              <p className="text-white/50 text-[11px] font-bold tracking-tight mt-16 italic">
+              <p className="text-white/50 text-[11px] font-bold tracking-tight mt-12 italic">
                 "티어표를 채워보세요"
               </p>
             </div>
