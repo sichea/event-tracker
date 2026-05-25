@@ -799,40 +799,61 @@ function App() {
             </div>
 
             {/* Miniature Tier List Preview */}
-            <div className="relative z-10 bg-[#121824]/85 backdrop-blur-md rounded-3xl border border-white/10 p-5 space-y-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-[340px] mx-auto mb-2">
-              <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                <span className="text-[10px] font-black text-white/50 tracking-wider">실시간 랭킹 (5월 기준)</span>
-                <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">LIVE</span>
+            <div className="relative z-10 bg-[#121824]/40 backdrop-blur-md rounded-2xl border border-white/5 p-4 space-y-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-[340px] mx-auto mb-1">
+              <div className="flex items-center justify-between border-b border-white/5 pb-1.5">
+                <span className="text-[9px] font-black text-white/50 tracking-wider">실시간 랭킹 (5월 기준)</span>
+                <span className="text-[8px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded-full animate-pulse">LIVE</span>
               </div>
               
-              <div className="space-y-2.5">
+              <div className="space-y-1.5">
                 {/* Tier S */}
-                <div className="flex gap-2.5 items-center">
-                  <div className="w-8 h-8 rounded-xl bg-[#ff7f7f] text-black font-black text-xs flex items-center justify-center shadow-[0_0_12px_rgba(255,127,127,0.3)] shrink-0">S</div>
-                  <div className="flex flex-wrap gap-1.5 overflow-hidden">
-                    <span className="text-[9px] bg-white/[0.04] border border-white/10 text-white/80 px-2.5 py-1 rounded-lg font-bold">현대2우B</span>
-                    <span className="text-[9px] bg-white/[0.04] border border-white/10 text-white/80 px-2.5 py-1 rounded-lg font-bold">미래에셋증권</span>
+                <div className="flex gap-2 items-center">
+                  <div className="w-5 h-5 rounded-md bg-[#ff7f7f] text-black font-black text-[9px] flex items-center justify-center shadow-[0_0_8px_rgba(255,127,127,0.3)] shrink-0">S</div>
+                  <div className="flex flex-wrap gap-1 overflow-hidden">
+                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">현대2우B</span>
                   </div>
                 </div>
                 {/* Tier A */}
-                <div className="flex gap-2.5 items-center">
-                  <div className="w-8 h-8 rounded-xl bg-[#ffbf7f] text-black font-black text-xs flex items-center justify-center shrink-0">A</div>
-                  <div className="flex flex-wrap gap-1.5 overflow-hidden">
-                    <span className="text-[9px] bg-white/[0.04] border border-white/10 text-white/80 px-2.5 py-1 rounded-lg font-bold">지투파워</span>
-                    <span className="text-[9px] bg-white/[0.04] border border-white/10 text-white/80 px-2.5 py-1 rounded-lg font-bold">하나금융지주</span>
+                <div className="flex gap-2 items-center">
+                  <div className="w-5 h-5 rounded-md bg-[#ffbf7f] text-black font-black text-[9px] flex items-center justify-center shrink-0">A</div>
+                  <div className="flex flex-wrap gap-1 overflow-hidden">
+                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">미래에셋증권</span>
+                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">지투파워</span>
                   </div>
                 </div>
                 {/* Tier B */}
-                <div className="flex gap-2.5 items-center">
-                  <div className="w-8 h-8 rounded-xl bg-[#ffdf7f] text-black font-black text-xs flex items-center justify-center shrink-0">B</div>
-                  <div className="flex flex-wrap gap-1.5 overflow-hidden">
-                    <span className="text-[9px] bg-white/[0.04] border border-white/10 text-white/80 px-2.5 py-1 rounded-lg font-bold">HD현대마린솔루션</span>
+                <div className="flex gap-2 items-center">
+                  <div className="w-5 h-5 rounded-md bg-[#ffdf7f] text-black font-black text-[9px] flex items-center justify-center shrink-0">B</div>
+                  <div className="flex flex-wrap gap-1 overflow-hidden">
+                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">HD현대마린솔루션</span>
+                  </div>
+                </div>
+                {/* Tier C */}
+                <div className="flex gap-2 items-center">
+                  <div className="w-5 h-5 rounded-md bg-[#ffff7f] text-black font-black text-[9px] flex items-center justify-center shrink-0">C</div>
+                  <div className="flex flex-wrap gap-1 overflow-hidden">
+                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">한미반도체</span>
+                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">삼성전자</span>
+                  </div>
+                </div>
+                {/* Tier D */}
+                <div className="flex gap-2 items-center">
+                  <div className="w-5 h-5 rounded-md bg-[#bfff7f] text-[#0a0e17] font-black text-[9px] flex items-center justify-center shrink-0">D</div>
+                  <div className="flex flex-wrap gap-1 overflow-hidden">
+                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">레인보우로보틱스</span>
+                  </div>
+                </div>
+                {/* Tier E */}
+                <div className="flex gap-2 items-center">
+                  <div className="w-5 h-5 rounded-md bg-[#7fff7f] text-black font-black text-[9px] flex items-center justify-center shrink-0">E</div>
+                  <div className="flex flex-wrap gap-1 overflow-hidden">
+                    <span className="text-[8px] bg-white/[0.03] border border-white/5 text-white/70 px-2 py-0.5 rounded-md font-bold">코스모로보틱스</span>
                   </div>
                 </div>
               </div>
               
-              <div className="h-px w-full bg-white/5 pt-1"></div>
-              <p className="text-[9px] text-white/40 text-center font-medium leading-relaxed">
+              <div className="h-px w-full bg-white/5 pt-0.5"></div>
+              <p className="text-[8.5px] text-white/40 text-center font-medium leading-relaxed">
                 투자평가표 데이터를 학습한 AI가 분석한<br/>
                 우량 기업들의 실시간 투자 티어를 확인해보세요!
               </p>
