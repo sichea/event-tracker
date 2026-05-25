@@ -405,3 +405,23 @@ export async function removeIpoReport(reportId, userId) {
     
   if (error) throw error;
 }
+
+// --- 저평가 우량주 판독기 캐시 목록 API ---
+export async function fetchCachedStocks() {
+  const limitDate = new Date();
+  limitDate.setDate(limitDate.getDate() - 90);
+  const limitIso = limitDate.toISOString();
+
+  const { data, error } = await supabase
+    .from('stock_analysis_cache')
+    .select('company_name, result, created_at')
+    .gte('created_at', limitIso)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch cached stocks from Supabase:", error);
+    throw error;
+  }
+  return data || [];
+}
+

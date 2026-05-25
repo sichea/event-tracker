@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchMarketInsights, fetchParkingRates, fetchWhaleInsights } from './api';
+import { fetchMarketInsights, fetchParkingRates, fetchWhaleInsights, fetchCachedStocks } from './api';
+
 
 // --- Investment Insight Constants ---
 const INSIGHTS_DATA = [
@@ -477,6 +478,8 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
   const [analysisData, setAnalysisData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [quota, setQuota] = useState({ user: 5, total: 500 });
+  const [cachedStocks, setCachedStocks] = useState([]);
+  const [isCachedLoading, setIsCachedLoading] = useState(false);
 
   // 판독기 전용 쿼터 정보 가져오기
   const refreshQuota = useCallback(async () => {
@@ -489,13 +492,27 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
     } catch (e) {
       console.error("Quota fetch error:", e);
     }
+  }, [session]);
+
+  const loadCachedStocks = useCallback(async () => {
+    setIsCachedLoading(true);
+    try {
+      const data = await fetchCachedStocks();
+      setCachedStocks(data);
+    } catch (e) {
+      console.error("Cached stocks fetch error:", e);
+    } finally {
+      setIsCachedLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     refreshQuota();
-  }, [refreshQuota]);
+    loadCachedStocks();
+  }, [refreshQuota, loadCachedStocks]);
 
-  const criteria = [
+
+  const criteria = useMemo(() => [
     { id: 'per', label: 'PER', weight: 20, options: [{ text: '<5', score: 20 }, { text: '<8', score: 15 }, { text: '<10', score: 10 }, { text: '>10', score: 5 }] },
     { id: 'pbr', label: 'PBR', weight: 5, options: [{ text: '<0.3', score: 5 }, { text: '<0.6', score: 4 }, { text: '<1.0', score: 3 }, { text: '>1.0', score: 0 }] },
     { id: 'sustainability', label: '이익지속가능성', weight: 5, options: [{ text: '대체로 지속 가능', score: 5 }, { text: '불안정한 이익 창출력', score: 0 }] },
@@ -509,7 +526,7 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
     { id: 'growth', label: '미래 성장 잠재력', weight: 10, options: [{ text: '매우 높다', score: 10 }, { text: '높다', score: 7 }, { text: '보통', score: 5 }, { text: '낮다', score: 3 }] },
     { id: 'management', label: '기업경영', weight: 10, options: [{ text: '우수한경영자', score: 10 }, { text: '전문 경영자', score: 5 }, { text: '저조한 실적 오너 경영', score: 0 }] },
     { id: 'brand', label: '세계적브랜드 보유', weight: 5, options: [{ text: '있다', score: 5 }, { text: '없다', score: 0 }] },
-  ];
+  ], []);
 
   const handleAnalyze = async (e) => {
     e?.preventDefault();
@@ -542,6 +559,7 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
         }));
       }
       refreshQuota();
+      loadCachedStocks();
     } catch (err) {
       if (showToast) {
         showToast(err.message, "error");
@@ -573,23 +591,60 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
     navigator.clipboard.writeText(text).then(() => alert("요약 정보가 복사되었습니다.")).catch(() => alert("복사 실패"));
   };
 
+  const calculateStockScore = useCallback((stockObj) => {
+    const result = stockObj.result;
+    if (!result || !result.scores) return 0;
+    return criteria.reduce((acc, c) => {
+      const score = result.scores[c.id]?.score || 0;
+      return acc + score;
+    }, 0);
+  }, [criteria]);
+
+  const tieredStocks = useMemo(() => {
+    const tiers = { S: [], A: [], B: [], C: [], D: [], E: [] };
+    cachedStocks.forEach(stock => {
+      const score = calculateStockScore(stock);
+      if (score >= 85) tiers.S.push({ ...stock, score });
+      else if (score >= 75) tiers.A.push({ ...stock, score });
+      else if (score >= 65) tiers.B.push({ ...stock, score });
+      else if (score >= 50) tiers.C.push({ ...stock, score });
+      else if (score >= 35) tiers.D.push({ ...stock, score });
+      else tiers.E.push({ ...stock, score });
+    });
+    // Sort each tier by score descending, then by name ascending
+    Object.keys(tiers).forEach(t => {
+      tiers[t].sort((a, b) => b.score - a.score || a.company_name.localeCompare(b.company_name));
+    });
+    return tiers;
+  }, [cachedStocks, calculateStockScore]);
+
+  const tierConfig = {
+    S: { label: 'S', bg: 'bg-[#ff7f7f]', text: 'text-black', range: '100~85' },
+    A: { label: 'A', bg: 'bg-[#ffbf7f]', text: 'text-black', range: '84~75' },
+    B: { label: 'B', bg: 'bg-[#ffdf7f]', text: 'text-black', range: '74~65' },
+    C: { label: 'C', bg: 'bg-[#ffff7f]', text: 'text-black', range: '64~50' },
+    D: { label: 'D', bg: 'bg-[#bfff7f]', text: 'text-black', range: '49~35' },
+    E: { label: 'E', bg: 'bg-[#7fff7f]', text: 'text-black', range: '34~0' },
+  };
+
   return (
     <div className="py-6 md:py-12 animate-in fade-in slide-in-from-bottom-4 relative min-h-[85vh] flex flex-col items-center justify-center">
       {/* THE KICK: Thinking Robot Background - Matching Insights Style */}
       {!analysisData && !isLoading && (
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-[0.15] animate-in fade-in zoom-in duration-1000">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[115vh] z-0 pointer-events-none overflow-hidden opacity-[0.15] animate-in fade-in zoom-in duration-1000">
           <img 
             src="/images/stock_robot.png" 
             alt="" 
-            className="w-full max-w-5xl h-[80vh] object-contain filter invert grayscale brightness-150 contrast-125" 
+            className="w-full h-full object-contain object-top filter invert grayscale brightness-150 contrast-125" 
           />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0e17]/20 to-[#0a0e17]"></div>
         </div>
       )}
 
-      <div className="relative z-10 w-full max-w-2xl flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-4xl flex flex-col items-center">
         {/* Header Section - only show when no results */}
         {!analysisData && !isLoading && (
-          <div className="flex flex-col items-center text-center space-y-4 mb-12">
+          <div className="flex flex-col items-center text-center space-y-4 mb-12 max-w-2xl">
             <div className="px-3 py-1 rounded bg-primary/10 border border-primary/20 mb-2">
               <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Expert Judgment System</span>
             </div>
@@ -604,7 +659,7 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
         {/* Search Bar - only show when no results */}
         {!analysisData && (
           <>
-            <form onSubmit={handleAnalyze} className="w-full relative group px-2">
+            <form onSubmit={handleAnalyze} className="w-full max-w-2xl relative group px-2">
               <div className={`
                 relative flex items-center transition-all duration-500 rounded-full border border-white/10
                 bg-transparent group-hover:bg-white/[0.05] group-hover:backdrop-blur-3xl group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
@@ -672,6 +727,70 @@ function OilExpertAnalyzer({ showToast, session, onRequireLogin }) {
                 </div>
               </div>
               <p className="text-[10px] text-white/20 font-medium">※ 정확한 기업명을 입력하시면 AI가 즉시 판독을 시작합니다.</p>
+            </div>
+
+            {/* 실시간 누적 종목 티어표 */}
+            <div className="w-full mt-16 animate-in fade-in duration-1000">
+              <div className="flex items-center justify-between px-2 mb-6">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                    <span className="material-symbols-outlined text-primary text-xl" data-weight="fill">leaderboard</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black font-headline text-white/90">실시간 종목 티어표</h3>
+                    <p className="text-[10px] text-white/40 font-medium">유저들이 판독기로 검증한 우량주 실시간 랭킹 ({new Date().getMonth() + 1}월 기준)</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-primary">{cachedStocks.length}</span>
+                  <span className="text-[10px] text-white/30 font-medium ml-1">개 판독됨</span>
+                </div>
+              </div>
+
+              {isCachedLoading && cachedStocks.length === 0 ? (
+                <div className="py-12 flex justify-center">
+                  <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                </div>
+              ) : (
+                <div className="border border-white/5 rounded-3xl overflow-hidden bg-[#0d121f]/15 backdrop-blur-[2px] shadow-2xl">
+                  {Object.keys(tierConfig).map((tierKey) => {
+                    const cfg = tierConfig[tierKey];
+                    const stocksInTier = tieredStocks[tierKey] || [];
+                    return (
+                      <div 
+                        key={tierKey} 
+                        className="flex border-b border-white/5 last:border-b-0 min-h-[4.5rem] group hover:bg-white/[0.01] transition-colors"
+                      >
+                        {/* Tier Label Column */}
+                        <div className={`w-14 sm:w-20 ${cfg.bg} ${cfg.text} flex flex-col items-center justify-center select-none shadow-[inset_-3px_0_10px_rgba(0,0,0,0.15)] py-2 shrink-0`}>
+                          <span className="font-black text-xl sm:text-2xl leading-none">{cfg.label}</span>
+                          <span className="text-[9px] sm:text-[10px] font-bold opacity-60 mt-1 leading-none tracking-tighter">{cfg.range}</span>
+                        </div>
+                        
+                        {/* Stocks List Column */}
+                        <div className="flex-1 flex flex-wrap gap-2 p-3 sm:p-4 items-center min-w-0">
+                          {stocksInTier.length === 0 ? (
+                            <span className="text-[11px] text-white/20 font-bold italic pl-2 select-none">판독된 종목이 없습니다.</span>
+                          ) : (
+                            stocksInTier.map((stock) => (
+                              <button
+                                key={stock.company_name}
+                                onClick={() => setAnalysisData(stock.result)}
+                                className="group/pill flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/80 hover:text-primary hover:bg-white/10 hover:border-primary/40 active:scale-95 transition-all text-xs font-bold shrink-0 shadow-sm"
+                              >
+                                <span>{stock.company_name}</span>
+                                <span className="text-[10px] text-white/30 group-hover/pill:text-primary/70 transition-colors font-medium">
+                                  {stock.score}점
+                                </span>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </>
         )}
