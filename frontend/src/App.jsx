@@ -512,6 +512,7 @@ function App() {
   const [showTerms, setShowTerms] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showNotice, setShowNotice] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
 
   useEffect(() => {
     const noticeId = "notice_ipo_report_20260516";
@@ -524,11 +525,31 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const expirationDate = "2026-06-02T23:59:59";
+    const hideUntil = localStorage.getItem("hide_tier_list_promo_until");
+    const now = Date.now();
+
+    const isCampaignActive = new Date() <= new Date(expirationDate);
+    const isNotSuppressed = !hideUntil || Number(hideUntil) < now;
+
+    if (isCampaignActive && isNotSuppressed) {
+      setShowPromo(true);
+    }
+  }, []);
+
   const handleHideNoticeToday = () => {
     const noticeId = "notice_ipo_report_20260516";
     const today = new Date().toISOString().split('T')[0];
     localStorage.setItem(noticeId, today);
     setShowNotice(false);
+  };
+
+  const handleHidePromoForAWeek = () => {
+    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+    const hideUntilTimestamp = Date.now() + sevenDaysInMs;
+    localStorage.setItem("hide_tier_list_promo_until", hideUntilTimestamp.toString());
+    setShowPromo(false);
   };
 
   const INFO_CONTENT = {
@@ -722,6 +743,81 @@ function App() {
                 오늘 하루 띄우지 않기
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function PromoModal({ onClose, onHideForAWeek }) {
+    const [isChecked, setIsChecked] = useState(false);
+
+    const handleClose = () => {
+      if (isChecked) {
+        onHideForAWeek();
+      } else {
+        onClose();
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-500" onClick={onClose}>
+        <div className="bg-[#121824] rounded-[2.5rem] w-full max-w-[440px] border border-white/10 shadow-[0_32px_64px_rgba(0,0,0,0.6)] overflow-hidden relative flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+          {/* Close Button Top Right */}
+          <button 
+            onClick={onClose} 
+            className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 flex items-center justify-center text-white/70 hover:text-white transition-all backdrop-blur-sm border border-white/5 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-lg">close</span>
+          </button>
+
+          {/* Poster Image */}
+          <div className="w-full relative overflow-hidden aspect-[4/5] bg-black/20">
+            <img 
+              src="/images/tier_list_promo.png" 
+              alt="저평가 우량주 판독기 티어표 업데이트" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Bottom Options & CTA */}
+          <div className="p-6 bg-[#0f141e] border-t border-white/5 space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer select-none group">
+                <input 
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={(e) => setIsChecked(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-5 h-5 rounded border border-white/20 group-hover:border-primary peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                  {isChecked && <span className="material-symbols-outlined text-[12px] text-black font-bold">check</span>}
+                </div>
+                <span className="text-xs text-white/60 group-hover:text-white transition-colors">
+                  7일간 보지 않기
+                </span>
+              </label>
+              
+              <button
+                onClick={() => {
+                  setActiveTab("insights");
+                  setInsightSubTab("oil_expert");
+                  window.scrollTo(0,0);
+                  onClose();
+                }}
+                className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                판독기 바로가기
+                <span className="material-symbols-outlined text-xs">arrow_forward</span>
+              </button>
+            </div>
+
+            <button 
+              onClick={handleClose}
+              className="w-full py-4 bg-primary text-[#0a0e17] rounded-2xl font-black text-base shadow-xl shadow-primary/10 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer text-center"
+            >
+              닫기
+            </button>
           </div>
         </div>
       </div>
@@ -1705,6 +1801,9 @@ function App() {
 
       {/* Update Notice Modal */}
       {showNotice && <NoticeModal onClose={() => setShowNotice(false)} onHideToday={handleHideNoticeToday} />}
+
+      {/* Tier List Promo Modal */}
+      {showPromo && <PromoModal onClose={() => setShowPromo(false)} onHideForAWeek={handleHidePromoForAWeek} />}
 
       {/* FAB */}
       {(selectedProvider || selectedStatus === "참여 목록" || selectedStatus === "마감 임박") && (
