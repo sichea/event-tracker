@@ -796,8 +796,8 @@ function App() {
               <p className="text-primary font-black text-xs tracking-widest mt-1.5 uppercase">
                 실시간 종목 티어표 오픈 🏆
               </p>
-              <p className="text-white/60 text-[10px] font-bold tracking-tight mt-1">
-                티어표를 채워보세요
+              <p className="text-white/50 text-[11px] font-bold tracking-tight mt-3.5 italic">
+                "티어표를 채워보세요"
               </p>
             </div>
 
