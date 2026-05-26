@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 
 // Polymarket Referral Code (Affiliate ID)
 // Set this to your referral code (e.g. 'YOURCODE') to automatically append it to all Polymarket links
-const POLYMARKET_REFERRAL_CODE = '0x294F1496adBc4865DEbf5B98b8B86FCe0C8919dc';
+const POLYMARKET_REFERRAL_CODE = 'ssicssic2';
 
 const ThoughtBubble = ({ text, show, isFinal, index }) => {
   const [isTyping, setIsTyping] = useState(true);
