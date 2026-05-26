@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 
 // Polymarket Referral Code (Affiliate ID)
 // Set this to your referral code (e.g. 'YOURCODE') to automatically append it to all Polymarket links
-const POLYMARKET_REFERRAL_CODE = '';
+const POLYMARKET_REFERRAL_CODE = '0x294F1496adBc4865DEbf5B98b8B86FCe0C8919dc';
 
 const ThoughtBubble = ({ text, show, isFinal, index }) => {
   const [isTyping, setIsTyping] = useState(true);
@@ -219,6 +219,21 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
     if (val >= 1e6) return `$${(val / 1e6).toFixed(2)}M`;
     if (val >= 1e3) return `$${(val / 1e3).toFixed(1)}K`;
     return `$${val.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  };
+
+  const formatEndDateKst = (dateStr) => {
+    if (!dateStr) return '종료일 미정';
+    try {
+      const date = new Date(dateStr);
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      const hh = String(date.getHours()).padStart(2, '0');
+      const min = String(date.getMinutes()).padStart(2, '0');
+      return `${yyyy}.${mm}.${dd} ${hh}:${min} 종료`;
+    } catch (e) {
+      return `${dateStr.split('T')[0]} 종료`;
+    }
   };
 
   const getCardCategoryName = (item) => {
@@ -452,7 +467,7 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
               <div className="relative z-10 space-y-4">
                 <div className="flex justify-between items-center text-[10px] font-black text-white/30 uppercase tracking-wider">
                   <span className="px-2 py-0.5 rounded bg-white/5 text-primary/70">{getCardCategoryName(item)}</span>
-                  <span>{item.endDate ? `${item.endDate.split('T')[0]} 종료` : '종료일 미정'}</span>
+                  <span>{formatEndDateKst(item.endDateIso || item.endDate)}</span>
                 </div>
                 
                 <h3 className="font-bold text-white text-base leading-snug group-hover:text-primary transition-colors min-h-[48px] line-clamp-3 text-left">
