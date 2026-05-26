@@ -116,6 +116,7 @@ export async function onRequestGet(context) {
         id: item.id,
         question: translatedQuestion,
         slug: item.slug,
+        eventSlug: (item.events && item.events[0]) ? item.events[0].slug : null,
         category: item.category,
         volume: item.volume ? parseFloat(item.volume) : 0.0,
         volume24h: item.volume24hr ? parseFloat(item.volume24hr) : 0.0,

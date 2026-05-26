@@ -162,6 +162,7 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
             id: item.id,
             question: translatedQuestion,
             slug: item.slug,
+            eventSlug: (item.events && item.events[0]) ? item.events[0].slug : null,
             category: item.category,
             volume: item.volume ? parseFloat(item.volume) : 0.0,
             volume24h: item.volume24hr ? parseFloat(item.volume24hr) : 0.0,
@@ -498,7 +499,10 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
                   <button
                     onClick={() => {
                       const referralSuffix = POLYMARKET_REFERRAL_CODE ? `?r=${POLYMARKET_REFERRAL_CODE}` : '';
-                      window.open(`https://polymarket.com/en/market/${item.slug}${referralSuffix}`, '_blank');
+                      const url = item.eventSlug
+                        ? `https://polymarket.com/event/${item.eventSlug}/${item.slug}${referralSuffix}`
+                        : `https://polymarket.com/en/market/${item.slug}${referralSuffix}`;
+                      window.open(url, '_blank');
                     }}
                     className="w-8 h-8 rounded-full bg-white/5 hover:bg-primary hover:text-[#0a0e17] text-white/40 flex items-center justify-center transition-all cursor-pointer"
                     title="폴리마켓에서 상세 보기"
