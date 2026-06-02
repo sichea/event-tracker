@@ -27,7 +27,7 @@ export async function onRequestGet(context) {
   const { request } = context;
   const url = new URL(request.url);
   const category = url.searchParams.get('category') || 'trending';
-  const limit = parseInt(url.searchParams.get('limit') || '20', 10);
+  const limit = parseInt(url.searchParams.get('limit') || '50', 10);
 
   // Tag mapping based on our tag keyword search
   const tagMap = {

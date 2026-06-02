@@ -84,7 +84,7 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
     const tagId = catObj ? catObj.tagId : null;
 
     try {
-      const res = await fetch(`/api/predictions?category=${categorySlug}&limit=20`);
+      const res = await fetch(`/api/predictions?category=${categorySlug}&limit=50`);
       if (!res.ok) {
         throw new Error(`Server returned ${res.status}`);
       }
@@ -98,7 +98,7 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
     } catch (err) {
       console.warn("Proxy fetch failed, using fallback:", err.message);
       try {
-        let directUrl = 'https://gamma-api.polymarket.com/markets?active=true&closed=false&order=volumeNum&ascending=false&limit=20';
+        let directUrl = 'https://gamma-api.polymarket.com/markets?active=true&closed=false&order=volumeNum&ascending=false&limit=50';
         if (tagId) {
           directUrl += `&tag_id=${tagId}`;
         }
@@ -194,7 +194,23 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
         return dateA - dateB;
       });
     }
-    return processed.slice(0, 15);
+
+    // Filter out duplicates under the same event (e.g. only show the top mayoral candidate)
+    const seenEvents = new Set();
+    const filtered = [];
+    
+    for (const item of processed) {
+      if (item.eventSlug) {
+        if (!seenEvents.has(item.eventSlug)) {
+          seenEvents.add(item.eventSlug);
+          filtered.push(item);
+        }
+      } else {
+        filtered.push(item);
+      }
+    }
+
+    return filtered.slice(0, 15);
   }, [rawMarkets, sortBy]);
 
   useEffect(() => {
