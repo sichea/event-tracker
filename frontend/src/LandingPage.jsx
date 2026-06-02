@@ -194,7 +194,7 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
         return dateA - dateB;
       });
     }
-    return processed.slice(0, 6);
+    return processed.slice(0, 15);
   }, [rawMarkets, sortBy]);
 
   useEffect(() => {
