@@ -245,17 +245,8 @@ async def run_ipo_scrape_and_save():
     if not url or not key:
         raise ValueError("Supabase 환경 변수가 설정되지 않았습니다.")
 
-    from postgrest import SyncPostgrestClient
-    class MinimalSupabase:
-        def __init__(self, u, k):
-            self.postgrest = SyncPostgrestClient(
-                f"{u}/rest/v1", 
-                headers={"apikey": k, "Authorization": f"Bearer {k}", "Content-Type": "application/json", "Prefer": "return=representation"}
-            )
-        def table(self, n):
-            return self.postgrest.from_(n)
-            
-    supabase = MinimalSupabase(url, key)
+    from supabase import create_client
+    supabase = create_client(url, key)
     
     events = await scrape_ipo()
     
@@ -263,10 +254,28 @@ async def run_ipo_scrape_and_save():
         print("[IPO] 수집된 데이터가 없습니다.")
         return []
     
+    # DB에 존재하는 기존 공모주들의 ID와 회사명을 조회하여 중복 및 연기 방지
+    try:
+        existing_res = supabase.table("ipo_events").select("id, company_name").execute()
+        existing_data = existing_res.data or []
+    except Exception as ex:
+        print(f"[IPO Supabase 기존 조회 오류] {ex}")
+        existing_data = []
+
+    # 정규화된 종목명 기준 기존 ID 매핑 딕셔너리 생성
+    existing_map = {}
+    for ex_ev in existing_data:
+        norm_name = clean_company_name(ex_ev["company_name"])
+        existing_map[norm_name] = ex_ev["id"]
+    
     records = []
     for e in events:
+        norm_name = clean_company_name(e["company_name"])
+        # 동일 회사명이 기존에 있다면 기존 ID 재사용 (날짜만 업데이트됨)
+        target_id = existing_map.get(norm_name, e["id"])
+        
         records.append({
-            "id": e["id"],
+            "id": target_id,
             "company_name": e["company_name"],
             "subscription_start": e["subscription_start"],
             "subscription_end": e["subscription_end"],
