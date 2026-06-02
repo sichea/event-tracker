@@ -37,7 +37,7 @@ export async function onRequestGet(context) {
     'science': '74',
     'macro': '100328', // Economy
     'crypto': '21',
-    'politics': '2'
+    'politics': '166'
   };
 
   let apiUrl = 'https://gamma-api.polymarket.com/markets?active=true&closed=false&order=volumeNum&ascending=false';

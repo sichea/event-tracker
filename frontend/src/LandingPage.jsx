@@ -74,7 +74,7 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
     { id: 'tech', name: '💻 AI & 테크', tagId: '1401' },
     { id: 'macro', name: '📈 거시경제', tagId: '100328' },
     { id: 'crypto', name: '🪙 크립토', tagId: '21' },
-    { id: 'politics', name: '⚖️ 정치', tagId: '2' },
+    { id: 'politics', name: '⚖️ 한국 정치·선거', tagId: '166' },
   ];
 
   const fetchPredictions = async (categorySlug) => {
