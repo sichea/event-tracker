@@ -195,22 +195,59 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
       });
     }
 
-    // Filter out duplicates under the same event (e.g. only show the top mayoral candidate)
-    const seenEvents = new Set();
-    const filtered = [];
+    // Group markets by eventSlug
+    const groups = {};
+    const singleMarkets = [];
     
     for (const item of processed) {
       if (item.eventSlug) {
-        if (!seenEvents.has(item.eventSlug)) {
-          seenEvents.add(item.eventSlug);
-          filtered.push(item);
+        if (!groups[item.eventSlug]) {
+          groups[item.eventSlug] = [];
         }
+        groups[item.eventSlug].push(item);
       } else {
-        filtered.push(item);
+        singleMarkets.push(item);
       }
     }
 
-    return filtered.slice(0, 15);
+    const representativeMarkets = [];
+    
+    // Helper to find 'Yes' outcome probability
+    const getYesProbability = (item) => {
+      if (!item.outcomes) return 0;
+      const yesOutcome = item.outcomes.find(o => o.name === '예' || o.name === 'Yes');
+      return yesOutcome ? (yesOutcome.probability || 0) : 0;
+    };
+
+    for (const slug in groups) {
+      const groupItems = groups[slug];
+      // Sort group items so that the candidate with the highest 'Yes' probability comes first.
+      // If probabilities are equal, fall back to trading volume.
+      groupItems.sort((a, b) => {
+        const probA = getYesProbability(a);
+        const probB = getYesProbability(b);
+        if (probA !== probB) {
+          return probB - probA;
+        }
+        return (b.volume || 0) - (a.volume || 0);
+      });
+      // Select the primary candidate as the group representative
+      representativeMarkets.push(groupItems[0]);
+    }
+
+    const allProcessed = [...representativeMarkets, ...singleMarkets];
+
+    if (sortBy === 'volume') {
+      allProcessed.sort((a, b) => (b.volume || 0) - (a.volume || 0));
+    } else if (sortBy === 'endDate') {
+      allProcessed.sort((a, b) => {
+        const dateA = a.endDateIso ? new Date(a.endDateIso).getTime() : (a.endDate ? new Date(a.endDate).getTime() : Infinity);
+        const dateB = b.endDateIso ? new Date(b.endDateIso).getTime() : (b.endDate ? new Date(b.endDate).getTime() : Infinity);
+        return dateA - dateB;
+      });
+    }
+
+    return allProcessed.slice(0, 15);
   }, [rawMarkets, sortBy]);
 
   useEffect(() => {
