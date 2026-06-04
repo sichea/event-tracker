@@ -45,7 +45,7 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "오늘 분석 횟수(5회)를 모두 사용하셨습니다.", user_remaining: 0 }), { status: 429, headers: { 'Content-Type': 'application/json' } });
     }
 
-    // [2] 캐시 확인 (30일 TTL)
+    // [2] 캐시 확인 (현재 달(Month)과 동일한 달에 생성된 데이터만 유효)
     const { data: cachedResult } = await supabase
       .from('stock_analysis_cache')
       .select('result, created_at')
@@ -53,10 +53,13 @@ export async function onRequestPost(context) {
       .maybeSingle();
 
     if (cachedResult) {
-      const cacheAge = Date.now() - new Date(cachedResult.created_at).getTime();
-      const CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30일
+      const cachedDate = new Date(cachedResult.created_at);
+      const currentDate = new Date();
+      
+      const isSameMonth = cachedDate.getFullYear() === currentDate.getFullYear() &&
+                          cachedDate.getMonth() === currentDate.getMonth();
 
-      if (cacheAge < CACHE_TTL) {
+      if (isSameMonth) {
         // 유효한 캐시 → 글로벌 에너지 + 사용자 에너지 모두 차감
         const newUserCount = userCount + 1;
         try {
@@ -79,7 +82,7 @@ export async function onRequestPost(context) {
           headers: { "Content-Type": "application/json" }
         });
       }
-      // 30일 초과 → 캐시 만료, 아래에서 재분석 진행
+      // 달이 다르면 캐시 만료, 아래에서 재분석 진행
     }
 
     const systemPrompt = `당신은 대한민국 주식 시장(KOSPI, KOSDAQ)의 모든 종목을 꿰뚫고 있는 '오일전문가'의 AI 비서입니다. 

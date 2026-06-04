@@ -9,9 +9,9 @@ export async function onRequestGet(context) {
   const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
 
   try {
-    // 90일 이내에 판독된 종목만 조회 (기업 분기 실적 보고서 주기 고려)
-    const limitDate = new Date();
-    limitDate.setDate(limitDate.getDate() - 90);
+    // 이번 달 1일 00:00:00 이후에 판독된 종목만 조회 (매월 리셋 적용)
+    const now = new Date();
+    const limitDate = new Date(now.getFullYear(), now.getMonth(), 1);
     const limitIso = limitDate.toISOString();
 
     const { data, error } = await supabase
