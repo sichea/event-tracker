@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RE:MEMBER - 서비스 소개 (About)</title>
+  <meta name="description" content="최첨단 AI 알고리즘과 글로벌 데이터를 결합한 프리미엄 투자 인사이트 플랫폼 RE:MEMBER를 소개합니다.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Outfit:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    :root {
+      --primary: #73ffba;
+      --primary-rgb: 115, 255, 186;
+      --background: #0a0e17;
+      --surface: #131924;
+      --surface-border: rgba(255, 255, 255, 0.05);
+      --text-white: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.6);
+      --text-dim: rgba(255, 255, 255, 0.4);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      background-color: var(--background);
+      color: var(--text-white);
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
+      line-height: 1.7;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .glow-1 {
+      position: absolute;
+      top: -10%;
+      right: -10%;
+      width: 40vw;
+      height: 40vw;
+      background: rgba(115, 255, 186, 0.03);
+      filter: blur(100px);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-2 {
+      position: absolute;
+      bottom: -10%;
+      left: -10%;
+      width: 40vw;
+      height: 40vw;
+      background: rgba(59, 130, 246, 0.03);
+      filter: blur(100px);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .container {
+      max-width: 800px;
+      width: 100%;
+      z-index: 10;
+      position: relative;
+    }
+    
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+      color: var(--primary);
+    }
+    
+    header {
+      margin-bottom: 3rem;
+      text-align: left;
+    }
+    
+    header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--text-white) 30%, rgba(255,255,255,0.7) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
+    }
+    
+    h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 2rem;
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    h2:first-of-type {
+      margin-top: 0;
+    }
+    
+    p {
+      color: var(--text-muted);
+      margin-bottom: 1.2rem;
+      font-size: 0.95rem;
+    }
+    
+    ul {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+    }
+    
+    li {
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+    
+    strong {
+      color: var(--text-white);
+    }
+    
+    footer {
+      margin-top: 4rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      width: 100%;
+      border-top: 1px solid var(--surface-border);
+      padding-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+  
+  <div class="container">
+    <a href="/" class="back-btn">
+      <span class="material-symbols-outlined">arrow_back</span> Back to RE:MEMBER
+    </a>
+    
+    <header>
+      <h1>About RE:MEMBER</h1>
+      <p>실시간 예측 시장과 인공지능 투자 의사결정의 미래</p>
+    </header>
+    
+    <div class="card">
+      <h2><span class="material-symbols-outlined">insights</span> 서비스 비전 및 개요</h2>
+      <p><strong>RE:MEMBER</strong>는 전설적인 글로벌 투자자들의 자산 배분 철학, 월스트리트의 정밀 리서치 데이터베이스, 그리고 거시경제 인프라를 인공지능으로 융합 및 분석하는 <strong>차세대 하이브리드 투자 통찰 플랫폼</strong>입니다.</p>
+      <p>투자 환경의 초불확실성 속에서 개인 및 기관 투자자들에게 실시간 예측 시장의 정밀 수급 데이터와 인공지능 시나리오 모델링을 결합하여 명확하고 신뢰도 높은 의사결정 시그널을 신속하게 제공합니다.</p>
+
+      <h2><span class="material-symbols-outlined">equalizer</span> 핵심 기능 분석</h2>
+      <ul>
+        <li><strong>실시간 예측 시장 (Prediction Market Dashboard):</strong> 폴리마켓(Polymarket) 등의 분산형 금융 예측 시장 데이터를 실시간으로 집계 및 시각화하여, 집단지성과 대중의 투자 확률 변동 지표를 즉각적인 투자 기회 포착 신호로 변환합니다.</li>
+        <li><strong>AI 투자 통찰 (AI Scenario Planning):</strong> 사용자 맞춤 경제 질문이나 투자 가정을 입력받아 심도 있는 매크로 시나리오별 수혜 섹터와 기회요인, 투자 경고 요인을 동적으로 분석해 제언합니다.</li>
+        <li><strong>투자 가이드 아카이브 (Insight Repository):</strong> 예측 시장 활용, 시나리오 플래닝 이론, IPO 변동성 관리, 거시 경제 금리 사이클 등 엄선된 금융 지식의 상세 가이드를 제공합니다.</li>
+      </ul>
+
+      <h2><span class="material-symbols-outlined">terminal</span> 기술력 및 인프라</h2>
+      <p>RE:MEMBER는 최신 자연어 처리(NLP) 모델 및 정밀 파이낸셜 빅데이터 수집 봇을 바탕으로 구축되었습니다. AI 분석은 단순한 통계 자료 요약을 넘어 지정학적 위험 분석, 에너지 자금 흐름, 통화 정책 피벗 시나리오 등을 정밀하게 교차 연산하여 한 단계 높은 차원의 결과물을 도출합니다.</p>
+      <p>모든 데이터와 정보는 사용자의 적극적인 시나리오 테스트 환경(Energy Pool 시스템) 내에서 안정적이고 직관적으로 제공됩니다.</p>
+    </div>
+    
+    <footer>
+      <p>© 2026 RE:MEMBER Ecosystem. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

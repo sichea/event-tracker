@@ -1821,14 +1821,14 @@ function App() {
             </div>
 
             <div className="flex items-center gap-10 text-xs font-black uppercase tracking-[0.25em] text-on-surface-variant">
-              <button className="hover:text-primary transition-all relative group py-1" onClick={() => setShowAbout(true)}>
+              <a href="/about" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-all relative group py-1">
                 About
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>
-              </button>
-              <button className="hover:text-primary transition-all relative group py-1" onClick={() => setShowContact(true)}>
+              </a>
+              <a href="/contact" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-all relative group py-1">
                 Contact
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>
-              </button>
+              </a>
               <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-all relative group py-1">
                 Privacy
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all group-hover:w-full rounded-full"></span>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RE:MEMBER - 문의하기 (Contact)</title>
+  <meta name="description" content="RE:MEMBER 서비스 이용 및 제휴 문의를 남길 수 있는 연락처와 지원 안내입니다.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Outfit:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    :root {
+      --primary: #73ffba;
+      --primary-rgb: 115, 255, 186;
+      --background: #0a0e17;
+      --surface: #131924;
+      --surface-border: rgba(255, 255, 255, 0.05);
+      --text-white: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.6);
+      --text-dim: rgba(255, 255, 255, 0.4);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      background-color: var(--background);
+      color: var(--text-white);
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
+      line-height: 1.7;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .glow-1 {
+      position: absolute;
+      top: -10%;
+      right: -10%;
+      width: 40vw;
+      height: 40vw;
+      background: rgba(115, 255, 186, 0.03);
+      filter: blur(100px);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-2 {
+      position: absolute;
+      bottom: -10%;
+      left: -10%;
+      width: 40vw;
+      height: 40vw;
+      background: rgba(59, 130, 246, 0.03);
+      filter: blur(100px);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .container {
+      max-width: 800px;
+      width: 100%;
+      z-index: 10;
+      position: relative;
+    }
+    
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+      color: var(--primary);
+    }
+    
+    header {
+      margin-bottom: 3rem;
+      text-align: left;
+    }
+    
+    header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--text-white) 30%, rgba(255,255,255,0.7) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
+    }
+    
+    h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 2rem;
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    h2:first-of-type {
+      margin-top: 0;
+    }
+    
+    p {
+      color: var(--text-muted);
+      margin-bottom: 1.2rem;
+      font-size: 0.95rem;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-item .icon {
+      color: var(--primary);
+      font-size: 1.5rem;
+    }
+
+    .contact-item .details h3 {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .contact-item .details p {
+      margin-bottom: 0;
+      font-size: 1.05rem;
+      color: var(--text-white);
+      font-weight: 700;
+    }
+
+    .contact-item .details a {
+      color: var(--primary);
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .contact-item .details a:hover {
+      opacity: 0.8;
+    }
+    
+    footer {
+      margin-top: 4rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      width: 100%;
+      border-top: 1px solid var(--surface-border);
+      padding-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+  
+  <div class="container">
+    <a href="/" class="back-btn">
+      <span class="material-symbols-outlined">arrow_back</span> Back to RE:MEMBER
+    </a>
+    
+    <header>
+      <h1>Contact Support</h1>
+      <p>RE:MEMBER 서비스 이용 문의 및 파트너십 안내</p>
+    </header>
+    
+    <div class="card">
+      <p>RE:MEMBER 서비스의 피드백, 기능 건의, 제휴 제안 등 모든 문의를 환영합니다. 아래 채널을 통해 담당자에게 직접 연락 주시면 신속하게 검토 후 회신해 드리겠습니다.</p>
+      <br>
+
+      <div class="contact-item">
+        <span class="material-symbols-outlined icon">mail</span>
+        <div class="details">
+          <h3>E-mail Contact</h3>
+          <p><a href="mailto:aikks3782@gmail.com">aikks3782@gmail.com</a></p>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <span class="material-symbols-outlined icon">forum</span>
+        <div class="details">
+          <h3>Response Time</h3>
+          <p>영업일 기준 24~48시간 이내 회신 (KST)</p>
+        </div>
+      </div>
+
+      <h2><span class="material-symbols-outlined">help</span> 빈번한 지원 항목</h2>
+      <p><strong>- 제휴 및 마케팅 제안:</strong> AI 솔루션 데이터 연동, 바이럴 파트너십 관련 메일 환영.</p>
+      <p><strong>- 버그 리포팅:</strong> 예측 시장 차트 연동 문제, 로딩 지연 등 오류 사항을 상세 기재하여 발송해 주시면 감사하겠습니다.</p>
+    </div>
+    
+    <footer>
+      <p>© 2026 RE:MEMBER Ecosystem. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

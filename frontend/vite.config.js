@@ -43,6 +43,10 @@ const predictionsDevPlugin = () => ({
         req.url = '/privacy/index.html' + (req.url.includes('?') ? '?' + req.url.split('?')[1] : '');
       } else if (pathname === '/terms' || pathname === '/terms/') {
         req.url = '/terms/index.html' + (req.url.includes('?') ? '?' + req.url.split('?')[1] : '');
+      } else if (pathname === '/about' || pathname === '/about/') {
+        req.url = '/about/index.html' + (req.url.includes('?') ? '?' + req.url.split('?')[1] : '');
+      } else if (pathname === '/contact' || pathname === '/contact/') {
+        req.url = '/contact/index.html' + (req.url.includes('?') ? '?' + req.url.split('?')[1] : '');
       }
 
       if (req.url && req.url.startsWith('/api/predictions')) {
