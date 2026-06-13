@@ -483,7 +483,7 @@ function App() {
   const [scrapingStatus, setScrapingStatus] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
-  const [activeTab, setActiveTab] = useState("landing");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [subscriptionSubTab, setSubscriptionSubTab] = useState("ipo");
   const [ipoViewMode, setIpoViewMode] = useState("calendar"); // "calendar" or "report"
   const [zzantecSubTab, setZzantecSubTab] = useState("parking"); // "parking" or "card"
