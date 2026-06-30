@@ -55,11 +55,13 @@ export default function ParkingCmaComparison({ parkingFilter }) {
       else annualInterest = (5000000 * 0.035) + (25000000 * 0.015) + ((deposit - 30000000) * 0.008);
     } else if (name.includes("비상금박스")) {
       annualInterest = deposit * 0.03;
-    } else if (name.includes("머니모으기")) {
+    } else if (name.includes("머니모으기") || name.includes("미니모으기")) {
       annualInterest = (Math.min(deposit, 2000000) * 0.05) + (Math.max(0, deposit - 2000000) * 0.02);
     } else if (name.includes("스마트박스")) {
-      const effectiveRate = deposit >= 200000000 ? 0.05 : 0.03;
-      annualInterest = deposit * effectiveRate;
+      const rate50 = deposit >= 200000000 ? 0.05 : 0.045;
+      annualInterest = (deposit * 0.5 * rate50) + (deposit * 0.5 * 0.003);
+    } else if (name.includes("씨드모아")) {
+      annualInterest = (Math.min(deposit, 2000000) * 0.0411) + (Math.max(0, deposit - 2000000) * 0.0311);
     } else if (name.includes("플러스박스")) {
       if (deposit <= 50000000) annualInterest = deposit * 0.017;
       else annualInterest = (50000000 * 0.017) + ((deposit - 50000000) * 0.022);
@@ -181,7 +183,7 @@ export default function ParkingCmaComparison({ parkingFilter }) {
       <div className="mt-12 p-4 bg-surface-container-highest/20 rounded-2xl border border-dashed border-white/10 text-center">
         <p className="text-on-surface-variant text-[10px] flex items-center justify-center gap-1.5 opacity-60">
           <span className="material-symbols-outlined text-primary text-xs">verified</span>
-          본 자료는 2026년 4월 시장 데이터를 기반으로 엄선되었습니다.
+          본 자료는 {new Date().getFullYear()}년 {new Date().getMonth() + 1}월 시장 데이터를 기반으로 엄선되었습니다.
         </p>
       </div>
     </div>

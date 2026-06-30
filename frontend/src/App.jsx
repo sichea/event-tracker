@@ -21,7 +21,6 @@ const PROVIDERS = [
   { key: "AMUNDI", label: "AMUNDI", name: "NH-Amundi", bgColor: "bg-emerald-800", textLabel: "AMUNDI", textSize: "text-[10px]", shadow: "", url: "https://m.blog.naver.com/nh_amundi" },
   { key: "1Q", label: "1Q", name: "Hana 1Q", bgColor: "bg-green-500", textLabel: "1Q", shadow: "", url: "https://m.blog.naver.com/1qetf" },
   { key: "KIWOOM", label: "KIWOOM", name: "Kiwoom KOSETF", bgColor: "bg-pink-600", textLabel: "KIWOOM", textSize: "text-[10px]", shadow: "", url: "https://m.blog.naver.com/kiwoomammkt" },
-  { key: "FUN", label: "FUN", name: "Samsung FUN", bgColor: "bg-indigo-400", textLabel: "FUN", shadow: "", url: "https://www.funetf.co.kr/membersLounge/event" },
   { key: "WON", label: "WON", name: "Woori WON", bgColor: "bg-blue-400", textLabel: "WON", shadow: "", url: "https://www.wooriwam.com/kr/etf/lounge/event.do" },
 ];
 
@@ -1705,7 +1704,7 @@ function App() {
             </div>
 
             {/* Status Filters - Main View */}
-            <div className="flex flex-wrap items-center gap-3 mb-10 bg-surface-container/30 p-4 rounded-3xl border border-white/5">
+            <div className="grid grid-cols-3 md:flex md:flex-wrap items-center gap-1.5 md:gap-3 mb-10 bg-surface-container/30 p-2 md:p-4 rounded-2xl md:rounded-3xl border border-white/5">
               {[
                 { id: '전체 목록', label: '전체 목록', icon: 'list' },
                 { id: '마감 임박', label: '마감 임박', icon: 'schedule' },
@@ -1714,10 +1713,10 @@ function App() {
                 <button 
                   key={f.id}
                   onClick={() => { setSelectedStatus(f.id); setSelectedProvider(null); }} 
-                  className={`px-6 py-2.5 rounded-2xl flex items-center gap-2 transition-all duration-300 font-bold text-sm ${selectedStatus === f.id ? 'bg-primary text-on-primary shadow-lg shadow-primary/20 border border-primary/20' : 'bg-surface-container border border-white/5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`}
+                  className={`aspect-square md:aspect-auto flex flex-col md:flex-row items-center justify-center p-2 md:px-6 md:py-2.5 rounded-xl md:rounded-2xl gap-1 md:gap-2 transition-all duration-300 font-bold text-xs md:text-sm ${selectedStatus === f.id ? 'bg-primary text-on-primary shadow-lg shadow-primary/20 border border-primary/20' : 'bg-surface-container border border-white/5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`}
                 >
-                  <span className="material-symbols-outlined text-lg">{f.icon}</span>
-                  <span>{f.label}</span>
+                  <span className="material-symbols-outlined text-xl md:text-lg">{f.icon}</span>
+                  <span className="text-[10px] md:text-sm whitespace-nowrap">{f.label}</span>
                 </button>
               ))}
             </div>

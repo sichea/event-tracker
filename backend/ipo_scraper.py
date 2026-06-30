@@ -124,7 +124,7 @@ def get_soup(url):
     ctx.verify_mode = ssl.CERT_NONE
     ctx.set_ciphers('DEFAULT@SECLEVEL=1')
     html_bytes = urllib.request.urlopen(req, context=ctx).read()
-    html = html_bytes.decode('euc-kr', errors='ignore')
+    html = html_bytes.decode('cp949', errors='ignore')
     return BeautifulSoup(html, 'html.parser')
 
 async def scrape_ipo() -> list[dict]:

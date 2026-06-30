@@ -80,12 +80,6 @@ PROVIDERS = {
         "url": "https://m.blog.naver.com/PostList.naver?blogId=kiwoomammkt&categoryNo=12",
         "color": "#B0005C",
     },
-    "FUN": {
-        "name": "FUN",
-        "full_name": "우리 FUN ETF",
-        "url": "https://m.funetf.co.kr/membersLounge/event",
-        "color": "#0068B7",
-    },
 }
 
 
@@ -733,95 +727,7 @@ async def scrape_kiwoom(page) -> list[dict]:
     return await scrape_naver_blog_generic(page, "KIWOOM")
 
 
-async def scrape_fun(page, kodex_titles: list[str] = None) -> list[dict]:
-    """FUN ETF 이벤트 페이지 스크래핑 - 카드형 이벤트 페이지 기반 (KODEX 중복 제거 로직 포함)"""
-    import re
-    events = []
-    try:
-        url = PROVIDERS["FUN"]["url"]
-        await page.goto(url, wait_until="networkidle")
-        await page.wait_for_timeout(4000)
-        
-        # FUN ETF: /membersLounge/event/ 링크 기반 카드 수집
-        items = await page.evaluate("""
-        () => {
-            const results = [];
-            document.querySelectorAll("a[href*='/membersLounge/event/']").forEach(a => {
-                // 종료된 이벤트 오버레이 확인
-                const ended = a.querySelector('[class*="end"], [class*="close"], [class*="종료"]');
-                const titleEl = a.querySelector('h5, h4, h3, .title, p.name');
-                const periodEl = a.querySelector('p');
-                if (titleEl) {
-                    const periodArr = Array.from(a.querySelectorAll('p')).map(p => p.innerText);
-                    const period = periodArr.find(t => t.includes('기간') || t.includes('~')) || '';
-                    results.push({
-                        title: titleEl.innerText.trim(),
-                        link: a.href,
-                        period: period,
-                        ended: !!ended
-                    });
-                }
-            });
-            return results;
-        }
-        """)
 
-        today = datetime.now().date()
-        for item in items:
-            if item.get("ended"): continue
-            title = item["title"]
-            if not title or is_announcement(title): continue
-            
-            # KODEX 중복 제거 로직 (Option A)
-            if kodex_titles:
-                # 제목이 완전히 일치하거나, KODEX 제목이 FUN 제목을 포함하는 경우 스킵
-                # (보통 KODEX 쪽 제목이 더 정석적인 경우가 많음)
-                is_duplicate = False
-                for kt in kodex_titles:
-                    # 공백 제거 후 비교하여 공백 차이로 인한 중복 방지
-                    clean_kt = re.sub(r'\s+', '', kt)
-                    clean_title = re.sub(r'\s+', '', title)
-                    if clean_kt == clean_title or clean_kt in clean_title or clean_title in clean_kt:
-                        is_duplicate = True
-                        break
-                if is_duplicate:
-                    print(f"[FUN 스킵] KODEX와 중복된 이벤트 발견: {title[:30]}")
-                    continue
-            
-            # 기간 텍스트에서 날짜 파싱 (예: 26.03.26 ~ 26.04.12)
-            end_date = None
-            period_text = item.get("period", "")
-            period_match = re.search(r'(\d{2})\.(\d{2})\.(\d{2})\s*~\s*(\d{2})\.(\d{2})\.(\d{2})', period_text)
-            if period_match:
-                ey, em, ed = period_match.group(4), period_match.group(5), period_match.group(6)
-                end_date = f"20{ey}-{em}-{ed}"
-            # 제목에서 (~4/12) 형식도 확인
-            if not end_date:
-                dm = re.search(r'[~(](\d{1,2})[./](\d{1,2})[)]?', title)
-                if dm:
-                    m, d = int(dm.group(1)), int(dm.group(2))
-                    end_date = f"{today.year}-{m:02d}-{d:02d}"
-            
-            link = item["link"]
-            p = await scrape_detail_page_and_period(page, link, title)
-            final_end = end_date or p["end"]
-            d_day = _calc_dday(final_end)
-            if d_day is not None and d_day < 0: continue
-            if not final_end: continue
-
-            events.append({
-                "id": generate_event_id("FUN", title),
-                "provider": "FUN",
-                "title": title,
-                "start_date": p["start"],
-                "end_date": final_end,
-                "d_day": d_day if d_day is not None else 0,
-                "status": "진행중",
-                "link": link,
-                "scraped_at": datetime.now().isoformat()
-            })
-    except Exception as e: print(f"[FUN] {e}")
-    return events
 
 
 async def log_status(supabase, status: str, error_msg: str = None):
@@ -904,24 +810,14 @@ async def scrape_all() -> tuple[list[dict], dict[str, int]]:
             ("1Q", scrape_1q),
             ("PLUS", scrape_plus),
             ("KIWOOM", scrape_kiwoom),
-            ("FUN", scrape_fun),
         ]
 
-        kodex_titles = []
         for name, scraper in scrapers:
             print(f"\n{'='*50}")
             print(f"[{name}] 스크래핑 시작...")
             print(f"{'='*50}")
             
-            # FUN 실행 시 KODEX 타이틀 목록 전달
-            if name == "FUN":
-                events = await _run_scraper_with_retry(name, lambda p: scraper(p, kodex_titles), browser)
-            else:
-                events = await _run_scraper_with_retry(name, scraper, browser)
-                
-            # KODEX 결과 저장 (FUN 필터링용)
-            if name == "KODEX":
-                kodex_titles = [e["title"] for e in events]
+            events = await _run_scraper_with_retry(name, scraper, browser)
                 
             provider_results[name] = len(events)
             print(f"[{name}] 최종 수집: {len(events)}건")
@@ -956,17 +852,8 @@ async def run_scrape_and_save():
     if not url or not key:
         raise ValueError("Supabase 환경 변수가 설정되지 않았습니다.")
 
-    from postgrest import SyncPostgrestClient
-    class MinimalSupabase:
-        def __init__(self, u, k):
-            self.postgrest = SyncPostgrestClient(
-                f"{u}/rest/v1", 
-                headers={"apikey": k, "Authorization": f"Bearer {k}", "Content-Type": "application/json", "Prefer": "return=representation"}
-            )
-        def table(self, n):
-            return self.postgrest.from_(n)
-            
-    supabase = MinimalSupabase(url, key)
+    from supabase import create_client
+    supabase = create_client(url, key)
 
     try:
         # 1. 상태 기록: 진행 중

@@ -1,94 +1,84 @@
 {
   "dart": [
     {
-      "corp_name": "KB금융",
-      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
-      "filer": "나상록",
-      "date": "20260430",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001927",
-      "change_shares": 195,
-      "change_label": "+195주"
-    },
-    {
-      "corp_name": "미래에셋증권",
-      "report_nm": "[기재정정]임원ㆍ주요주주특정증권등소유상황보고서",
-      "filer": "구종회",
-      "date": "20260430",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001923",
-      "change_shares": 224,
-      "change_label": "+224주"
-    },
-    {
-      "corp_name": "까뮤이앤씨",
+      "corp_name": "에이팩트",
       "report_nm": "주식등의대량보유상황보고서(일반)",
-      "filer": "베이스",
-      "date": "20260430",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001916",
-      "change_shares": 0,
-      "change_label": "0주 (변동없음)"
+      "filer": "다이내믹그로우쓰",
+      "date": "20260629",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000291"
     },
     {
-      "corp_name": "미래에셋증권",
-      "report_nm": "[기재정정]임원ㆍ주요주주특정증권등소유상황보고서",
-      "filer": "강성범",
-      "date": "20260430",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001911",
-      "change_shares": 592,
-      "change_label": "+592주"
-    },
-    {
-      "corp_name": "쏘닉스",
-      "report_nm": "주식등의대량보유상황보고서(약식)",
-      "filer": "엘앤에스벤처캐피탈",
-      "date": "20260430",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001909",
-      "change_shares": -600334,
-      "change_label": "-600,334주"
-    },
-    {
-      "corp_name": "STX",
+      "corp_name": "제노레이",
       "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
-      "filer": "홍라정",
-      "date": "20260430",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001903",
+      "filer": "신인선",
+      "date": "20260629",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000286"
+    },
+    {
+      "corp_name": "밸로프",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "신재명",
+      "date": "20260629",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000278"
+    },
+    {
+      "corp_name": "나라엠앤디",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "김정훈",
+      "date": "20260629",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000275"
+    },
+    {
+      "corp_name": "신테카바이오",
+      "report_nm": "[기재정정]주식등의대량보유상황보고서(일반)",
+      "filer": "정종선",
+      "date": "20260629",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000274"
+    },
+    {
+      "corp_name": "에이팩트",
+      "report_nm": "주식등의대량보유상황보고서(일반)",
+      "filer": "뮤츄얼그로우쓰",
+      "date": "20260629",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000245",
+      "change_shares": -23440780,
+      "change_label": "-23,440,780주"
+    },
+    {
+      "corp_name": "LS마린솔루션",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "구자은",
+      "date": "20260629",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000233",
+      "change_shares": 500,
+      "change_label": "+500주"
+    },
+    {
+      "corp_name": "와이엠씨",
+      "report_nm": "주식등의대량보유상황보고서(일반)",
+      "filer": "이윤용",
+      "date": "20260629",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000226",
+      "change_shares": -36000,
+      "change_label": "-36,000주"
+    },
+    {
+      "corp_name": "LG이노텍",
+      "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
+      "filer": "ROH SUNGWON DAVID",
+      "date": "20260629",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000215",
       "change_shares": 100,
       "change_label": "+100주"
     },
     {
-      "corp_name": "STX",
-      "report_nm": "주식등의대량보유상황보고서(일반)",
-      "filer": "에이피씨머큐리",
-      "date": "20260430",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001900",
-      "change_shares": 100,
-      "change_label": "+100주"
-    },
-    {
-      "corp_name": "스모트로닉",
-      "report_nm": "주식등의대량보유상황보고서(일반)",
-      "filer": "퓨트로닉",
-      "date": "20260430",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001899",
-      "change_shares": 370000,
-      "change_label": "+370,000주"
-    },
-    {
-      "corp_name": "두올",
-      "report_nm": "주식등의대량보유상황보고서(일반)",
-      "filer": "프리미어성장전략엠앤에이사모투자",
-      "date": "20260430",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001896",
-      "change_shares": -4200000,
-      "change_label": "-4,200,000주"
-    },
-    {
-      "corp_name": "스모트로닉",
+      "corp_name": "푸드웰",
       "report_nm": "임원ㆍ주요주주특정증권등소유상황보고서",
-      "filer": "고진호",
-      "date": "20260430",
-      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260430001891",
-      "change_shares": 370000,
-      "change_label": "+370,000주"
+      "filer": "최영길",
+      "date": "20260629",
+      "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000208",
+      "change_shares": 5000,
+      "change_label": "+5,000주"
     }
   ],
   "nps": [
@@ -376,5 +366,5 @@
       ]
     }
   ],
-  "updated_at": "2026-05-03T00:57:19.095475"
+  "updated_at": "2026-06-29T14:53:29.450865"
 }
