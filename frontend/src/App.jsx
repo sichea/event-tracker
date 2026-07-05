@@ -9,6 +9,7 @@ import AptCalendar from "./AptCalendar";
 import IpoCalendar from "./IpoCalendar";
 import InvestmentInsights from "./InvestmentInsights";
 import ParkingCmaComparison from "./ParkingCmaComparison";
+import KBEventCalculator from "./KBEventCalculator";
 import "./index.css";
 
 const PROVIDERS = [
@@ -1394,6 +1395,15 @@ function App() {
                 <span className="font-medium text-sm">카테크 (준비중)</span>
               </button>
 
+              <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-4">계산기</p>
+              <button 
+                onClick={() => { setZzantecSubTab("kb_calc"); window.scrollTo(0,0); }} 
+                className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${zzantecSubTab === 'kb_calc' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
+              >
+                <span className="material-symbols-outlined text-xl">calculate</span>
+                <span className="font-medium text-sm">KB공모주환불금 계산기</span>
+              </button>
+
             </>
           ) : (
             <div className="text-center py-10 text-on-surface-variant/50 text-xs">
@@ -1663,7 +1673,8 @@ function App() {
               <div className="flex items-center gap-2 bg-surface-container/30 p-1.5 rounded-2xl border border-white/5 w-fit">
                 {[
                   { id: 'parking', label: '파킹통장', icon: 'account_balance_wallet' },
-                  { id: 'card', label: '카테크', icon: 'credit_card' }
+                  { id: 'card', label: '카테크', icon: 'credit_card' },
+                  { id: 'kb_calc', label: 'KB계산기', icon: 'calculate' }
                 ].map(tab => (
                   <button 
                     key={tab.id}
@@ -1679,6 +1690,8 @@ function App() {
             </div>
             {zzantecSubTab === "parking" ? (
               <ParkingCmaComparison parkingFilter={parkingFilter} />
+            ) : zzantecSubTab === "kb_calc" ? (
+              <KBEventCalculator />
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center py-20 bg-surface-container/10 rounded-[3rem] border border-dashed border-white/10">
                 <div className="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center mb-6 animate-pulse">
