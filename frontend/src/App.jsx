@@ -481,6 +481,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [newAliasName, setNewAliasName] = useState("");
   const [scrapingStatus, setScrapingStatus] = useState(null);
+  const [isScraping, setIsScraping] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -1018,6 +1019,21 @@ function App() {
     setTimeout(() => setToast({ message: "", visible: false, type: "success" }), 3000);
   }, []);
 
+  const handleManualScrape = async () => {
+    if (isScraping) return;
+    setIsScraping(true);
+    showToastMsg("수동 스크래핑을 실행합니다. (GitHub Actions 트리거)", "success");
+    try {
+      await triggerManualScrape(adminToken);
+      showToastMsg("스크래핑 요청 전송 성공! (수집 완료까지 수 분이 소요될 수 있습니다)", "success");
+    } catch (e) {
+      console.error(e);
+      showToastMsg("스크래핑 요청 실패: " + e.message, "error");
+    } finally {
+      setIsScraping(false);
+    }
+  };
+
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
     if (newPassword.length < 6) {
@@ -1279,9 +1295,22 @@ function App() {
                   <span className="material-symbols-outlined">settings</span>
                 </button>
                 {isAdmin && (
-                  <button className="bg-primary text-on-primary px-3 md:px-5 py-1.5 rounded-full text-[10px] md:text-sm font-bold active:scale-95 duration-200 shadow-[0_0_20px_rgba(115,255,186,0.2)]" onClick={() => triggerManualScrape(adminToken)}>
-                    <span className="md:inline hidden">관리자 수집 실행</span>
-                    <span className="md:hidden inline flex items-center justify-center"><span className="material-symbols-outlined text-sm">refresh</span></span>
+                  <button 
+                    disabled={isScraping}
+                    className="bg-primary text-on-primary px-3 md:px-5 py-1.5 rounded-full text-[10px] md:text-sm font-bold active:scale-95 duration-200 shadow-[0_0_20px_rgba(115,255,186,0.2)] disabled:opacity-75 flex items-center gap-1.5" 
+                    onClick={handleManualScrape}
+                  >
+                    {isScraping ? (
+                      <>
+                        <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                        <span className="md:inline hidden">수집 진행 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="md:inline hidden">관리자 수집 실행</span>
+                        <span className="md:hidden inline flex items-center justify-center"><span className="material-symbols-outlined text-sm">refresh</span></span>
+                      </>
+                    )}
                   </button>
                 )}
               </div>
