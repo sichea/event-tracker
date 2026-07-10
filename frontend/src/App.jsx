@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { fetchEvents, toggleEventChecked, fetchAliases, addAlias, removeAlias, fetchScrapingStatus, triggerManualScrape, fetchAdminSecret, saveAdminSecret, fetchIpoEvents, toggleIpoSubscription, savePushSubscription, removePushSubscription, checkPushSubscription, fetchMarketInsights, fetchAptSubscriptions, fetchParkingRates, fetchVisitorCount, incrementVisitor, fetchIpoReports, addIpoReport, removeIpoReport } from "./api";
 import IpoReport from "./IpoReport";
 import { supabase } from "./supabaseClient";
@@ -1018,6 +1018,97 @@ function App() {
     setToast({ message, visible: true, type });
     setTimeout(() => setToast({ message: "", visible: false, type: "success" }), 3000);
   }, []);
+
+  // ----------------------------------------------------
+  // 모바일/브라우저 하드웨어 뒤로가기 버튼 처리
+  // 1. 모달이 열려있을 때: 뒤로가기 누르면 모달만 종료
+  // 2. 모달이 없을 때: 뒤로가기 누르면 "한 번 더 누르면 종료" 안내문구 노출, 2초 내 재클릭 시 앱 종료
+  // ----------------------------------------------------
+  const lastBackPressTimeRef = useRef(0);
+  const closingModalManuallyRef = useRef(false);
+
+  // 현재 활성화된 모달이 있는지 여부 검사
+  const isAnyModalOpen = useMemo(() => {
+    return (
+      selectedIpo !== null ||
+      showAbout ||
+      showContact ||
+      showPrivacy ||
+      showTerms ||
+      showNotice ||
+      showPromo ||
+      showLoginModal
+    );
+  }, [selectedIpo, showAbout, showContact, showPrivacy, showTerms, showNotice, showPromo, showLoginModal]);
+
+  const closeAllModals = useCallback(() => {
+    setSelectedIpo(null);
+    setShowAbout(false);
+    setShowContact(false);
+    setShowPrivacy(false);
+    setShowTerms(false);
+    setShowNotice(false);
+    setShowPromo(false);
+    setShowLoginModal(false);
+  }, []);
+
+  // 1. 앱 진입 시 기본 히스토리 상태 설정 (뒤로가기 방지용 베이스 상태)
+  useEffect(() => {
+    if (!window.history.state?.baseState) {
+      window.history.pushState({ baseState: true }, "");
+    }
+  }, []);
+
+  // 2. 모달 개폐에 따른 히스토리 상태(pushState) 관리
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      if (!window.history.state?.modalOpen) {
+        window.history.pushState({ modalOpen: true }, "");
+      }
+    } else {
+      if (window.history.state?.modalOpen) {
+        closingModalManuallyRef.current = true;
+        window.history.back();
+      }
+    }
+  }, [isAnyModalOpen]);
+
+  // 3. popstate 이벤트 핸들링 (뒤로가기 가로채기)
+  useEffect(() => {
+    const handlePopState = (event) => {
+      // 수동으로 모달을 닫아 발생한 back 이벤트인 경우 무시
+      if (closingModalManuallyRef.current) {
+        closingModalManuallyRef.current = false;
+        return;
+      }
+
+      if (isAnyModalOpen) {
+        // 모달이 열려있는 상태에서 뒤로가기 클릭 시: 모달만 종료
+        closeAllModals();
+        // 히스토리에 다시 베이스 상태 보존
+        if (!window.history.state?.baseState) {
+          window.history.pushState({ baseState: true }, "");
+        }
+      } else {
+        // 모달이 없는 상태에서 뒤로가기 클릭 시: 종료 확인
+        const now = Date.now();
+        if (now - lastBackPressTimeRef.current < 2000) {
+          // 2초 이내에 연속해서 누른 경우: 앱 종료 (브라우저 이전 페이지로 이동)
+          window.history.back();
+        } else {
+          // 처음 누른 경우: 안내 토스트 노출 및 베이스 상태 재푸시
+          lastBackPressTimeRef.current = now;
+          showToastMsg("뒤로가기 버튼을 한 번 더 누르면 종료됩니다.", "success");
+          window.history.pushState({ baseState: true }, "");
+        }
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [isAnyModalOpen, closeAllModals, showToastMsg]);
 
   const handleManualScrape = async () => {
     if (isScraping) return;
