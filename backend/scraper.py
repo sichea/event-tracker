@@ -662,7 +662,8 @@ async def scrape_rise(page) -> list[dict]:
                     
                     const title = titleEl.innerText.replace('진행중', '').trim();
                     const dateRange = dateEl ? dateEl.innerText : "";
-                    const href = a.getAttribute('href');
+                    const rawHref = a.getAttribute('href') || "";
+                    const href = rawHref.trim();
                     
                     if (title && href) {
                         let link = href;
