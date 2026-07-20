@@ -40,6 +40,22 @@ function subtractBusinessDays(date, n) {
   return d;
 }
 
+function getLatestBusinessDayOnOrBefore(date) {
+  const d = new Date(date);
+  while (!isBusinessDay(d)) {
+    d.setDate(d.getDate() - 1);
+  }
+  return d;
+}
+
+function getFirstBusinessDayOnOrAfter(date) {
+  const d = new Date(date);
+  while (!isBusinessDay(d)) {
+    d.setDate(d.getDate() + 1);
+  }
+  return d;
+}
+
 function formatDate(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
@@ -68,8 +84,9 @@ export default function KBEventCalculator() {
     const eventEnd = new Date(base);
     eventEnd.setDate(eventEnd.getDate() + 30);
 
-    const naildreamBuy = subtractBusinessDays(eventEnd, 1);
-    const naildreamSell = new Date(eventEnd);
+    const settlementDate = getLatestBusinessDayOnOrBefore(eventEnd);
+    const naildreamBuy = subtractBusinessDays(settlementDate, 1);
+    const naildreamSell = getFirstBusinessDayOnOrAfter(eventEnd);
     const couponDate = addBusinessDays(eventEnd, 2);
 
     setAnimating(true);
