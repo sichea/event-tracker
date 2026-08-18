@@ -10,6 +10,7 @@ import IpoCalendar from "./IpoCalendar";
 import InvestmentInsights from "./InvestmentInsights";
 import ParkingCmaComparison from "./ParkingCmaComparison";
 import KBEventCalculator from "./KBEventCalculator";
+import CardTechTab from "./components/CardTechTab";
 import "./index.css";
 
 const PROVIDERS = [
@@ -1803,7 +1804,6 @@ function App() {
                   >
                     <span className="material-symbols-outlined text-lg">{tab.icon}</span>
                     <span>{tab.label}</span>
-                    {tab.id === 'card' && <span className="ml-1 text-[8px] bg-[#0a0e17]/20 px-1 rounded">Soon</span>}
                   </button>
                 ))}
               </div>
@@ -1812,15 +1812,24 @@ function App() {
               <ParkingCmaComparison parkingFilter={parkingFilter} />
             ) : zzantecSubTab === "kb_calc" ? (
               <KBEventCalculator />
+            ) : session ? (
+              <CardTechTab userId={session.user.id} />
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center py-20 bg-surface-container/10 rounded-[3rem] border border-dashed border-white/10">
-                <div className="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center mb-6 animate-pulse">
-                  <span className="material-symbols-outlined text-primary text-5xl">credit_card</span>
+              <div className="flex-1 flex flex-col items-center justify-center py-20 bg-surface-container/10 rounded-[3rem] border border-dashed border-white/10 text-center px-4">
+                <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-5 text-emerald-400">
+                  <span className="material-symbols-outlined text-4xl">lock</span>
                 </div>
-                <h3 className="text-2xl font-black font-headline mb-2">카테크 섹션 준비 중</h3>
-                <p className="text-on-surface-variant text-sm max-w-xs text-center leading-relaxed">
-                  카드 발급 혜택, 캐시백 이벤트 등 알짜배기 카테크 정보를 수집하고 있습니다. 잠시만 기다려 주세요!
+                <h3 className="text-xl font-bold text-on-surface mb-2">로그인이 필요합니다</h3>
+                <p className="text-on-surface-variant text-sm max-w-sm mb-6 leading-relaxed">
+                  카테크(카드 풍차돌리기) 정보는 개인 금융 데이터로, 로그인한 사용자 본인에게만 안전하게 보관 및 표시됩니다.
                 </p>
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  className="px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-base">login</span>
+                  로그인하고 내 카테크 관리하기
+                </button>
               </div>
             )}
           </div>
