@@ -488,7 +488,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [subscriptionSubTab, setSubscriptionSubTab] = useState("ipo");
   const [ipoViewMode, setIpoViewMode] = useState("calendar"); // "calendar" or "report"
-  const [zzantecSubTab, setZzantecSubTab] = useState("parking"); // "parking" or "card"
+  const [zzantecSubTab, setZzantecSubTab] = useState("card"); // "card" or "parking" or "kb_calc"
   const [insightSubTab, setInsightSubTab] = useState("macro");
   const [parkingFilter, setParkingFilter] = useState('all');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -1377,7 +1377,7 @@ function App() {
                             <button className={`pb-1 font-headline transition-colors ${(activeTab === 'landing' || activeTab === 'insights') ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("landing"); setAnalysisResult(null);}}>투자 인사이트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'dashboard' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => {setActiveTab("dashboard"); setSelectedProvider(null); setSelectedStatus("전체 보기");}}>이벤트</button>
               <button className={`pb-1 font-headline transition-colors ${activeTab === 'subscription' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("subscription"); setSubscriptionSubTab("ipo"); if (ipoEvents.length === 0) { setIpoLoading(true); fetchIpoEvents(session?.user?.id).then(d => { setIpoEvents(d); setIpoLoading(false); }).catch(() => setIpoLoading(false)); } }}>청약</button>
-              <button className={`pb-1 font-headline transition-colors ${activeTab === 'zzantec' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("zzantec"); setZzantecSubTab("parking"); }}>짠테크</button>
+              <button className={`pb-1 font-headline transition-colors ${activeTab === 'zzantec' ? 'text-primary border-b-2 border-primary' : 'text-[#ebedfb]/60 hover:text-[#ebedfb]'}`} onClick={() => { setActiveTab("zzantec"); setZzantecSubTab("card"); }}>짠테크</button>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-6">
@@ -1502,18 +1502,16 @@ function App() {
             <>
               <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-4">짠테크 종류</p>
               <button 
-                onClick={() => { setZzantecSubTab("parking"); window.scrollTo(0,0); }} 
-                className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${zzantecSubTab === 'parking' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
-              >
-                <span className="material-symbols-outlined text-xl">account_balance_wallet</span>
-                <span className="font-medium text-sm">파킹통장</span>
-              </button>
-              <button 
                 onClick={() => { setZzantecSubTab("card"); window.scrollTo(0,0); }} 
                 className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${zzantecSubTab === 'card' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
               >
-                <span className="material-symbols-outlined text-xl">credit_card</span>
-                <span className="font-medium text-sm">카테크 (준비중)</span>
+                <span className="font-medium text-sm">카테크</span>
+              </button>
+              <button 
+                onClick={() => { setZzantecSubTab("parking"); window.scrollTo(0,0); }} 
+                className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${zzantecSubTab === 'parking' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
+              >
+                <span className="font-medium text-sm">파킹통장</span>
               </button>
 
               <p className="px-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 mt-4">계산기</p>
@@ -1521,8 +1519,7 @@ function App() {
                 onClick={() => { setZzantecSubTab("kb_calc"); window.scrollTo(0,0); }} 
                 className={`w-full text-left rounded-lg flex items-center gap-3 px-3 py-2.5 transition-all duration-300 ${zzantecSubTab === 'kb_calc' ? 'bg-[#262c3a] text-[#73ffba] shadow-lg border border-white/5' : 'text-[#ebedfb]/70 hover:bg-[#262c3a]/30 hover:text-[#73ffba]'}`}
               >
-                <span className="material-symbols-outlined text-xl">calculate</span>
-                <span className="font-medium text-sm">KB공모주환불금 계산기</span>
+                <span className="font-medium text-sm">KB계산기</span>
               </button>
 
             </>
@@ -1790,20 +1787,19 @@ function App() {
           </div>
         ) : activeTab === "zzantec" ? (
           <div className="flex flex-col h-full">
-            <div className="mb-8">
-              <div className="flex items-center gap-2 bg-surface-container/30 p-1.5 rounded-2xl border border-white/5 w-fit">
+            <div className="mb-6">
+              <div className="flex items-center gap-1.5 bg-surface-container/30 p-1.5 rounded-2xl border border-white/5 w-full sm:w-fit overflow-x-auto whitespace-nowrap">
                 {[
-                  { id: 'parking', label: '파킹통장', icon: 'account_balance_wallet' },
-                  { id: 'card', label: '카테크', icon: 'credit_card' },
-                  { id: 'kb_calc', label: 'KB계산기', icon: 'calculate' }
+                  { id: 'card', label: '카테크' },
+                  { id: 'parking', label: '파킹통장' },
+                  { id: 'kb_calc', label: 'KB계산기' }
                 ].map(tab => (
                   <button 
                     key={tab.id}
                     onClick={() => setZzantecSubTab(tab.id)}
-                    className={`px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-300 font-bold text-sm ${zzantecSubTab === tab.id ? 'bg-[#73ffba] text-[#0a0e17] shadow-lg shadow-[#73ffba]/20' : 'text-[#ebedfb]/60 hover:text-[#ebedfb] hover:bg-white/5'}`}
+                    className={`px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap shrink-0 transition-all duration-300 ${zzantecSubTab === tab.id ? 'bg-[#73ffba] text-[#0a0e17] shadow-lg shadow-[#73ffba]/20' : 'text-[#ebedfb]/60 hover:text-[#ebedfb] hover:bg-white/5'}`}
                   >
-                    <span className="material-symbols-outlined text-lg">{tab.icon}</span>
-                    <span>{tab.label}</span>
+                    {tab.label}
                   </button>
                 ))}
               </div>
@@ -2006,7 +2002,7 @@ function App() {
           <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'subscription' ? 'fill' : 'normal'}>assignment</span>
           <span className="text-[10px] font-bold text-center">청약</span>
         </button>
-        <button onClick={() => { setActiveTab("zzantec"); setZzantecSubTab("parking"); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 ${activeTab === 'zzantec' ? 'text-primary' : 'text-on-surface-variant'}`}>
+        <button onClick={() => { setActiveTab("zzantec"); setZzantecSubTab("card"); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 ${activeTab === 'zzantec' ? 'text-primary' : 'text-on-surface-variant'}`}>
           <span className="material-symbols-outlined text-2xl" data-weight={activeTab === 'zzantec' ? 'fill' : 'normal'}>account_balance_wallet</span>
           <span className="text-[10px] font-bold text-center">짠테크</span>
         </button>
