@@ -574,7 +574,7 @@ const LivePredictionsDashboard = ({ onSelectMarket }) => {
 
 export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, onReset, session, setAnalysisResult }) {
   const [scenario, setScenario] = useState('');
-  const [landingTab, setLandingTab] = useState('predictions'); // 'predictions', 'insights', or 'archive'
+  const [landingTab, setLandingTab] = useState('insights'); // 'insights' or 'archive'
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [visibleSteps, setVisibleSteps] = useState(0);
   const [remainingQuota, setRemainingQuota] = useState(500);
@@ -628,31 +628,10 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
             />
           </div>
         )}
-        {/* Prediction Market Robot Background (User custom image) */}
-        {!analysisResult && landingTab === 'predictions' && (
-          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-[0.1] animate-in fade-in duration-1000">
-            <img 
-              src="/images/predictions_bg.jpg" 
-              alt="" 
-              className="w-full max-w-5xl h-[80vh] object-contain filter invert grayscale brightness-150 contrast-125"
-            />
-          </div>
-        )}
 
         {/* Main Landing Tabs */}
         {!analysisResult && (
           <div className="flex bg-[#1e2533]/60 border border-white/5 p-1 rounded-2xl backdrop-blur-md select-none mb-10 relative z-20">
-            <button
-              onClick={() => setLandingTab('predictions')}
-              className={`px-5 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-                landingTab === 'predictions'
-                  ? 'bg-primary text-[#0a0e17] shadow-[0_0_15px_rgba(115,255,186,0.3)]'
-                  : 'text-white/50 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <span className="material-symbols-outlined text-base md:text-lg">equalizer</span>
-              실시간 예측 시장
-            </button>
             <button
               onClick={() => setLandingTab('insights')}
               className={`px-5 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
@@ -878,28 +857,6 @@ export default function LandingPage({ onAnalyze, isAnalyzing, analysisResult, on
               </div>
             </div>
 
-            {/* 실시간 예측 시장 Tab Panel */}
-            <div className={`w-full flex flex-col items-center mt-4 ${landingTab === 'predictions' ? 'block' : 'hidden'}`}>
-              <LivePredictionsDashboard 
-                onSelectMarket={(question) => {
-                  setScenario(question);
-                  setLandingTab('insights');
-                  
-                  // Focus the input and scroll to the end to prevent text clipping
-                  setTimeout(() => {
-                    const inputEl = document.getElementById('scenario-input');
-                    if (inputEl) {
-                      inputEl.focus();
-                      const len = inputEl.value.length;
-                      inputEl.setSelectionRange(len, len);
-                      inputEl.scrollLeft = inputEl.scrollWidth;
-                    }
-                  }, 80);
-
-                  onAnalyze(question, session?.user?.id);
-                }} 
-              />
-            </div>
           </div>
           ) : (
           <div className="w-full max-w-4xl flex flex-col relative animate-in fade-in duration-700">
