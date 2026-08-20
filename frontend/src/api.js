@@ -522,4 +522,49 @@ function compressFileToBase64(file) {
   });
 }
 
+// --- 카테크 사용자 카드 목록 DB 클라우드 실시간 동기화 API ---
+export async function fetchUserCardTechData(userId) {
+  if (!userId) return null;
+  try {
+    const { data, error } = await supabase
+      .from('user_cardtech')
+      .select('card_data')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') {
+      console.warn("Failed to fetch user_cardtech data from Supabase:", error);
+      return null;
+    }
+    return data ? data.card_data : null;
+  } catch (err) {
+    console.warn("Error fetching user_cardtech:", err);
+    return null;
+  }
+}
+
+export async function saveUserCardTechData(userId, cardData) {
+  if (!userId) return;
+  try {
+    const { error } = await supabase
+      .from('user_cardtech')
+      .upsert(
+        {
+          user_id: userId,
+          card_data: cardData,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: 'user_id' }
+      );
+
+    if (error) {
+      console.warn("Failed to save user_cardtech data to Supabase:", error);
+    } else {
+      console.log("Successfully synced user_cardtech data to Supabase DB");
+    }
+  } catch (err) {
+    console.warn("Error saving user_cardtech:", err);
+  }
+}
+
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { uploadCardImage, deleteCardImage } from '../api';
+import { uploadCardImage, deleteCardImage, fetchUserCardTechData, saveUserCardTechData } from '../api';
 
 // 초기 카드 데이터 (이미지 엑셀 100% 반영)
 const INITIAL_CARDS = [
@@ -567,11 +567,32 @@ export default function CardTechTab({ userId }) {
     images: []
   });
 
+  // 1. 마운트 및 userId 수신 시 Supabase DB에서 최신 데이터 로드 (스마트폰 ↔ PC 자동 동기화)
+  useEffect(() => {
+    if (!userId) return;
+    let isMounted = true;
+
+    fetchUserCardTechData(userId).then((dbData) => {
+      if (isMounted && dbData && Array.isArray(dbData) && dbData.length > 0) {
+        console.log("Loaded synced cardtech data from Supabase DB:", dbData.length, "cards");
+        setCards(dbData.map(c => ({ ...c, images: c.images || [] })));
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userId]);
+
+  // 2. 카드 내역 변경 시 localstorage 및 Supabase DB에 실시간 저장 동기화
   useEffect(() => {
     if (storageKey) {
       localStorage.setItem(storageKey, JSON.stringify(cards));
     }
-  }, [cards, storageKey]);
+    if (userId) {
+      saveUserCardTechData(userId, cards);
+    }
+  }, [cards, storageKey, userId]);
 
   // [카드사 + 카드구분(신용/체크)] 독립 분리 혜택 자격 계산
   const companyEligibilityMap = useMemo(() => {
