@@ -432,28 +432,32 @@ export async function uploadCardImage(userId, file) {
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
   
-  try {
-    const { data, error } = await supabase.storage
-      .from('card-images')
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+  // 'card-image' (단수) 및 'card-images' (복수) 버킷 이름 둘 다 자동 지원
+  const targetBuckets = ['card-image', 'card-images'];
+  
+  for (const bucket of targetBuckets) {
+    try {
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-    if (error) {
-      console.warn("Supabase Storage upload warning (falling back to compressed DataURL):", error);
-      return await compressFileToBase64(file);
+      if (!error && data) {
+        const { data: { publicUrl } } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(fileName);
+
+        return publicUrl;
+      }
+    } catch (err) {
+      console.warn(`Attempt upload to bucket '${bucket}' failed:`, err);
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('card-images')
-      .getPublicUrl(fileName);
-
-    return publicUrl;
-  } catch (err) {
-    console.warn("Storage upload error, using DataURL fallback:", err);
-    return await compressFileToBase64(file);
   }
+
+  // Storage 권한(RLS) 문제나 에러 발생 시 부드럽게 브라우저 고효율 압축 저장으로 fallback
+  return await compressFileToBase64(file);
 }
 
 // 이미지 파일 고효율 압축 헬퍼 (DataURL 생성)
