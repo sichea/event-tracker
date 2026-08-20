@@ -460,6 +460,33 @@ export async function uploadCardImage(userId, file) {
   return await compressFileToBase64(file);
 }
 
+// --- 카테크 카드 혜택 이미지 실적 파일 삭제 API ---
+export async function deleteCardImage(imageUrl) {
+  if (!imageUrl || !imageUrl.includes('/storage/v1/object/public/')) return;
+
+  try {
+    const parts = imageUrl.split('/storage/v1/object/public/');
+    if (parts.length > 1) {
+      const fullPath = parts[1]; // 'card-image/userId/filename.jpg'
+      const pathParts = fullPath.split('/');
+      const bucket = pathParts[0]; // 'card-image' or 'card-images'
+      const filePath = pathParts.slice(1).join('/'); // 'userId/filename.jpg'
+
+      const { error } = await supabase.storage
+        .from(bucket)
+        .remove([filePath]);
+
+      if (error) {
+        console.warn("Failed to delete image from Supabase storage:", error);
+      } else {
+        console.log("Successfully deleted image file from storage:", filePath);
+      }
+    }
+  } catch (err) {
+    console.warn("Error deleting card image from storage:", err);
+  }
+}
+
 // 이미지 파일 고효율 압축 헬퍼 (DataURL 생성)
 function compressFileToBase64(file) {
   return new Promise((resolve, reject) => {

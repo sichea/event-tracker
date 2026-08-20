@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { uploadCardImage } from '../api';
+import { uploadCardImage, deleteCardImage } from '../api';
 
 // 초기 카드 데이터 (이미지 엑셀 100% 반영)
 const INITIAL_CARDS = [
@@ -749,12 +749,17 @@ export default function CardTechTab({ userId }) {
     }
   };
 
-  // 📸 이미지 삭제
+  // 📸 이미지 삭제 (Supabase 스토리지 파일 실시간 연동 삭제)
   const handleRemoveImage = (indexToRemove) => {
+    const targetUrl = (formData.images || [])[indexToRemove];
     setFormData((prev) => ({
       ...prev,
       images: (prev.images || []).filter((_, idx) => idx !== indexToRemove)
     }));
+
+    if (targetUrl) {
+      deleteCardImage(targetUrl);
+    }
   };
 
   // 갤러리 확대 모달 열기
@@ -810,9 +815,13 @@ export default function CardTechTab({ userId }) {
     setIsModalOpen(false);
   };
 
-  // 카드 삭제
+  // 카드 삭제 (첨부되었던 이미지도 스토리지에서 자동 100% 완전 삭제)
   const handleDeleteCard = (id) => {
     if (window.confirm('이 카드를 삭제하시겠습니까?')) {
+      const cardToDelete = cards.find((c) => c.id === id);
+      if (cardToDelete && cardToDelete.images && cardToDelete.images.length > 0) {
+        cardToDelete.images.forEach((url) => deleteCardImage(url));
+      }
       setCards((prev) => prev.filter((c) => c.id !== id));
     }
   };
