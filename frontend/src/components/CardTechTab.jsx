@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { uploadCardImage } from '../api';
 
 // 초기 카드 데이터 (이미지 엑셀 100% 반영)
 const INITIAL_CARDS = [
@@ -15,7 +16,8 @@ const INITIAL_CARDS = [
     rewardInfo: '21,000원(~26.02까지)',
     minSpend: '30만원',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c2',
@@ -28,7 +30,8 @@ const INITIAL_CARDS = [
     rewardInfo: '20만 사용시 / 1만원 적립 (적립율5%)',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c3',
@@ -41,7 +44,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c4',
@@ -54,7 +58,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '30만원',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c5',
@@ -67,7 +72,8 @@ const INITIAL_CARDS = [
     rewardInfo: '실적초기화 매 월 11일',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c6',
@@ -80,7 +86,8 @@ const INITIAL_CARDS = [
     rewardInfo: '갤러리 확인!',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c7',
@@ -93,7 +100,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c8',
@@ -106,7 +114,8 @@ const INITIAL_CARDS = [
     rewardInfo: '25,000원(~28.07까지)',
     minSpend: '40만원',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   // 탈퇴 (Cancelled)
   {
@@ -120,7 +129,8 @@ const INITIAL_CARDS = [
     rewardInfo: '리워드 12만(1차: 10만 / 2차 5만) 25년12월 2차 리워드 확인 후 해지',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c10',
@@ -133,7 +143,8 @@ const INITIAL_CARDS = [
     rewardInfo: '26,000원(~25.05까지)',
     minSpend: '40만원',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c11',
@@ -146,7 +157,8 @@ const INITIAL_CARDS = [
     rewardInfo: '15만원 사용시 9.5 캐시백',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c12',
@@ -159,7 +171,8 @@ const INITIAL_CARDS = [
     rewardInfo: '25.3월 해지(1년 유지 후 해지/추가혜택 후 해지)',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c13',
@@ -172,7 +185,8 @@ const INITIAL_CARDS = [
     rewardInfo: '15만 캐시백+네페5만',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c14',
@@ -185,7 +199,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c15',
@@ -198,7 +213,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c16',
@@ -211,7 +227,8 @@ const INITIAL_CARDS = [
     rewardInfo: '카페9만원, 신상3만원',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c17',
@@ -224,7 +241,8 @@ const INITIAL_CARDS = [
     rewardInfo: '15만원',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
   {
     id: 'c18',
@@ -237,7 +255,8 @@ const INITIAL_CARDS = [
     rewardInfo: '페이북머니12만원',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   },
 
   // --- 체크카드 (Check Cards) ---
@@ -253,7 +272,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k2',
@@ -266,7 +286,8 @@ const INITIAL_CARDS = [
     rewardInfo: '넷플이용료(0.3%) 캐시백(최대 1만)',
     minSpend: '10만원',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k3',
@@ -279,7 +300,8 @@ const INITIAL_CARDS = [
     rewardInfo: '0.5캐시백(최대1만)',
     minSpend: '30만원',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k4',
@@ -292,7 +314,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k5',
@@ -305,7 +328,8 @@ const INITIAL_CARDS = [
     rewardInfo: '월1회 올리브영 3000원 캐시백',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k6',
@@ -318,7 +342,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k7',
@@ -331,7 +356,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k8',
@@ -344,7 +370,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   // 탈퇴 (Cancelled)
   {
@@ -358,7 +385,8 @@ const INITIAL_CARDS = [
     rewardInfo: 'cu 5,000(11월중순)',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k10',
@@ -371,7 +399,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k11',
@@ -384,7 +413,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k12',
@@ -397,7 +427,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k13',
@@ -410,7 +441,8 @@ const INITIAL_CARDS = [
     rewardInfo: '2만 캐시백',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   },
   {
     id: 'k14',
@@ -423,7 +455,8 @@ const INITIAL_CARDS = [
     rewardInfo: '',
     minSpend: '',
     isSpendCompleted: false,
-    coolPeriodMonths: 6
+    coolPeriodMonths: 6,
+    images: []
   }
 ];
 
@@ -496,7 +529,8 @@ export default function CardTechTab({ userId }) {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return parsed.map(c => ({ ...c, images: c.images || [] }));
       } catch (e) {
         console.error('Failed to parse cardtech localstorage', e);
       }
@@ -508,9 +542,18 @@ export default function CardTechTab({ userId }) {
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'cancelled', 'ready'
   const [searchTerm, setSearchTerm] = useState('');
 
+  // 갤러리 팝업 모달 상태
+  const [galleryModal, setGalleryModal] = useState({
+    isOpen: false,
+    images: [],
+    currentIndex: 0,
+    title: ''
+  });
+
   // 카드 추가/수정 모달
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     type: 'credit',
     cardCompany: '',
@@ -520,7 +563,8 @@ export default function CardTechTab({ userId }) {
     cancelledAt: '',
     rewardInfo: '',
     minSpend: '',
-    coolPeriodMonths: 12
+    coolPeriodMonths: 12,
+    images: []
   });
 
   useEffect(() => {
@@ -529,8 +573,7 @@ export default function CardTechTab({ userId }) {
     }
   }, [cards, storageKey]);
 
-  // 🔥 핵심 개선: [카드사 + 카드구분(신용/체크)] 독립 분리 혜택 자격 계산
-  // 신용카드와 체크카드는 서로 자격 방해를 하지 않음! (예: 우리 체크를 보유하고 있어도 우리 신용 쿨다운은 정상 계산)
+  // [카드사 + 카드구분(신용/체크)] 독립 분리 혜택 자격 계산
   const companyEligibilityMap = useMemo(() => {
     const map = {};
 
@@ -601,7 +644,6 @@ export default function CardTechTab({ userId }) {
       return { isReady: false, label: '보유중' };
     }
 
-    // 동일 타입(신용카드 탈퇴 시 신용카드 보유 유무만 체크 / 체크카드 탈퇴 시 체크카드 보유 유무만 체크)
     if (compData.activeCount > 0) {
       return {
         isReady: false,
@@ -675,11 +717,62 @@ export default function CardTechTab({ userId }) {
     }
   };
 
+  // 📸 이미지 업로드 핸들러 (최대 2장 제한)
+  const handleImageFileChange = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files || files.length === 0) return;
+
+    const currentImages = formData.images || [];
+    if (currentImages.length >= 2) {
+      alert('카드당 이미지는 최대 2장까지만 첨부할 수 있습니다.');
+      return;
+    }
+
+    const availableSlots = 2 - currentImages.length;
+    const uploadTargets = files.slice(0, availableSlots);
+
+    setIsUploading(true);
+    try {
+      const uploadPromises = uploadTargets.map(file => uploadCardImage(userId || 'guest', file));
+      const uploadedUrls = await Promise.all(uploadPromises);
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...uploadedUrls].slice(0, 2)
+      }));
+    } catch (err) {
+      console.error('Image upload error:', err);
+      alert('이미지 업로드에 실패했습니다. 다시 시도해 주세요.');
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  // 📸 이미지 삭제
+  const handleRemoveImage = (indexToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: (prev.images || []).filter((_, idx) => idx !== indexToRemove)
+    }));
+  };
+
+  // 갤러리 확대 모달 열기
+  const openGalleryModal = (images, initialIndex = 0, title = '이미지 미리보기') => {
+    if (!images || images.length === 0) return;
+    setGalleryModal({
+      isOpen: true,
+      images,
+      currentIndex: initialIndex,
+      title
+    });
+  };
+
   // 모달 열기 (신규/수정)
   const openModal = (card = null) => {
     if (card) {
       setEditingCard(card);
-      setFormData({ ...card });
+      setFormData({ ...card, images: card.images || [] });
     } else {
       setEditingCard(null);
       setFormData({
@@ -691,7 +784,8 @@ export default function CardTechTab({ userId }) {
         cancelledAt: '',
         rewardInfo: '',
         minSpend: '',
-        coolPeriodMonths: 12
+        coolPeriodMonths: 12,
+        images: []
       });
     }
     setIsModalOpen(true);
@@ -752,7 +846,7 @@ export default function CardTechTab({ userId }) {
 
   return (
     <div className="space-y-3 pb-12">
-      {/* 간소화된 슬림 헤더 */}
+      {/* 슬림 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900 text-white p-3.5 sm:p-4 rounded-2xl shadow-md border border-slate-800">
         <div className="flex items-center gap-2.5 flex-wrap">
           <h2 className="text-base sm:text-lg font-bold flex items-center gap-1.5 whitespace-nowrap">
@@ -760,7 +854,7 @@ export default function CardTechTab({ userId }) {
             카테크 관리
           </h2>
 
-          {/* 간소화된 요약 칩 */}
+          {/* 요약 칩 */}
           <div className="flex items-center gap-1 text-[11px] font-semibold whitespace-nowrap">
             <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">
               🟢 이용중 {companyHoldingCount}
@@ -792,12 +886,12 @@ export default function CardTechTab({ userId }) {
         </div>
       </div>
 
-      {/* 카드사별 현황 (신용/체크 구분을 반영) */}
+      {/* 카드사별 현황 */}
       <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-2.5 border border-slate-200 dark:border-slate-700/80">
         <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center justify-between">
           <div className="flex items-center gap-1">
             <span className="material-symbols-outlined text-sm text-emerald-500">domain</span>
-            <span>카드사별 현황 (신용 / 체크 독립 구분):</span>
+            <span>카드사별 현황:</span>
           </div>
         </div>
 
@@ -899,6 +993,7 @@ export default function CardTechTab({ userId }) {
         {filteredCards.map((card) => {
           const isActive = card.status === 'active';
           const companyEl = getCompanyEligibilityForCard(card);
+          const hasImages = card.images && card.images.length > 0;
 
           return (
             <div
@@ -943,9 +1038,25 @@ export default function CardTechTab({ userId }) {
                 )}
               </div>
 
-              {card.rewardInfo && (
-                <div className="text-[11px] text-slate-700 dark:text-slate-300 bg-white/70 dark:bg-slate-800/70 p-2 rounded-xl border border-slate-100 dark:border-slate-800 font-medium">
-                  🎁 {card.rewardInfo}
+              {/* 혜택 메모 & 첨부 이미지 썸네일 */}
+              {(card.rewardInfo || hasImages) && (
+                <div className="text-[11px] text-slate-700 dark:text-slate-300 bg-white/70 dark:bg-slate-800/70 p-2 rounded-xl border border-slate-100 dark:border-slate-800 font-medium space-y-1.5">
+                  {card.rewardInfo && <div>🎁 {card.rewardInfo}</div>}
+
+                  {hasImages && (
+                    <div className="flex items-center gap-1.5 pt-1 border-t border-slate-200/40 dark:border-slate-700/40">
+                      <span className="text-[10px] text-slate-400 font-semibold mr-1">📸 이미지:</span>
+                      {card.images.map((imgUrl, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => openGalleryModal(card.images, idx, `${card.cardCompany} ${card.name || ''}`)}
+                          className="relative w-8 h-8 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-600 hover:scale-105 transition-transform"
+                        >
+                          <img src={imgUrl} alt={`첨부이미지 ${idx + 1}`} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1013,7 +1124,7 @@ export default function CardTechTab({ userId }) {
               <th className="py-2.5 px-3 whitespace-nowrap min-w-[120px]">용도 (카드명)</th>
               <th className="py-2.5 px-3 whitespace-nowrap min-w-[140px]">신규자격 / 대기</th>
               <th className="py-2.5 px-3 whitespace-nowrap min-w-[120px]">만든날 / 탈퇴일</th>
-              <th className="py-2.5 px-3 whitespace-nowrap min-w-[160px]">받은 혜택 · 조건 메모</th>
+              <th className="py-2.5 px-3 whitespace-nowrap min-w-[160px]">받은 혜택 · 메모</th>
               <th className="py-2.5 px-3 text-center whitespace-nowrap w-24">전월 실적</th>
               <th className="py-2.5 px-3 text-right whitespace-nowrap w-24">관리</th>
             </tr>
@@ -1022,6 +1133,7 @@ export default function CardTechTab({ userId }) {
             {filteredCards.map((card) => {
               const isActive = card.status === 'active';
               const companyEl = getCompanyEligibilityForCard(card);
+              const hasImages = card.images && card.images.length > 0;
 
               return (
                 <tr
@@ -1086,9 +1198,25 @@ export default function CardTechTab({ userId }) {
                     )}
                   </td>
 
-                  {/* 혜택 및 메모 */}
-                  <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 max-w-xs truncate whitespace-nowrap" title={card.rewardInfo}>
-                    {card.rewardInfo || '-'}
+                  {/* 혜택 및 메모 + 📸 썸네일 */}
+                  <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 max-w-xs whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate" title={card.rewardInfo}>{card.rewardInfo || '-'}</span>
+                      {hasImages && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          {card.images.map((imgUrl, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => openGalleryModal(card.images, idx, `${card.cardCompany} ${card.name || ''}`)}
+                              className="w-6 h-6 rounded overflow-hidden border border-slate-300 dark:border-slate-600 hover:scale-110 transition-transform shadow-xs"
+                              title="이미지 보기"
+                            >
+                              <img src={imgUrl} alt="첨부 썸네일" className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </td>
 
                   {/* 전월 실적 */}
@@ -1155,7 +1283,7 @@ export default function CardTechTab({ userId }) {
       {/* 카드 추가/수정 모달 */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 w-full max-w-sm shadow-xl border border-slate-200 dark:border-slate-800 relative">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 w-full max-w-sm shadow-xl border border-slate-200 dark:border-slate-800 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
@@ -1279,6 +1407,53 @@ export default function CardTechTab({ userId }) {
                 />
               </div>
 
+              {/* 📸 이미지 첨부 (최대 2장) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-slate-500">
+                    혜택/이벤트 캡처 이미지 (최대 2장)
+                  </label>
+                  <span className="text-[10px] text-slate-400">
+                    {(formData.images || []).length}/2장
+                  </span>
+                </div>
+
+                {/* 이미지 미리보기 썸네일 & 삭제 */}
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  {(formData.images || []).map((imgUrl, idx) => (
+                    <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700 group">
+                      <img src={imgUrl} alt={`미리보기 ${idx + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        className="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full p-0.5 shadow hover:bg-rose-700"
+                        title="이미지 삭제"
+                      >
+                        <span className="material-symbols-outlined text-xs block">close</span>
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* 파일 추가 버튼 */}
+                  {(formData.images || []).length < 2 && (
+                    <label className={`w-16 h-16 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-500 transition-colors ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                      <span className="material-symbols-outlined text-slate-400 text-lg">add_a_photo</span>
+                      <span className="text-[9px] text-slate-400 mt-0.5">
+                        {isUploading ? '업로드...' : '사진 추가'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageFileChange}
+                        className="hidden"
+                        disabled={isUploading}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
@@ -1289,12 +1464,68 @@ export default function CardTechTab({ userId }) {
                 </button>
                 <button
                   type="submit"
-                  className="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 shadow-sm"
+                  disabled={isUploading}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 shadow-sm disabled:opacity-50"
                 >
                   저장
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 🖼️ 전면 갤러리 팝업 모달 */}
+      {galleryModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <div className="relative max-w-2xl w-full bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
+            {/* 헤더 */}
+            <div className="p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-white">
+              <h4 className="font-bold text-sm flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-400">photo_library</span>
+                {galleryModal.title} ({galleryModal.currentIndex + 1}/{galleryModal.images.length})
+              </h4>
+              <button
+                onClick={() => setGalleryModal({ ...galleryModal, isOpen: false })}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
+
+            {/* 이미지 보기 메인 */}
+            <div className="relative bg-black flex items-center justify-center min-h-[300px] max-h-[70vh] p-2">
+              <img
+                src={galleryModal.images[galleryModal.currentIndex]}
+                alt="확대 이미지"
+                className="max-h-[68vh] w-auto object-contain rounded-lg"
+              />
+
+              {/* 이전/다음 버튼 (이미지가 2장일 때) */}
+              {galleryModal.images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setGalleryModal(prev => ({
+                      ...prev,
+                      currentIndex: (prev.currentIndex - 1 + prev.images.length) % prev.images.length
+                    }))}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-900/70 text-white hover:bg-slate-800 transition-all border border-slate-700"
+                  >
+                    <span className="material-symbols-outlined text-xl block">chevron_left</span>
+                  </button>
+
+                  <button
+                    onClick={() => setGalleryModal(prev => ({
+                      ...prev,
+                      currentIndex: (prev.currentIndex + 1) % prev.images.length
+                    }))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-900/70 text-white hover:bg-slate-800 transition-all border border-slate-700"
+                  >
+                    <span className="material-symbols-outlined text-xl block">chevron_right</span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

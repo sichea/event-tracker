@@ -425,3 +425,70 @@ export async function fetchCachedStocks() {
   return data || [];
 }
 
+// --- 카테크 카드 혜택 이미지 업로드 API (Supabase Storage + Fallback) ---
+export async function uploadCardImage(userId, file) {
+  if (!userId) throw new Error("로그인이 필요합니다.");
+  
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+  
+  try {
+    const { data, error } = await supabase.storage
+      .from('card-images')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.warn("Supabase Storage upload warning (falling back to compressed DataURL):", error);
+      return await compressFileToBase64(file);
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('card-images')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  } catch (err) {
+    console.warn("Storage upload error, using DataURL fallback:", err);
+    return await compressFileToBase64(file);
+  }
+}
+
+// 이미지 파일 고효율 압축 헬퍼 (DataURL 생성)
+function compressFileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1000;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        resolve(dataUrl);
+      };
+      img.onerror = (e) => reject(e);
+      img.src = event.target.result;
+    };
+    reader.onerror = (e) => reject(e);
+    reader.readAsDataURL(file);
+  });
+}
+
+
