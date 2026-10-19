@@ -1291,6 +1291,7 @@ function App() {
   const isExpired = (endDateStr) => {
     if (!endDateStr) return false;
     const end = new Date(endDateStr);
+    if (isNaN(end.getTime())) return true;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);

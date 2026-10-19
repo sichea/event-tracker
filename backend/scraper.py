@@ -91,7 +91,7 @@ def generate_event_id(provider: str, title: str) -> str:
 
 
 def _parse_date(text: str, reference_year: int = None) -> str:
-    """다양한 날짜 포맷을 YYYY-MM-DD로 통일합니다."""
+    """다양한 날짜 포맷을 YYYY-MM-DD로 통일하고 유효성을 검증합니다."""
     # 요일 표시(월, 화 등) 및 마침표 제거
     text = re.sub(r"\([월화수목금토일]\)", "", text)
     text = text.replace("년", "-").replace("월", "-").replace("일", "").strip()
@@ -108,18 +108,27 @@ def _parse_date(text: str, reference_year: int = None) -> str:
     match = re.search(r"(\d{4})-(\d{1,2})-(\d{1,2})", text)
     if match:
         y, m, d = match.groups()
-        return f"{y}-{m.zfill(2)}-{d.zfill(2)}"
+        try:
+            return date(int(y), int(m), int(d)).strftime("%Y-%m-%d")
+        except ValueError:
+            return ""
     # "26-04-01" 형태 (2자리 연도)
     match = re.search(r"(\d{2})-(\d{1,2})-(\d{1,2})", text)
     if match:
         y, m, d = match.groups()
-        return f"20{y}-{m.zfill(2)}-{d.zfill(2)}"
+        try:
+            return date(2000 + int(y), int(m), int(d)).strftime("%Y-%m-%d")
+        except ValueError:
+            return ""
     # "04-01" 형태 (연도 생략)
     match = re.search(r"(\d{1,2})-(\d{1,2})", text)
     if match:
         m, d = match.groups()
         year = reference_year if reference_year else datetime.now().year
-        return f"{year}-{m.zfill(2)}-{d.zfill(2)}"
+        try:
+            return date(int(year), int(m), int(d)).strftime("%Y-%m-%d")
+        except ValueError:
+            return ""
     return ""
 
 
@@ -178,50 +187,71 @@ def parse_period_from_text(text: str, reference_year: int = None) -> dict:
     clean_text = re.sub(r'[\r\n\t]', ' ', clean_text_with_newlines)
     
     # 2. 키워드 기반 우선 추출 (이벤트 기간, 응모 기간 등 뒤에 오는 날짜)
-    prio_keywords = ["이벤트 기간", "응모 기간", "참여 기간", "기간:", "기간 :", "기간 ["]
-    date_regex = r"(\d{2,4}\s*[./-]\s*\d{1,2}\s*[./-]\s*\d{1,2}(?:\.?\s*\([월화수목금토일]\))?)"
-    date_short_regex = r"(\d{1,2}\s*[./]\s*\d{1,2}(?:\.?\s*\([월화수목금토일]\))?)"
-    sep_regex = r"\s*(?:~|—|～|-|까지)\s*"
+    prio_keywords = ["이벤트 기간", "응모 기간", "참여 기간", "기간:", "기간 :", "기간 [", "기간"]
     
+    d_full = r"(\d{2,4}\s*(?:년|[./-])\s*\d{1,2}\s*(?:월|[./-])\s*\d{1,2}(?:\s*일)?(?:\.?\s*\([월화수목금토일]\))?)"
+    d_short = r"(\d{1,2}\s*(?:월|[./])\s*\d{1,2}(?:\s*일)?(?:\.?\s*\([월화수목금토일]\))?)"
+    sep = r"\s*(?:~|—|～|-|까지)\s*"
+
+    def resolve_range(s_raw: str, e_raw: str) -> dict:
+        s = _parse_date(s_raw, reference_year)
+        ref = int(s.split("-")[0]) if s else (reference_year or datetime.now().year)
+        e = _parse_date(e_raw, ref)
+        if s and e and e < s and (not reference_year or ref == reference_year):
+            # 연도 넘어가는 경우 (예: 12월 ~ 1월)
+            e_rollover = _parse_date(e_raw, ref + 1)
+            if e_rollover:
+                e = e_rollover
+        return {"start": s, "end": e}
+
     for kw in prio_keywords:
-        # 키워드 바로 뒤(최대 20자 이내)에 날짜 패턴이 있는지 확인
-        kw_pattern = rf"{re.escape(kw)}.*?{date_regex}{sep_regex}{date_regex}"
-        match = re.search(kw_pattern, clean_text, re.IGNORECASE)
-        if match:
-            return {"start": _parse_date(match.group(1), reference_year), "end": _parse_date(match.group(2), reference_year)}
-        
-        # 키워드 뒤에 짧은 날짜 패턴 확인 (4/1 ~ 4/30)
-        kw_short_pattern = rf"{re.escape(kw)}.*?{date_short_regex}{sep_regex}{date_short_regex}"
-        match = re.search(kw_short_pattern, clean_text, re.IGNORECASE)
-        if match:
-            return {"start": _parse_date(match.group(1), reference_year), "end": _parse_date(match.group(2), reference_year)}
+        # 키워드 바로 뒤(최대 30자 이내)에 날짜 패턴이 있는지 확인
+        # Full to Full or Full to Short
+        m = re.search(rf"{re.escape(kw)}.*?{d_full}{sep}(?:{d_full}|{d_short})", clean_text, re.IGNORECASE)
+        if m:
+            s_raw = m.group(1)
+            e_raw = m.group(2) if m.group(2) else m.group(3)
+            res = resolve_range(s_raw, e_raw)
+            if res["end"]:
+                return res
 
-    # 3. 일반 패턴 검색 (기존 로직 유지하되 우선순위 밀림)
-    # 3-1. 표준 패턴: 2024.04.01 ~ 2024.04.30
-    p1 = re.search(f"{date_regex}{sep_regex}{date_regex}", clean_text)
-    if p1:
-        return {"start": _parse_date(p1.group(1), reference_year), "end": _parse_date(p1.group(2), reference_year)}
+        # Short to Short
+        m = re.search(rf"{re.escape(kw)}.*?{d_short}{sep}{d_short}", clean_text, re.IGNORECASE)
+        if m:
+            res = resolve_range(m.group(1), m.group(2))
+            if res["end"]:
+                return res
 
-    # 3-2. 한글 패턴: 2024년 4월 1일 ~ 2024년 4월 30일
-    date_ko_regex = r"(\d{2,4}년\s*\d{1,2}월\s*\d{1,2}일(?:\s*\([월화수목금토일]\))?)"
-    p2 = re.search(f"{date_ko_regex}{sep_regex}{date_ko_regex}", clean_text)
-    if p2:
-        return {"start": _parse_date(p2.group(1), reference_year), "end": _parse_date(p2.group(2), reference_year)}
+    # 3. 일반 패턴 검색
+    # 3-1. Full to Full or Full to Short
+    m1 = re.search(rf"{d_full}{sep}(?:{d_full}|{d_short})", clean_text)
+    if m1:
+        s_raw = m1.group(1)
+        e_raw = m1.group(2) if m1.group(2) else m1.group(3)
+        res = resolve_range(s_raw, e_raw)
+        if res["end"]:
+            return res
 
-    # 3-3. 연도 생략된 패턴: 4.1(월) ~ 4.30(화)
-    p3 = re.search(f"{date_short_regex}{sep_regex}{date_short_regex}", clean_text)
-    if p3:
-        return {"start": _parse_date(p3.group(1), reference_year), "end": _parse_date(p3.group(2), reference_year)}
+    # 3-2. Short to Short
+    m2 = re.search(rf"{d_short}{sep}{d_short}", clean_text)
+    if m2:
+        res = resolve_range(m2.group(1), m2.group(2))
+        if res["end"]:
+            return res
 
-    # 3-4. 종료일만 있는 경우: ~ 2024.04.30
-    p4 = re.search(rf"(?:~|—|～|-|까지)\s*{date_regex}", clean_text)
-    if p4:
-        return {"start": "", "end": _parse_date(p4.group(1), reference_year)}
+    # 3-3. 종료일만 있는 경우 (Full)
+    m3 = re.search(rf"(?:~|—|～|-|까지)\s*{d_full}", clean_text)
+    if m3:
+        e = _parse_date(m3.group(1), reference_year)
+        if e:
+            return {"start": "", "end": e}
 
-    # 3-5. 종료일만 연도 생략: ~ 4.30
-    p5 = re.search(rf"(?:~|—|～|-|까지)\s*{date_short_regex}", clean_text)
-    if p5:
-        return {"start": "", "end": _parse_date(p5.group(1), reference_year)}
+    # 3-4. 종료일만 있는 경우 (Short)
+    m4 = re.search(rf"(?:~|—|～|-|까지)\s*{d_short}", clean_text)
+    if m4:
+        e = _parse_date(m4.group(1), reference_year)
+        if e:
+            return {"start": "", "end": e}
         
     return {"start": "", "end": ""}
 
@@ -619,7 +649,7 @@ async def scrape_naver_blog_generic(page, provider_id: str) -> list[dict]:
             # 날짜 정보 확인 및 D-Day 필터링
             d_day = _calc_dday(p["end"])
             if d_day is not None and d_day < 0: continue
-            if not p["end"]: continue
+            if not p["end"] or d_day is None: continue
 
             events.append({
                 "id": generate_event_id(provider_id, title),
@@ -627,7 +657,7 @@ async def scrape_naver_blog_generic(page, provider_id: str) -> list[dict]:
                 "title": title,
                 "start_date": p["start"],
                 "end_date": p["end"],
-                "d_day": d_day if d_day is not None else 0,
+                "d_day": d_day,
                 "status": "진행중",
                 "link": link,
                 "scraped_at": datetime.now().isoformat()
@@ -947,7 +977,11 @@ async def run_scrape_and_save():
                 try:
                     end_date = datetime.strptime(r["end_date"], "%Y-%m-%d").date()
                     r["d_day"] = (end_date - today).days
-                except: pass
+                    if r["d_day"] < 0:
+                        r["status"] = "종료"
+                except:
+                    r["status"] = "종료"
+                    r["d_day"] = -1
 
         if records:
             try:
